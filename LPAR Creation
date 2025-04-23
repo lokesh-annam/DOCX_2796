@@ -1,0 +1,52 @@
+=======================LPAR Creation===========================>
+Logical Partition:-
+
+Physical Adapters: 
+Ethernet Adapters: 
+Fiber Adapters:
+Scsci Adapters:
+CD/DVD usb:
+device:
+Local tape drive:
+
+# init			<-- 
+# restbase		<-- 
+# cfgmgr		<-- command configures devices and optionally installs device software into the system.
+# bootinfo -b	<--
+# ipl_varyon 	<-- Active rootvg
+	ipl_varyon -i
+
+Capped:- No sharing of cpu, Processer, memory.
+Uncapped:- idle processing from Shared pool when there are availabel of cpu, Processer, memory.
+WWPN:-
+RMC:-
+
+Detailed below are the current processing settings for this partition profile:- 
+Processing mode:
+Dedicated
+Shared
+
+Processing units:
+Total managed system processing units :	128.00
+Minimum shared processing units :	1.0
+Desired shared processing units :	2.0
+Maximum shared processing units :	4.0
+Shared processor pool:	
+
+DefaultPool (0)
+
+Virtual processors:
+Minimum processing units required for each virtual processor :	0.10
+Newer operating system levels support :	0.05
+Minimum virtual processors :	1.0
+Desired virtual processors :	2.0
+Maximum virtual processors :	4.0
+
+Sharing mode:
+Uncapped	Weight :	255
+ 	Increase/Decrease the value
+Processor compatibility mode:	default
+
+
+
+Loading the boot image of AIX:
