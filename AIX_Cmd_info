@@ -1,0 +1,251 @@
+===================sysinfo=======================================
+
+
+
+
+Kernel File and associated directories
+	/unix
+
+	/usr/lib/boot
+	/usr/lib/drivers
+
+	Note: /unix - symbolic link to kernel file i.e /usr/lib/boot/unix_64
+
+
+Kernel 32 or 64
+	
+	
+	
+
+Display Firmware
+	
+	
+	
+
+Display IRQ, IO ports and DMA
+	prtconf
+
+GUI admin tool
+	
+	
+
+==================Memory and Swap================================
+
+
+
+
+
+
+
+
+
+
+
+
+	
+	# change the logical volume attributes (name in this case)
+	
+	
+	Note:
+	
+	-a reconfigure paging space after restart
+	-s size of the page space (logical partitions)
+	-n activiates the paging space (use swapoff to deactivate)
+	
+	also see /etc/swapspaces file
+
+removing swap:- 
+	
+	
+	Note: paging space must be deactiviated before removing
+
+
+Disks, Filesystems and Devices:-
+
+	
+Disk serial Number, type, etc:-
+	lscfg -vl hdisk0
+	lscfg -vl hdisk*
+
+Disk disk partitions:-
+	
+	
+	
+
+List Raw Partitions:-
+	Just create a new LVOL without a filesystem
+
+	# 
+	
+
+:-
+	
+
+	Note: enables bad block relocation
+
+Filesystem commands:-
+	
+
+
+
+	
+backup filesystem:-
+	backup|restore
+	tar
+	dd
+	cpio
+
+Display the boot device
+	bootinfo -b (display last boot device)
+	
+
+Setting the boot device
+	
+
+Creating boot device (MBR)
+
+
+
+Format floppy drive
+
+
+
+
+mount/unmount floppy
+	
+
+
+mount/unmount CDROM
+	
+	
+
+
+
+
+mount/umount ISO image
+
+
+
+
+remount a filesystem
+	
+
+	Note:I did find a note that it should be possible to remount a jfs2 filesystem, but it did not work on my system
+
+
+create boot disk or recovery tape
+	mksysb
+
+
+
+
+
+==========================Crash Dump===========================
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+
+	
+
+	
+Startup options:-
+	Based on 9114-275 workstation
+	
+	1. switch off the machine
+	
+	2. power on and enter the SMS menu
+	
+	Note: to enter the SMS menu press numeric 1 after the word keyboard but before the word speaker
+		
+startup scripts:-
+	
+	
+	also uses the System Resource Controller
+boot prompt commands	Based on a 9114-275 workstation
+	
+	1. switch off the machine
+	
+	2. power on and enter the SMS menu
+	
+	Note: to enter the SMS menu press numeric 1 after the word keyboard but before the word speaker
+		
+
+
+	
+	
+
+
+
+	
+	
+	
+	
+
+
+	
+	
+
+	
+	
+	
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
