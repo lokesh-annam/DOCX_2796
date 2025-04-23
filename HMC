@@ -1,0 +1,834 @@
+=================================
+HMC:- Hardware Management Console
+=================================
+HMC OS: HMC OS is combination of Linux and Java Versions.
+HMC Version: 9 
+	# lshmc -V
+HMC Models: 7042-CR8
+	# lshmc -v | grep TM
+HMC Login: We can login HMC two ways
+	1) By using Web Browser - GUI mode
+	2) By using Putty - Command mode.
+		1) Web Browser Login:
+			1) Open Internet Explorer/ Crome/Fire Fox
+			2) Give the HMC IP or hostname in title/site bar
+			3) Click on launch HMC button
+			4) Type HMC username (hscroot) and password (abc123)
+		2) Putty/CMD HMC login:
+			a) Open putty
+			b) give HMC IP/Hostname in Putty & Select SSH 
+			c) Click on open button
+HMC Activities:
+	HMC activities are two types
+	1) Managed Systems activities
+	2) LPAR Activities
+
+What is ASM? Advanced System Management
+
+
+
+# lshmc -V	--> hmc version
+# lshmv -v 	--> hmc model
+# lshmc -n	--> lists the network settings of the hmc
+# hmcshutdown -t now -r	--> reboot the HMC (-t: timing in minutes, -r: reboot)
+# hmcshutdown -r -t0	--> How to do HMC restart. 
+# vtmenu		--> hmc menu options (console session can be opened as well)
+# logout: ~~.		--> (2 tilde and a dot)
+# lslogon -r webui -u		--> lists users logged in gui (lslogon -r webui -t <--lists running tasks)
+# lslogon -r ssh -u		--> lists users logged in cli (lslogon -r ssh -t <--lists running tasks)
+# lspartition -dlpar	--> shows dlpar capable partitions
+# lssysconn -r all		--> to see what IPs are assigned by the HMC
+# mksysconn -o auto		--> tells HMC to re-discover all servers' IP address(it will show if RMC connection is OK between the HMC and LPAR)
+# who -b	--> which will show the date/time of the system boot based on /var/log/wtmp
+# cat /proc/uptime		--> 
+
+MANAGED SYSTEM AND LPAR RELATED COMMANDS:
+# lssysconn -r all	--> The lssysconn command will list both the eBMC and VMI IP addresses and connection states.
+# lssyscfg -r sys -F name	--> To get the names of server(s) managed by an HMC.
+# lssyscfg -m <sys> -r lpar		--> lists general info of lpars on the managed sys.
+# lssyscfg -m <sys> -r prof		--> lists all settings in the lpar profiles on the managed sys.
+# lssyscfg -m <sys> -r lpar -F name,state --header                                   lists lpars and if it is activated or not
+# lssyscfg -m <sys> -r prof -F lpar_name,virtual_eth_adapters                        lists lpars with eth. adapters (vlan tags will be shown as well)
+# lssyscfg -m <sys> -r prof --filter "lpar_names=<lpar>" -F name,virtual_fc_adapters lists vfc adapters (with wwpn) of an lpar
+# lssyscfg -r sys -m <Managed_System_Name> -F name,service_lpar_id,service_lpar_name	--> List which partition is assigned as service.
+# lssyscfg -r prof -m Server-8233-E8B-SN0623B7P --header -F lpar_name,name	--> To list LPAR names and LPAR profile names.
+# lssyscfg -r lpar -m <managedsysname> -F lpar_id,state, rmc_state,rmc_ipaddr,os_version,dlpar_mem_capable,dlpar_proc_capable,dlpar_io_capable		--> Check RMC state.
+# lssyscfg -m FRAME -r lpar --filter "lpar_names=LPARNAME" -F name,lpar_id,state,curr_profile	--> How to list lpars by name, id, state and current profile of LPARNAME.
+# lssyscfg -m FRAME -r lpar -F name,lpar_id,state,curr_profile	--> How to list lpars by name, id, state and current profile in a managed system.
+# lssyscfg -r sys -F name | grep aix21		--> shows the full name of the managed system (what we can use in other commands)
+# lssyscfg -r lpar -m <managedsysname> -F name		--> shows the full name of the lpars of the managed system
+# lssyscfg -r sys -m <managedsysname> -F name,state --header		--> shows the state of the managed system
+# lssyscfg -r lpar -m <managedsysname> -F name,state --header		--> shows the state of the lpars of the managed system
+# lssyscfg -r prof -m aix10-SN0603C6H --filter "lpar_names=aix10" -F name,boot_mode		--> it will show the boot mode in the profile
+# lssyscfg -r prof -m <man.sys> -F lpar_name,virtual_eth_adapters		--> shows LPARS with ethernet adaptesr and VLAN tags
+# lssyscfg -r sys -m <managed system> -F name,capabilities		--> You can check the managed system capabilities.
+# lssyscfg -m <sys> -r <res> --filter "<name>=<value>,<value>" -F <attr>,<attr> --header
+	-r           resource type
+	-m           name of the managed system (if omitted all managed systems will be listed)
+		sys     gives general info about managed system
+		lpar    gives general info about lpar
+		prof    gives specific infos (cpu, mem, vscsi..) from the lpar profile
+	--filter     select values for a specific resource only (lpar_ids, lpar_names and profile_names)
+		"lpar_ids=...,..."
+		"lpar_names=...,."
+		"profile_names=.."
+	-F           display only the given attributes (name of the attr. will not be displayed and delimeter can be specified)
+	--header     show header of the displayed values
+
+# lshwres: Lists hardware resources of the managed-system and lpars, including physical I/O, virtual I/O, cpu/mem settings, (shared) processor pool, etc.
+# lshwres -m <sys> -r <res> --rsubtype <subtype> --level <lpar/sys> --filter "<name>=<value>,<value>" -F <attr>,<attr> --header
+	-m              name of the managed system (lssyscfg -r sys -F name)
+	-r              resource type
+		io         physical io
+		mem        memory
+		proc       processing unit
+		virtualio  virtual io
+	--rsubtype      subtype of the resource given previously (it works for io and virualio)
+		io         slot, slotchildresn (these can be used for the resource 'io')
+		virtualio  eth, fc, scsi, vswitch (these can be used for the resource 'virtualio')
+	--level         display info of managed system or lpar (it works for mem, proc and virtualio)
+		lpar       info is taken from lpar level (i.e memory values of the lpars)
+		sys        info is taken from system level (i.e memory value of the managed system)
+	--filter        select values for a specific resource only (not all value can be used as filter)
+	"lpar_ids=...,..."
+	"lpar_names=...,."
+	"vlans=...,...,.."
+	-F              display given attributes (the name of the attribute will not be displayed and delimeter can be specified)
+	--header        show header of the displayed values
+# lshwres -r virtualio --rsubtype fc --level lpar -m Server-8233-E8B-SN0623B7P	--> List virtual slot type fc.
+# lshwres -r virtualio --rsubtype fc --level lpar -m Server-8233-E8B-SN0623B7P -F lpar_name,wwpns --header --filter lpar_names=lpar2
+# lshwres -r virtualio --rsubtype fc --level lpar -m Server-8233-E8B-SN0623B7P
+# lshwres -r virtualio --rsubtype slot --level lpar -m P570-SERVER -F lpar_name,curr_max_virtual_slots
+# lshwres -r proc -m FRAME --level lpar -F lpar_name,curr_proc_units,curr_procs		--> How to list squadron's processors, real and virtual.
+# lshwres -r mem  -m FRAME --level sys -F configurable_sys_mem installed_sys_mem curr_avail_sys_mem sys_firmware_mem	--> How to list total processors of the squadron.
+# lshwres -r mem  -m FRAME --level sys -F configurable_sys_mem installed_sys_mem curr_avail_sys_mem sys_firmware_mem	--> How to list total memory of the squadron.
+# lshwres -r mem -m FRAME --level lpar -F lpar_name,curr_mem	--> How to list memory for each lpar in a squadron.
+# lshwres -r mem -m <managedsysname> --level sys	--> shows memory information of the managed system
+# lshwres -r mem -m <managedsysname> --level lpar	--> shows memory information of lpars of the managed system
+# lshwres -r proc -m <managedsysname> --level sys	--> shows processor information of the managed system
+# lshwres -r proc -m <managedsysname> --level lpar	--> shows processor information of lpars of the manage system
+# lshwres -r io -m <managedsysname> --rsubtype slot	--> shows IO slot information
+# lshwres -r proc -m <managedsysname> --level sys -F installed_sys_proc_units:configurable_sys_proc_units
+# lshwres -r virtualio --rsubtype scsi -m <managedsysname> --level lpar		--> lists scsi devices by LPAR
+# lshwres -r virtualio --rsubtype eth -m <managedsysname> --level lpar		--> lists virt. eth. devices by LPAR
+# lshwres -r virtualio --rsubtype eth -m <managedsysname> --level lpar -F lpar_name,port_vlan_id
+PHYSICAL I/O (IO):
+# lshwres -m <sys> -r io --rsubtype slot/slotchildren        shows io slot information (or children devices of slots)
+MEM/PROC (mem/proc):
+# lshwres -m <sys> -r mem/proc --level lpar/sys              shows mem/proc info of all lpars or the managed system
+VIRTUAL I/O (virtualio):
+# lshwres -m <sys> -r virtualio --rsubtype vswitch            shows virtual switches with configured vlan ids on them
+# lshwres -m <sys> -r virtualio --rsubtype eth --level lpar   shows virt. ethernet adapters with lpar_name,slot_id, vlan_id....
+# lshwres -m <sys> -r virtualio --rsubtype fc --level lpar    shows virt. fc adapters with lpar_name,slot_id, wwpns...
+# lshwres -m <sys> -r virtualio --rsubtype scsi --level lpar  shows vscsi adapters with lpar_name,slot_id...
+SR-IOV (sriov):
+# lshwres -m <sys> -r sriov --rsubtype physport --level ethc lists physical port config: location, speed, mtu size ...
+# lshwres -m <sys> -r sriov --rsubtype logport --level eth   lists logical port config: capacity, mac address, vlans ...
+# chhwres -m <sys> -r sriov --rsubtype physport -o s -a “adapter_id=1,phys_port_id=1,conn_speed=10000”  change phys. port config
+other example:
+# lshwres -m <sys> -r virtualio --rsubtype eth --level lpar --filter "lpar_names=<lpar>" -F slot_num:addl_vlan_ids  shows lpar virt. adapters and vlans
+
+# lssvcevents -t console -d 60		--> lists console events in the past 60 days
+# lssvcevents -t hardware -d 0		--> list serviceable events which occured today
+# lssvcevents -t console -d 300 | grep DLPAR		--> list DLPAR operations of last 300 days (you can grep more to mem or proc)
+# lssvcevents -t console -d 7 | grep Migration		--> list last 7 days LPMs
+# lssvcevents -t console -d 3		--> How to list 3 days of console events.
+# lssvcevents -t console -m PARTITION -s ALL -d 3		--> How to list 3 days of console events for a specific lpar.
+# lssvcevents -t hardware -d 3		--> How to list 3 days of hardware events.
+# lssvcevents -t hardware -m PARTITION -s ALL -d 3	--> How to list 3 days of hardware events for a specific lpar.
+
+# lslparmigr -r sys -m <managed system> | sed "s/,/\n/g"        shows how many concurrent migr. is possible
+# lslparmigr -m <sys> -r lpar                                          list lpars and migration state (not migrating or migrating..)
+# chsyscfg -r sys -m <Managed_System_Name> -i "service_lpar_id=none"	--> Change or remove the service partition: use partition ID or none.
+# chhwres -r virtualio -m p824-1234 -o a --rsubtype vswitch --vswitch net_production	--> Create a new virtual switch (use “r” to remove)
+
+# chsysstate -m <managedsysname> -o standby -r sys		--> power on a system to standby
+# chsysstate -r sys -m <managedsysname> -o off		--> normal power off the managed system
+# chsysstate -r sys -m <managedsysname> -o off --immed		--> fast power off the managed system
+	# chsysstate -m 8231-E2D-SN06BB7DT_UAT_107 -r sys -o on
+	# chsysstate -r lpar -m 8231-E2D-SN06BB7DT_UAT_107 -o on -n VIOS107
+# chsysstate -m <managed system> -r lpar -n <lparname> -o shutdown --restart		--> it will reboot an lpar with dump
+# chsysstate -m <managed system> -r lpar -n <lparname> -o shutdown --immed --restart	--> it will reboot an lpar immediately (without dump)
+# chsysstate -m <managedsysname> -r lpar -n <lparname> -o shutdown --immed		--> it will shutdown the oprating system
+# chsysstate -m aix10-SN65158BE -o on -r lpar -n aix10 -f default		--> it will activate an lpar
+
+# lsnportlogin -m sys> --filter "lpar_names=<lpar>"                    list all npiv (wwpn) info of an lpar
+# lsnportlogin -m sys> --filter "lpar_names=<lpar>" -F wwpn            lists only wwpn of given lpar
+
+# lssacfg -t email                                                     shows email notification settings
+
+ADDING/REMOVING VLAN TAG DYNAMICALLY:
+# chhwres -r virtualio --rsubtype eth -m <man.sys.> -o s -p <LPAR> -s <adapter id> -a "addl_vlan_ids+=<VLAN TAG>"		--> Adding VLAN TAG dynamically: (it will not add to profile).
+# chhwres -r virtualio --rsubtype eth -m <man.sys.> -o s -p <LPAR> -s <adapter id> -a "addl_vlan_ids-=<VLAN TAG>"		--> --> Removing VLAN TAG dynamically: (it will not add to profile).
+
+# mksyscfg -m SERVER -r lpar -i ‘name=LPARname,profile_name=Profilename,lpar_id=10,lpar_env=os400,min_mem=1024,
+	desired_mem=2048,max_mem=2048,mem_mode=ded,proc_mode=shared,min_proc_units=0.05,desired_proc_units=0.1,
+	max_proc_units=2.0,min_procs=1,desired_procs=1,max_procs=2,sharing_mode=uncap,uncap_weight=128,
+	shared_proc_pool_id=1,max_virtual_slots=10,“virtual_eth_adapters=2/0/70//0/0/Ethernet0//all/none”, 
+	“virtual_fc_adapters=””2/client/17/VIOS1/11/c050760828120001,c050760828120002/1″”,
+	“”3/client/17/VIOS1/12/c050760828120003,c050760828120004/0″”,“”4/client/18/VIOS2/11/c050760828120005,
+	c050760828120006/1″””, console_slot=hmc’		--> Create an LPAR and specify a WWPN
+	# mksyscfg -r lpar -m system1 -i "name=aix_lpar2,
+        profile_name=prof1,lpar_env=aixlinux,min_mem=256,
+        desired_mem=1024,max_mem=1024,proc_mode=ded,
+        min_procs=1,desired_procs=1,max_procs=2,allow_perf_collection=1,
+        sharing_mode=share_idle_procs,auto_start=1,sync_curr_profile=1,
+        boot_mode=norm,lpar_io_pool_ids=3,
+        "io_slots=21010003/3/1,21030003//0""
+# mksyscfg -r prof -m <MAN_SYS> -o save -p <LPAR_NAME> -n <PROFILE_NAME> --force      it overwrites profile with actual running config
+# termtask -r { webgui | ssh } -s (session) -t (task)		--> terminate a running task (or all tasks) 
+
+USER MANAGEMENT:
+# lshmcusr		--> List a user
+# mkhmcusr -u admin -a hmcsuperadmin --passwd abc1234	--> Create a user 
+# chhmcusr -u hscroot -t passwd		--> change the HMC password
+
+REMOVE RESTRICTED SHELL FOR HSCROOT USER (NEEDS TO BOOT ON A LINUX LIVE CD WITH KNOPPIX OR GPARTED):
+# cd /opt/hsc/data/ssh/
+# chmod 755 hmcsshrc
+# vi hmcsshrc
+Add # before "set -r"
+
+MANAGE HMC DISK SPACE:
+# monhmc -r disk -n 0		--> Check space on HMC.
+# lshmcfs -o c -d 0		--> Estimate the space you can freed.
+# chhmcfs -o f -d 0		--> Clean up
+# monhmc -r mem -n 0 	--> shows total, used and free mamory of HMC
+# monhmc -r disk -n 0	--> shows filesystems and usage info (same as "df -k")
+# monhmc -r proc -n 0	--> shows cpu usage of each processor
+# monhmc -r swap -n 0	--> shows paging space usage
+# monhmc -r disk		--> How to check the current disk space on HMC.
+
+# chhmcfs -o f -d 0		--> How to remove all temporary HMC files from all file systems.
+
+CHANGING LPAR WEIGHT:
+# lshwres -r proc -m <MAN_SYS> --level lpar --filter lpar_names=<LPAR_NAME>		--> list actual running config
+# chhwres -r proc -m <MAN_SYS> -p <LPAR_NAME> -o s -a "uncap_weight=32"		--> changes weight of actual running config
+# lssyscfg -r prof -m <MAN_SYS> --filter lpar_names=<LPAR_NAME>		--> list profile
+# chsyscfg -r prof -m <MAN_SYS> -i "name=<PROFILE_NAME>,lpar_name=<LPAR_NAME>,uncap_weight=32"		--> changes weight in given profile
+# chsyscfg -r lpar -m <managed_system> -o apply -p <lpar_name> -n <profile_name>
+
+LED MANAGEMENT:-
+# lssyscfg -r sys -F name		--> Turn off / on a LED on a server.
+# lsled -r sa -t phys -m Power10_01_siteA	--> Check to see if the attention LED is active.
+# chled -r sa -t phys -m Power10_01_siteA -o off	--> Use the chled command to turn off the system attention LED.
+# lsled -r sa -t phys -m Power10_01_siteA 	--> To check the status of system attention LED you can use the lsled.
+# lsled -r sa -t virtuallpar -m Power10_01_siteA	--> On partitions.
+
+CHANGING SIMPLIFIED RESTART CAPABILITY, TO CHANGE IT WE CURRENTLY NEED TO CHANGE IT DURING LPAR POWEROFF:
+# lssyscfg -m p812-srv1 -r lpar --filter "lpar_names=lparlab" -F simplified_remote_restart_capable
+# chsyscfg -m p812-srv1 -r lpar -i "name=lparlab,simplified_remote_restart_capable=1"
+
+=⇒ LPAR PROPERTIE: REMOTE RESTARTABLE (SIMPLIFIED): ACTIVATED
+Now you are able to start the LPAR once poweroff directly on another server Restart LPAR only if poweroff
+hscroot@hmc:~> rrstartlpar -o restart -m 'p812-srv1' -p lparlab -t p812-srv2
+
+ADDING A VIRTUAL FIBRE CHANNEL DEVICE TO AN LPAR:
+# chhwres -r virtualio -m $MACHINE_NAME -o $ADD_OR_REMOVE -p $VIOS_NAME --rsubtype $DEVICE TYPE -s $VIRTUAL_SLOT -a "adapter_type=$SERVER_OR_CLIENT,remote_lpar_name=$LPAR_NAME,remote_slot_num=$REMOTE_SLOT" 
+# chhwres -r virtualio -m Server-9009-22A-SN8675309 -o a -p VIOS1 --rsubtype fc -s 315 -a "adapter_type=client,remote_lpar_name=nim01,remote_slot_num=315"
+
+ADDING A VIRTUAL FIBRE CHANNEL DEVICE TO A VIO:
+# chhwres -r virtualio -m $MACHINE_NAME -o $ADD_OR_REMOVE -p $VIOS_NAME --rsubtype $DEVICE TYPE -s $VIRTUAL_SLOT -a "adapter_type=$SERVER_OR_CLIENT,remote_lpar_name=$LPAR_NAME,remote_slot_num=$REMOTE_SLOT"
+# chhwres -r virtualio -m Server-9009-22A-SN8675309 -o a -p VIOS1 --rsubtype fc -s 315 -a "adapter_type=server,remote_lpar_name=nim01,remote_slot_num=315"
+
+REMOVING A VIRTUAL ADAPTER IN SLOT 315 FROM AN LPAR OR VIOS:
+# chhwres -r virtualio -m $MACHINE_NAME -o $ADD_OR_REMOVE -p $LPAR_NAME -s $VIRTUAL_SLOT
+# chhwres -r virtualio -m Server-9009-22A-SN8675309 -o r -p nim01 -s 315
+
+NOW SAVE THE RUNING CONFIG (IT OVERWRITES PROFILE WITH ACTUAL RUNNING CONFIG)
+# mksyscfg -r prof -m <MAN_SYS> -o save -p <LPAR_NAME> -n <PROFILE_NAME> --force 
+# mksyscfg -r prof -m Server-9009-22A-SN8675309 -o save -p vios01 -n vios --force
+
+REMOVING A VIRTUAL ADAPTER IN SLOT 31 FROM AN VIOS:
+# chhwres -r virtualio -m $MACHINE_NAME -o $ADD_OR_REMOVE -p $LPAR_NAME -s $VIRTUAL_SLOT
+# chhwres -r virtualio -m Server-9009-22A-SN8675309 -o r -p vios01 -s 31 
+
+SAME INTO THE PROFILE OF THE VIOS (STATIC APPLIES ONLY AFTER PROFILE IS APPLIED, WHEN LPAR RESTART)
+# chsyscfg -r prof -m lab-01-p740 -i 'name=vios,lpar_id=1,"virtual_fc_adapters+=""34/server/6//14//1"""'
+                For the LPAR
+                               (Same into the profile of the LPAR)
+# chsyscfg -r prof -m lab-01-p740 -i 'name=default_profile,lpar_id=6,"virtual_fc_adapters+=""14/client/1/LABVIO01/34//1"""'
+                               (Si besoin, DLPAR vfc "client" on labaix01 slot 14, from source LABVIO01 slot 34)
+# chhwres -r virtualio -m lab-01-p740 -o a -s 14 -p labaix01 --rsubtype fc -a "adapter_type=client,remote_lpar_name=LABVIO01,remote_slot_num=34"                                             
+
+
+
+HMC COMMAND LINE:
+# lssyscfg -r sys -F name | grep aix21f04		--> shows the full name of the managed system (what we can use in other commands)
+# lssyscfg -r lpar -m <managedsysname> -F name		--> shows the full name of the lpars of the managed system
+# lssyscfg -r sys -m <managedsysname> -F name,state --header		--> shows the state of the managed system
+# lssyscfg -r lpar -m <managedsysname> -F name,state --header		--> shows the state of the lpars of the managed system
+# lssyscfg -r prof -m aix10c22-SN0603C6H --filter "lpar_names=aix10c22b" -F name,boot_mode		--> it will show the boot mode in the profile
+
+# lshwres -r mem -m <managedsysname> --level sys		--> shows memory information of the managed system
+# lshwres -r mem -m <managedsysname> --level lpar		--> shows memory information of lpars of the managed system
+# lshwres -r proc -m <managedsysname> --level sys		--> shows processor information of the managed system
+# lshwres -r proc -m <managedsysname> --level lpar		--> shows processor information of lpars of the manage system
+# lshwres -r io -m <managedsysname> --rsubtype slot		--> shows IO slot information
+# lshwres -r proc -m <managedsysname> --level sys -F installed_sys_proc_units:configurable_sys_proc_units
+
+# lshwres -r virtualio --rsubtype scsi -m <managedsysname> --level lpar		--> lists scsi devices by LPAR
+# lshwres -r virtualio --rsubtype eth -m <managedsysname> --level lpar		--> lists virt. eth. devices by LPAR
+# lshwres -r virtualio --rsubtype eth -m <managedsysname> --level lpar -F lpar_name,port_vlan_id
+
+# chsysstate -m <managedsysname> -o standby -r sys		--> power on a system to standby
+# chsysstate -r sys -m <managedsysname> -o off		--> normal power off the managed system
+# chsysstate -r sys -m <managedsysname> -o off --immed 		--> fast power off the managed system
+
+# chsysstate -m <managed system> -r lpar -n <lparname> -o shutdown --restart		--> it will reboot an lpar with dump
+# chsysstate -m <managed system> -r lpar -n <lparname> -o shutdown --immed --restart 	--> it will reboot an lpar immediately (without dump)
+# chsysstate -m <managedsysname> -r lpar -n <lparname> -o shutdown --immed		--> it will shutdown the oprating system
+# chsysstate -m aix10c22-SN65158BE -o on -r lpar -n aix10c22b -f default	--> it will activate an lpar
+
+# lspartition -dlpar	--> shows dlpar capable partitions(it will show if RMC connection is OK between the HMC and LPAR)
+
+# lssysconn -r all		--> to see what IPs are assigned by the HMC
+# mksysconn -o auto		--> tells HMC to re-discover all servers' IP address
+
+# lssvcevents -t console -d 60		--> lists console events in the past 60 days
+# lssvcevents -t hardware -d 0		--> list serviceable events which occured today
+
+# lshmc -V		--> hmc version
+# lshmc -v		--> hmc model
+# lshmc -n		--> lists the network settings of the hmc
+# hmcshutdown -t now -r		--> reboot the HMC (-t: timing in minutes, -r: reboot)
+
+# vtmenu	--> hmc menu options (console session can be opened as well)
+logout: ~~. (2 tilde and a dot)
+
+------------------------------------
+
+Default root password: passw0rd (try su -)
+
+------------------------------------
+
+OPENING/CLOSING VIRTUAL TERMINAL FROM HMC:
+
+# lssyscfg -r sys -F name                         <--get managed system name
+# lssyscfg -r lpar -m <managed system> -F name    <--get lpar name
+
+# mkvterm -m <managed system> -p <lpar>           <--opens a terminal window
+# rmvterm -m <managed system> -p <lpar>           <--closes a terminal window
+# rmvterm -m FRAME -p PARTITION		--> How to remove an existing terminal connection.
+
+~~.		<--logout from te session (not necessary to leave AIX)
+
+NTP CONFIGURATION ON A HMC
+
+# lshmc -r -Fxntp,xntpserver                 <--check if ntp service is enabled: enable,<ntp_server_name> (/var/log/ntp logfile can be checked as well)
+# chhmc -c xntp -s add -a <ntp_server_name>  <--configure ntp service and add ntp server to HMC
+# chhmc -c xntp -s enable                    <--activate NTP service
+
+--------------------------------------------
+HMC Tips I - HMC and Managed System
+By Surya02:01No comments
+1. To enable ssh in a hmc :
+# chhmc -c ssh -s enable	--> You can disable it by replacing the word 'enable' with 'disable'
+2. To enable xntp in a hmc :
+# chhmc -c xntp -s enable	--> You can disable it by replacing the word 'enable' with 'disable'
+3. To add an entry in the syslog config file :
+# chhmc -c syslog -s add -a IP_Addr ( or '-h host_name' )	--> You can remove an entry by replacing the word 'add' with 'remove'
+4. To add an entry in the ntp config file :
+# chhmc -c xntp -s add -a IP_Addr ( or 'h host_name' )	-->You can remove an entry by replacing the word 'add' with 'remove'
+5. To configure the network as a startup device :
+# chhmc -c netboot -s enable	--> You can disable it by replacing the word 'enable' with 'disable'
+6. To permit IP addresses from utilizing HMC services :
+# chhmc -s ssh ( or any_service) -s add -a IP_Addr	--> You can remove an entry by replacing the word 'add' with 'remove'
+7. To add a DNC_server or domain_suffix :
+# chhmc -c network -s add [-ns DNS_Server] [-ds domain_suffix ]		--> You can remove an entry by replacing the word 'add' with 'remove'
+8. To change network settings for a specific network interface :
+# chhmc -c network -s modify -i interface_name[-a IP_Addr] [-nm network_mask] [ --lparcomm on|off]		--> Note: Network settings for the s10 interface cannot be changed.
+9. To change other network settings :
+# chhmc -c network -s modify
+[-h hostname] [-d network-domain-name]
+[-g gateway]
+10. To change the locale for the HMC :
+# chhmc -c locale -s modify -l locale
+11. To change the HMC date and time, time zone :
+# chhmc -c date -s modify
+[ --datetime ]
+[ --clock {local | utc} ]
+[ --timezone {time-zone | none} ]
+12. To list the BIOS Level of the HMC :
+# lshmc -b
+13. To list the current locale :
+# lshmc -l
+14. To list all of the locales supported by HMC :
+# lshmc -L
+15. To list network settings :
+# lshmc -n
+16. To list remote access settings :
+# lshmc -r
+17. To list VPD information :
+# lshmc -v
+18. To list version information :
+# lshmc -V
+19. List IP Connections to SP's and Bulk Power Controllers :
+# lssysconn -r all
+20. To list all machines configured in a hmc
+# lssyscfg -r sys
+21. To power on a managed system :
+# chsysstate -r sys -m MANAGED_SYSTEM -o on -f SYS_PROF_NAME
+22. To power on a managed system in standby mode :
+# chsysstate -r sys -m MANAGED_SYSTEM -o onstandby -f SYS_PROF_NAME
+23. To power off a managed system :
+# chsysstate -r sys -m MANAGED_SYSTEM -o off --immed
+24. To restart a managed system :
+# chsysstate -r sys -m MANAGED_SYSTEM -o off --immed --restart
+25. To recover partition data for a managed system :
+# chsysstate -r sys -m MANAGED_SYSTEM -o recover
+26. To initiate service processor failover for a managed system :
+# chsysstate -r sys -m MANAGED_SYSTEM -o spfailover
+27. To validate or activate a system profile :
+# chsysstate -r sysprof -m MANAGED_SYSTEM -n SYS_PROF_NAME --test
+28. To change the password of a managed system :
+# chsyspwd -t {access | admin | general} -m MANAGED_SYSTEM --passwd Current_Password --newpassword New_Password
+
+HMC Tips II - Partitions and Profiles
+By Surya02:02No comments
+1. To list all machines configured in a hmc
+# lssyscfg -r sys
+2. To list all lpars(partitions) in a power machine
+# lssyscfg -r lpar -m Managed_System
+3. To activate/start an LPAR :
+# chsysstate -r lpar -m Managed_System -o on -n LPAR_Name -f Profile_ name
+4. To deactivate/shutdown an LPAR :
+# chsysstate -r lpar -m Managed_System -o shutdown --immed -n LPAR_Name
+5. To open the console of a partition :
+# mkvterm -m Managed_System -p LPAR_Name
+6. To close the console of a partition: 
+# rmvterm -m Managed_System -p LPAR_Name
+7. To list the profile of a partition:
+# lssyscfg -r prof -m Managed_System --filter "lpar_names=LPAR_Name,profile_names=Profile_Name"
+8. To change the min/desired/maximum memory settings of a partition profile :
+# chsyscfg -r prof -m Managed_System -i "name=Profile_Name,lpar_name=LPAR_Name,min_mem=512,desired_mem=19456,max_mem=20480"
+9. To change the min/desired/maximum processor units of a partition profile :
+# chsyscfg -r prof -m Managed_System -i "name=Profile_Name,lpar_name=LPAR_Name,min_proc_units=0.2,desired_proc_units=0.5,max_proc_units=2.0"
+10. To change the min/desired/maximum virtual processor of a partition profile :
+# chsyscfg -r prof -m Managed_System -i "name=Profile_Name,lpar_name=LPAR_Name,min_procs=1,desired_procs=2,max_procs=6"
+11. To change capped/uncapped setting in a partition profile :
+# chsyscfg -r prof -m Managed_System -i "name=Profile_Name,lpar_name=LPAR_Name,sharing_mode=uncap,uncap_weight=128"
+Possible values for sharing_mode are cap and uncap.
+Possible values for uncap_weight are from 0 to 128.
+12. To change the name of a partition profile :
+# chsyscfg -r prof -m Managed_System -i "name=Profile_Name,lpar_name=LPAR_Name,new_name=New_Profile_Name"
+13. To change the name of a partition :
+# chsyscfg -r lpar -m Managed_System -i "name=LPAR_Name,new_name=New_LPAR_Name"
+14. To change the default profile of a partition :
+# chsyscfg -r lpar -m Managed_System -i "name=LPAR_Name,default_profile=Partition_Profile_Name"
+15. To set "power off the machine after all partitions are shutdown" for a power machine :
+# chsysscfg -r sys -m Managed_System -i "power_off_policy=0"
+Possible values are
+0 -> Power off after all partitions are shutdown
+1 -> Do not power off after all partitions are shutdown
+16. To rename a system profile :
+# chsyscfg -r sysprof -m Managed_System -i name=Sys_Prof_Name,new_name=New_Sys_Prof_Name"
+17. To add 2 more partition profiles to a system profile :
+# chsyscfg -r sysprof -m Managed_System -i "name=,"lpar_names+=partition3,partition4","profile_names+=profile3,profile4""
+
+--------------------------------------------
+
+HMC Tips III - User Management
+By Surya02:021 comment
+1. To list all users in a HMC
+# lshmcusr
+2. To list only user names and managed resource roles for all HMC users :
+# lshmcusr -F name:resourcerole
+3. To create a user :
+# mkhmcusr -u User_Id -a ROLE -d DESCRIPTION --passwd PASSWORD -MPASSWD_EXPIRATION_DAYS
+4. To remove a user :
+# rmhmcusr -u USER_NAME
+5. To change an hmc user's password :
+# chhmcusr -u User_Name -t passwd -v New_Password
+6. To change the task role for the user "user1" to hmcoperator :
+# chhmcusr -r user1 -t taskrole -v hmcoperator
+Available task roles are hmcsuperadmin, hmcoperator, hmcviewer, hmcpe, hmcservicerep or a user defined task role
+7. To list all managed resource objects :
+# lsaccfg -t resource
+8. To list all managed resource roles :
+# lsaccfg -t resourcerole
+9. To create a task role using a config file :
+# mkaccfg -t resourcerole -f /tmp/fil1
+10. To create a task role :
+# mkaccfg -t taskrole -i "name=tr1,parent=hmcsuperadmin,"resources=cec:chcod+lscod+lshwres,lpar:chssyscfg+lssyscfg+mksyscfg"
+11. To change a task role :
+# chaccfg -t taskrole -i "name=tr1,"resources=cec:chhwres+chsysstate,lpar:chssyscfg+chled+chhwres""
+12. To remove a task role :
+# rmaccfg -t taskrole -n tr1
+
+
+--------------------------------------------
+
+HMC Tips IV - Backup
+By Surya02:03No comments
+
+1. To backup HMC data on DVD :
+# bkconsdata -r dvd 
+2. To backup HMC data to a ftp server :
+# bkconsdata -r ftp -h ftp_server_name -u ftp_username --passwd ftp_password
+3. To backup HMC data to a NFS mounted file system :
+# bkconsdata -r nfs -n nfs_server_name -l Nfs_mount_point
+4. To list storage media devices :
+# lsmediadev
+5. To backup profile data for a managed system :
+# bkprofdata -m Managed-System -f File_name
+Profile data files are kept under /var/hsc/profiles/Managed-Machine-Serial-Number
+6. To restore a managed profile data :
+# rstprofdata -m Managed-System -l restore_type -f File-Name
+Valid restore types are
+1 - Full restore from the backup file.
+2 - Merge the current profile data and backup profile data, with priority to backup.
+3 - Merge the current profile data and backup profile data, with priority to current data.
+4 - Initialize the profile data. All partition, partition/system profiles will be deleted.
+
+--------------------------------------------
+
+HMC Tips V - DLPAR Operations
+By Surya02:031 comment
+
+1. To list the memory by system level :
+# lshwres -r mem -m Managed-System --level sys
+2. To list the memory by lpar level :
+# lshwres -r mem -m Managed-System --level lpar
+3. To list the processor / processing units by system level :
+# lshwres -r proc -m Managed-System --level sys
+4. To list the processor / processing units by lpar level :
+# lshwres -r proc -m Managed-System --level lpar
+5. To list the processor / processing units by pool level :
+# lshwres -r proc -m Managed-System --level pool
+6. To add 1GB of memory to an lpar dynamically :
+# chhwres -r mem -m Managed-System -o a -p Lpar_name -q 1024
+7. To remove 1GB of memory to an lpar dynamically :
+# chhwres -r mem -m Managed-System -o r -p Lpar_name -q 1024
+8. To move 1GB of memory from lpar_a to lpar_b dynamically :
+# chhwres -r mem -m Managed-System -o m -p Lpar_a_name -t Lpar_b_name -q 1024
+9. To add 1 dedicated cpu to an lpar dynamically :
+# chhwres -r proc -m Managed-System -o a -p Lpar_name -procs 1
+10. To remove 1 dedicated cpu to an lpar dynamically :
+# chhwres -r proc -m Managed-System -o r -p Lpar_name -procs 1
+11. To move 1 dedicated cpu from lpar_a to lpar_b dynamically :
+# chhwres -r proc -m Managed-System -o m -p Lpar_a_name -t Lpar_b_name -procs 1
+12. To add 0.5 processing unit to an lpar dynamically :
+# chhwres -r proc -m Managed-System -o a -p Lpar_name -procunits 0.5
+13. To remove 0.5 processing unit to an lpar dynamically :
+# chhwres -r proc -m Managed-System -o r -p Lpar_name -procunits 0.5
+14. To move 0.5 processing unit from lpar_a to lpar_b dynamically :
+# chhwres -r proc -m Managed-System -o m -p Lpar_a_name -t Lpar_b_name -procunits 0.5
+15. To restore memory resources on a lpar based on its profile :
+# rsthwres -r mem -m Managed-System -p Lpar_name
+16. To restore memory resources for all partitions in a managed system :
+# rsthwres -r mem -m Managed-System
+17. To restore processing resources on a lpar based on its profile :
+# rsthwres -r proc -m Managed-System -p Lpar_name
+18. To restore processing resources for all partitions in a managed system :
+# rsthwres -r proc -m Managed-System
+19. To restore physical I/O slots on a lpar based on its profile :
+# rsthwres -r io -m Managed-System -p Lpar_name
+20. To restore physical I/O slots for all partitions in a managed system :
+# rsthwres -r io -m Managed-System
+
+
+
+--------------------------------------------
+
+HMC Tips VI - Reference Code
+By Surya02:04No comments
+
+1. To list the current reference code for the managed system :
+# lsrefcode -r sys -m Managed-System
+2. To list last 10 reference codes for the managed system :
+# lsrefcode -r sys -m Managed-System -n 10 
+3. To list the reference code (Its called as LED in old pSeries servers) for each partition in the managed system :
+# lsrefcode -r lpar -m Managed-System -F lpar_name,time_stamp,refcode
+4. To list last 25 reference codes (led) for partitions lpar-a and lpar-b :
+# lsrefcode -r lpar -m Managed-System -n 25 --filter ""lpar_names=lpar-a,lpar-b""
+
+
+
+--------------------------------------------
+HMC Tips VII - General Terms
+By Surya02:05No comments
+
+
+1. What is the maximum number of servers managed by HMC ?
+> Maximum of 48 non-590-595 servers
+> Maximum of 32 590/595 servers
+2. What is the maximum number of LPARs supported by a HMC ?
+> Maximum of 254 LPARs
+3. How many HMCs can manage a server at one time ?
+> You can have a maximum of 2 HMCs manage a server at one time
+4. What are the different types of dynamic operations you can do with CPU, Memory and I/O Adapter on a LPAR ?
+> Add
+> Remove
+> Move
+5. How do we connect the HMC to power machines ?
+For Power-4 machines, we connect the hmc using serial cables.
+But for Power-5 machines, HMC connects to service processors via SSL-encrypted Ethernet, replacing the serial cables.
+6. Do we have firewall configured in HMC ?
+Yes. Each network card has an integrated firewall.
+7. Do we need to configure DHCP in HMC ?
+HMC may be a DHCP server for entry and mid-range servers.
+But for high-end servers like P595, HMC must be a DHCP server
+8. can we have the same HMC to manage P4 and P5 machines ?
+POWER5 HMCs cannot manage POWER4 servers, and vice versa.
+9. Can we have the existing P4 HMCs upgraded to support P5 machines ?
+Yes. We can. This involves a complete overwirte of teh disk and the loss of all previous configuration including user profiles.
+10. What to do incase of disk failure in HMC ?
+We can restore the HMC using recovery CD.
+Then restore the latest Critical consule data backup which will restore the profiles, user ids, passwords, etc..
+11. What is the default user id and password for the HMC ?
+When the HMC is powered on the first time, login as hscroot and password as 'abc123'.
+12. Can we manage a power machine without a HMC ?
+Yes. We can run a server in manufacturing default mode, will all resources but no logical partitionings, CoD or Service Focal point,etc..
+For entry level server, we can use the Integrated Virtualization Manager.
+13. What is the network critetia for dual HMC connection ?
+Dual HMCs require two different private networks.
+14. What is the default service processor IP address in Power-5 Machines ?
+Eth0 - HMC1 - 192.168.2.147 / 255.255.255.0
+Eth1 - HMC2 - 192.168.3.147 / 255.255.255.0
+15. What is the default user id and password for accessing service processor ?
+User id - admin
+Password - admin
+16. Do we need a HMC for p5 model servers ?
+One HMC is mandatory for 590, 595 or 575.
+Dual HMC are recommended.
+17. Do we need private network for HMc connectivity for p5-595 ?
+One private network is mandatory for p5 590,595 or 575.
+18. Can we have IVM support multiple servers ?
+One IVM allowed per server and it only manages partitions on one server.
+19. What does FSP (Flexible Service Processor) has ?
+FSP has
+a. Operating System
+b. UserIds / Passwords
+c. Filesystem
+d. Networking
+e. Firewall
+f. Webserver
+g. ASMI
+h. Firmware
+
+20. What to do if you forgot the admin password for FSP ?
+If you do not know the admin password, place a hardware call to get 'celogin'
+21. What to do if you forgot the HMC hostname/ipaddress for a long running LPAR ?
+You can always get the HMC IPaddress from a LPAR if we have performed "handshake" with the HMC.
+Issue the below command to get the HMC IPAddress
+# lsrsrc IBM.ManagementServer
+Resource Persistent Attributes for IBM.ManagementServer
+resource 1:
+Name = "169.121.54.48"
+Hostname = "169.121.54.48"
+ManagerType = "HMC"
+LocalHostname = "169.121.54.59"
+ClusterTM = "9078-160"
+ClusterSNum = ""
+ActivePeerDomain = ""
+NodeNameList = {"SAP-PRodServer"}
+
+22. One HMC should be within 8metres of Managed Server
+23. Each FSP Ethernet port should be connected to only one HMC
+
+
+
+--------------------------------------------
+
+HMC Tips VIII - DLPAR Requirements
+By Surya02:051 comment
+
+1. What is version requirment for DLPAR operations ?
+a. A P4 processor based pSeries system or later
+b. October 2002 or later system microcode update
+c. A HMC at version R3V1.0 or later
+d. AIX 5L Version 5.2 or later
+
+2. What are the AIX filesets required for DLPAR ?
+a. # lslpp -l rsct.core*
+b. # lslpp -l csm.client
+
+3. What are the daemons required for DLPAR ?
+#lssrc -a | grep rsct
+ctrmc rsct 21044 active
+IBM.CSMAgentRM rsct_rm 21045 active
+IBM.ServiceRM rsct_rm 11836 active
+IBM.DRM rsct_rm 20011 active
+IBM.HostRM rsct_rm 20012 active
+IBM.DMSRM rsct_rm 906 active
+IBM.LparCmdRM rsct_rm 901 active
+
+4. On HMC, how to list partitions recognized by DLAPR ?
+# lspartition -dlpar
+If all active AIX 5.2 partitions are listed as Active<1>, ..., DCaps:<0xf> your system has been set up properly for DLPAR.
+If you're missing some active partitions or some partitions are reported as Active<0>, your system probably still has a network/hostname set up problem.
+5. How to resolve name resolution issues between LPARs and HMC ?
+
+Step I :
+# vi /etc/resolv.conf
+1.Same DNS server for LPARs and HMC
+2.Remove the duplicate entries.
+
+Step II:
+Please check to see the that ct_node_id is unique for each node in the environment:
+"cat /var/ct/cfg/ct_node_id"\
+
+If duplicate ct_node_id values are found issue a recfgct on the problem node(s) to have a new/unique ct_node_id generated.
+# /usr/sbin/rsct/install/bin/recfgct
+
+(This command will start/restart ctcas,ctrmc system and will generate a new id in the file /var/ct/cfg/ct_node_id )
+
+Step III:
+ping from aix.
+
+Step IV:
+Please also do the following steps on the LPAR(s) to refresh RMC subsystem
+/usr/sbin/rsct/bin/rmcctrl -z ----> Stops the RMC subsystem and all resource managers.
+/usr/sbin/rsct/bin/rmcctrl -A ----> Adds and starts the RMC subsystem
+/usr/sbin/rsct/bin/rmcctrl -p ----> Enables remote client connections
+
+Step V:
+Ensure /var directory is not 100% full
+After expanding the /var directory, execute the following command.
+# /usr/sbin/rsct/bin/rmcctrl -z
+# rm /var/ct/cfg/ct_has.thl
+# rm /var/ct/cfg/ctrmc.acls
+# /usr/sbin/rsct/bin/rmcctrl -A
+
+Step VI:
+If problem still persists, please run the below command to collect the DLPAR log in /tmp/ctsupt:
+# /usr/sbin/rsct/bin/ctsnap
+
+6. How to find the parent device of a device like cdrom in AIX ?
+# lsdev -Cl cd0 -F parent
+
+
+--------------------------------------------
+HMC Tips IX - System Plan
+By Surya02:06No comments
+
+1. How to make a system plan from a running machine ?
+# mksysplan -f marc.sysplan -m Machine-Name -v
+where marc.sysplan is the file name.
+2. How to list a system plan ?
+# lssysplan
+3. How to delete a particular system plan ?
+# rmsysplan
+4. How to reploy a system plan on a managed server ?
+# deploysysplan
+5. How to copy a system plan from/into the HMC ?
+# cpsysplan
+This post is under construction.
+Please check the updated version in future.
+
+--------------------------------------------
+
+for i in `lssyscfg -r sys -F name`;do lssyscfg -r prof -m $i -F lpar_name,virtual_eth_adapters | grep vio | grep <VLAN>;echo; done <--shows spec. VLAN
+for sys in `lssyscfg -r sys -F name`; do for vio in `lssyscfg -r lpar -m $sys -F name,lpar_env | grep vioserver | cut -f 1 -d, | sort`; do echo $vio; viosvrcmd -m $sys -p $vio -c <VIO COMMAND>; done; done <--runs a command on VIOS servers
+for FRAME in $(lssyscfg -r sys -F name); do printf "$FRAME\n";lssyscfg -r lpar -m $FRAME -F name,lpar_env|grep vio; done	--> How to display vios from all squadrons.
+for FRAME in $(lssyscfg -r sys -F name); do printf "$FRAME:\n";lssyscfg -r lpar -m $FRAME -F name,lpar_env|grep PARTITION; done		--> How to search a partition name on all squadrons
+for proc in `ls -d /proc/[0-9]* | sed 's/\/proc\///g'`; do  printf "%-10s" $proc; cat /proc/$proc/status | grep Name | sed 's/Name://g'; done | head	--> 
+for proc in `ls -d /proc/[0-9]* | sed 's/\/proc\///g'`; do  printf "%-10s" $proc; cat /proc/$proc/status | grep Name | sed 's/Name://g'; done	--> Based on this, we can create a primitive "ps" command by listing information from each process out of the /proc filesystem using a command like this.
+for i in `lssyscfg -r sys -F name`;do echo $i;lssyscfg -r lpar -m $i -F name|grep <LPARNAME>;echo;done    <--shows man. system of given LPAR
+for i in `lssyscfg -r sys -F name`;do lssyscfg -r prof -m $i -F lpar_name,virtual_eth_adapters | grep vio | grep <VLAN>;echo; done <--shows spec. VLAN
+for i in `lssyscfg -r sys -F name` ; do echo $i; lssyscfg -r prof -m $i -F name,lpar_name --header; done  <--show all lpar profiles
+for sys in `lssyscfg -r sys -F name`; do for vio in `lssyscfg -r lpar -m $sys -F name,lpar_env | grep vioserver | cut -f 1 -d, | sort`; do echo $vio; viosvrcmd -m $sys -p $vio -c errlog; done; done                      <--runs a command (here errlog) on VIOS servers
+
+
+echo  $(( $(printf "%.0f" "$(cat /proc/uptime | cut -d " " -f 1)") / 60 / 60 / 24))		--> If you want to convert the /proc/uptime from seconds to days, you can use a command like this which will show the number of days the system has been up:
+
+HMC - UPDATE, UPGRADE
+HMC UPDATE - HMC UPGRADE
+(Remote HMC update/upgrade using network images.)
+
+
+
+HMC UPDATE:
+(apply fixes, service packs, for example MH01601)
+
+# tail -f /tmp/HmcInstall.log                                    <--during upd. (updhmc) installation log entries are logged here
+# ls -l /dump/efix                                               <--during upd. image from ftp server first will be copied here before install
+
+1. Read Documentation (readme) of fix + download iso image
+# csum -h SHA1 MH01601.iso                                       <--checksum on iso files, compare values with the value on above readme
+2. Save config, backup and reboot
+# lshmc -v; lshmc -V; lshmc -n; lshmc -r; monhmc -r disk         <--save config outputs and check fs for enough space (monhmc is like df)
+# bkconsdata -r ftp -h <ftp host> -u <user> -d <directory>       <--do a backup (it can take longer, in GUI: Backup Management Console Data)
+# hmcshutdown -t now -r                                          <--reboot HMC (to see if it comes back)
+3. Update
+# updhmc -t s -h <servername> -f <location of iso> -u <user> -i  <--do update (in GUI: Updates --> Update HMC)                                                               (-t s: type to update from is server (s), -i: prompt for password)
+4. create a new backup
+
+-------------------------------
+HMC UPGRADE:
+(for example from 8.8.3 to 8.8.4)
+
+# ls -l /mnt/upgrade                                             <--during saveupgdata (file "doRestore" triggers automat. upgr. after reboot)
+# ls -l /hmcdump                                                 <--during getupgfiles (check for files and correct sizes)
+                                                                 (from 8.8.3 to 8.8.4 only 1 file was copied, but usually all of them needed)
+1. Read documentation (HMC models, fixes, sytem firmwares..) + download network images
+download link: http://www14.software.ibm.com/webapp/set2/sas/f/netinstall/home.html
+# sum bzImage initrd.gz disk1.img disk2.img disk3.img            <--do checksum on downloaded files, compare result: cat hmcnetworkfiles.sum
+                                                                 (hmcnetworkfiles.sum contains checksum values)
+2. Save profile data of each Man. Sys      
+# BK_DATE="`date '+%Y%m%d'`"; export BK_DATE                     <--initialize variable of backup date variable (for correct file name)
+# for MSYS in `lssyscfg -r sys -F name`; do bkprofdata -m ${MSYS} -f ${MSYS}_${BK_DATE}.prof --force; done <--saving profile data
+                                                                 (in GUI: Sys. Man. --> Server --> Config. --> Man. Part. Data --> Backup)
+3. Save config, backup HMC and reboot
+# lshmc -v; lshmc -V; lshmc -n; lshmc -r                         <--save config outputs
+# bkconsdata -r ftp -h <ftp host> -u <user> -d <directory>       <--do a backup (it can take longer, in GUI: Backup Management Console Data)                                                            
+# chsvcevent -o closeall                                         <---close open service events
+# chhmcfs -o f -d 0                                              <---clear old archived diagnostic logs
+# hmcshutdown -t now -r                                          <--reboot HMC (to see if it comes back)
+4. Save Upgrade Data
+# saveupgdata -r disk                                            <--save config data (it mounts /mnt/upgrade, saves conf., then umounts it)  
+(This data is used during next boot, do not reboot HMC after this has been done, or you have to do this step again. It should take few mins.)
+5. FTP network images to HMC
+# getupgfiles -h <ftp host> -u <user> -d <directory>             <--copy network images from ftp server to HMC (ls -l /hmcdump shows progress)
+(After ftp shell gives back command prompt, /hmcdump will be empty again, as files were placed to a special location for alternate boot.)
+6. Set HMC to boot from alternate disk
+# chhmc -c altdiskboot -s enable --mode upgrade                  <--set alternate boot
+# lshmc -r                                                       <--check if alternate boot is enabled                                                                (..,netboot=disable,altdiskboot=enable,...)
+# hmcshutdown -t now -r                                          <--reboot (it boots from alternate disk partition, upgr. can take an hour.)
+7. Create a backup
+
+-------------------------------
+
+The below post was my original description about HMC upgrades, and I keep it for reference, but the method described above is more up to date.
+
+HMC UGRADE (v6.1.3 -> v7.3.5)
+(this can be done as hmc user)
+1. check prerequisites:
+    - hmc device supports new hmc version
+    - system firmware on supported levels (http://www-933.ibm.com/support/fixcentral/firmware/supportedCombinations)
+    - Back up critical console data (to an FTP server is OK)
+2. some fixes have to be installed prior to the upgrade:
+MH01082, MH01110, MH01128 and after that MH01127 (this will enable upgrade to v7 in 1 step)
+    - download zip files and store them on an FTP server
+    - on HMC: Licensed Internal Code upd. -> HMC Code Update -> Inst. Corr. Serv. -> Download from remote ... (give absolute path to file)
+    - hmcshutdown -t now -r            <--reboot HMC (it took for me 10-15 minutes)
+    - lshmc -V                         <--verify update successfully installed
+3. upgrade to v7.3.5:
+    - download necessary install images to an FTP server
+    - chsvcevent -o closeall           <--closes all serviceable events on the HMC to clean up before upgrade (for me did not work)
+    - chhmcfs -o f -d 0                <--clearing out old logfiles to clean up before upgrade (for me did not work)
+    - hmcshutdown -t now -r            <--make sure there are no problems with reboot (if we did this in step 2 we can omit here)
+
+    - saveupgdata -r disk              <--it mounts /mnt/upgrade, save config. data then unmounts it (it took less than a minute)
+                                       (this is only configuration data, which will be used during reboot after the upgrade)
+    - getupgfiles -h <ftp server> -u <user> --passwd <paswd> -d <dir on ftp server>    <--mounts /hmcdump, copy install files there, umount
+    - chhmc -c altdiskboot -s enable --mode upgrade        <--it sets HMC to boot from the install images and allow the upgrade to proceed
+    - hmcshutdown -t now -r            <--it took 30-40 minutes for me
+    - lshmc -V                         <--it will show new version
+4. some fixes are available to 7.3.5 which can be installed:
+    - download iso images to FTP server
+    (first HMC_Update_V7R350_SP3.iso has to be installed after that MH01259.iso)
+
+    - install:
+        from command line:
+        updhmc -t s -h <ftp server> -u <user> -p <passwd> -f /software/server/hmc/fixes/MH01195.iso -r
+ 
+        from GUI:
+        Updates -> Update HMC -> next, next ...
+
+    - hmcshutdown -t now -r            <--reboot HMC for the changes to be available (after each fix install)
+5. create backup
+
+
+http://emmanuel.iffly.free.fr/doku.php?id=aix:hmc_cmd#hmc_commands
