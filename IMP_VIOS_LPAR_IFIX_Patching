@@ -1,0 +1,136 @@
+Please install below fixes post patching activity for both VIOS and LPARS.
+================================FOR LPAR==================
+Server backup alt_disk creation
+
+sudo su -
+bash
+df -gt
+lspv
+oslevel -s
+cat /scripts/mntall
+ls -ld /dev/altinst_rootvg
+alt_rootvg_op -W -d hdisk#
+chroot /alt_inst /usr/bin/oslevel -s
+chroot /alt_inst /usr/sbin/emgr -l
+alt_rootvg_op -S altinst_rootvg
+bosboot -a
+lspv
+bootlist -om normal
+
+For removing old alt_disk and fresh alt_disk
+alt_rootvg_op -X altinst_rootvg
+alt_disk_copy -d hdisk1
+lspv
+bosboot -a
+bootlist -om normal
+
+For rmoving rootvg mirror and creating alt_disk
+sudo su -
+bash
+lspv|grep -i rootvg
+bootinfo -b
+oslevel -s
+unmirrorvg rootvg hdisk#
+chpv -c hdisk#
+reducevg rootvg hdisk#
+alt_disk_copy -d hdisk#
+lspv
+bosboot -a
+bootlist -om normal
+
+
+sudo su -
+
+bash
+lspv|grep -i root
+ls -ld /dev/altinst_rootvg
+alt_rootvg_op -W -d hdisk#
+chroot /alt_inst /usr/bin/oslevel -s
+emgr -l
+for i in `cat /tmp/emgr.txt`;do chroot /alt_inst /usr/sbin/emgr -r -L $i ;done
+chroot /alt_inst /usr/sbin/emgr -l
+chroot /alt_inst /usr/sbin/installp -c all
+
+nohup alt_rootvg_op -C -b update_all -l /mksysb_backup/prabha/7200-05-04/installp/ppc/ &
+chroot /alt_inst /usr/bin/oslevel -s
+
+cd /mksysb_backup/prabha/7200-05-04
+cp -pr emgr /alt_inst/tmp/
+
+chroot /alt_inst /usr/bin/oslevel -s
+chroot /alt_inst /usr/sbin/emgr -e /alt_inst/tmp/emgr/ppc/IJ42163m4a.221213.epkg.Z
+chroot /alt_inst /usr/sbin/emgr -e /alt_inst/tmp/emgr/ppc/IJ44425m4a.221220.epkg.Z
+chroot /alt_inst /usr/sbin/emgr -e /alt_inst/tmp/emgr/ppc/IJ44559m4a.221214.epkg.Z
+chroot /alt_inst /usr/sbin/emgr -e /alt_inst/tmp/emgr/ppc/IJ42677s4a.221227.epkg.Z
+chroot /alt_inst /usr/sbin/emgr -e /alt_inst/tmp/emgr/ppc/IJ43877s4a.221017.epkg.Z
+chroot /alt_inst /usr/sbin/emgr -e /alt_inst/tmp/emgr/ppc/IJ41975s4a.221017.epkg.Z
+chroot /alt_inst /usr/sbin/emgr -e /alt_inst/tmp/emgr/ppc/IJ42159s4a.221017.epkg.Z
+chroot /alt_inst /usr/sbin/emgr -e /alt_inst/tmp/emgr/ppc/IJ41974s4a.221017.epkg.Z
+chroot /alt_inst /usr/sbin/emgr -e /alt_inst/tmp/emgr/ppc/IJ43876s4a.221017.epkg.Z
+chroot /alt_inst /usr/sbin/emgr -e /alt_inst/tmp/emgr/ppc/IJ43869m4b.230216.epkg.Z
+
+chroot /alt_inst /usr/sbin/emgr -l
+chroot /alt_inst /usr/bin/oslevel -s
+
+bosboot -a
+bootlist -om normal
+alt_rootvg_op -S altinst_rootvg
+
+==========================FOR VIOS update ==========================
+viosbr -backup -file /tmp/VIOS2B-5867
+backupios -file /home/padmin/VIOS2B-5867.mksysb -mksysb  
+
+=======================================================================================
+
+loopmount -i /home/padmin/VIO_3.1.4.10_iso/H49892054.iso -m /mnt -o "-V cdrfs -o ro"
+
+emgr -l
+IJ37224m3c
+IJ38117m3a
+IJ39876s3a
+IJ36810s3a
+IJ36681m3a
+IJ37494s3a
+IJ37488s3a
+IJ36682s3a
+IJ37012m3a
+IJ42339s4a
+
+for i in $var
+do
+emgr -r -L $i
+done
+
+======================================================================================
+ 
+$  ioslevel (3.1.3.14)
+
+$ updateios -commit
+
+$ updateios -install -accept -dev /mnt
+
+cd /home/padmin/VIO_3.1.4.10_iso/VIOS_IFIXS_3.1.4.10_11May2023/bind_fix22
+emgr -e IJ44425s5b.230214.epkg.Z
+cd /home/padmin/VIO_3.1.4.10_iso/VIOS_IFIXS_3.1.4.10_11May2023/librts_fix
+emgr -e IJ45245s5a.230322.epkg.Z
+cd /home/padmin/VIO_3.1.4.10_iso/VIOS_IFIXS_3.1.4.10_11May2023/libxml2_fix4
+emgr -e IJ45056m5a.230125.epkg.Z
+cd /home/padmin/VIO_3.1.4.10_iso/VIOS_IFIXS_3.1.4.10_11May2023/lpd_fix3
+emgr -e IJ44559m5a.221208.epkg.Z
+cd /home/padmin/VIO_3.1.4.10_iso/VIOS_IFIXS_3.1.4.10_11May2023/kernel_fix5
+emgr -e IJ43869m5b.230216.epkg.Z
+
+
+ansible -i gopal.txt all -m shell -a "oslevel -s;df -gt;df -gt|wc -l;ifconfig -a;netstat -rn;lspv;lsdev -Cc adapter;echo '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++'" -b
+
+scp -pr VIO_3.1.4.10_iso padmin@10.189.123.22:/home/padmin/
+
+
+df -gt
+ifconfig -a
+netstat -rn
+oslevel -s
+bootinfo -b
+bootlist -om normal
+lspv
+oem_setup_env
