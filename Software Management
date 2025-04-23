@@ -1,0 +1,160 @@
+Software Management:-
+
+A fileset is the smallest installable base unit for the AIX operating system (example: bos.perf.pefstat). A package is a group of separately installable filesets that provide a set of related functions (example: bos.perf). A Licensed Program Product (LPP) is a complete software product including all packages associated with that licensed program (example: bos). A bundle is a list of software that can contain filesets, packages, and LPPs that are suited for a particular use (examples: CDE, KDE, GNOME).
+Each fileset in a product can be divided into three parts: usr, root, and share. Parceling of a software product is used for diskless and dataless clients. Thus it can be installed on one machine (the server) and then be used remotely by other machines on a network (the clients). 
+The usr part of a software product can be shared by machines with the same hardware architecture (stored in /usr).
+The root part (optional) of a software product cannot be shared by machines. In a client/server environment, these are the files for which there must be a unique copy for each client of a server. Most of the root software is associated with the configuration of the machine or product (stored in the root (/) file tree. The /etc/objrepos directory contains the root part of an installable software product's VPD).
+The share part (optional) can be shared among machines, even if they have different hardware architectures.The share part of a product is always packaged in a separately installable package (stored in /usr/share).
+The format for a software product level in AIX 5.2 is as follows: versionnumber.releasenumber.modificationlevel.fixlevel
+
+=======================Patching / Software===================================
+display installed patches:-
+	instfix -ia
+	
+	
+adding patch:-
+	instfix -k
+	
+	
+	
+	
+removing patch:-
+	installp -r
+display installed packages:-
+	lslpp -L all (all filesets)
+	lslpp -L <package> (single fileset)
+	lslpp -w <file> (file belongs)
+	lslpp -ha (history of filesets)
+	
+	rpm -qa (all packages)
+	rpm -q (single package)
+	rpm -qf (file belongs)
+	rpm -qi <package> (very detailed)
+	
+	oslevel -g (install packkages above os level)
+	
+	whereis <filename>
+	which_fileset <filename>
+adding package:-
+	installp -a
+	installp -c (cleanup after failed install)
+	
+	rpm -i
+	
+	geninstall (generic installer: installp, RPM, etc)
+removing packages:-
+	installp -u (commited packages)
+	installp -r (applied packages)
+	
+	rpm -e <package>
+	
+	geninstall -u <package>
+verify package:-
+	lppchk -v
+	
+	rpm -V <package>
+	
+	
+	
+List files in package:-
+	lslpp -f <fileset>
+	
+	rpm -ql <package>
+	
+Other package commands:-	
+	
+Package directory:-
+	/usr/lpp
+	
+	/var/lib/rpm
+List libraries required for binary program:-
+	ldd <file>
+	
+	
+configassist				<--Displays the Configuration Assistant wizard (graphics display).
+
+install_assist				<--Starts the Installation Assistant application (ASCII display).
+
+geninstall					<--A generic software product installer for installp, InstallShield Multi-Platform (ISMP), the Red Hat Package Manager (RPM) installer and Uniform Device Interface (UDI).
+								geninstall –Ld /dev/cd0 : lists the contents of the CD media.
+								geninstall -d /tmp/RPM * : installs all RPM packages in the /tmp/RPM directory.
+								geninstall -d /dev/cd0 R:cdrecord : installs the cdrecord RPM package.
+
+install_wizard				<--Invokes the Web-based System Manager Install Wizard or the SMIT install menu.
+								install_wizard -d /dev/cd0 : invokes the Web-based System Manager Install Wizard using an install CD in /dev/cd0.
+
+gencopy						<--Allows software products of various packaging formats (installp, RPM, ISMP, UDI) to be copied. Wraps to the bffcreate command.
+								gencopy –Ld /dev/cd0 : lists the contents of the CD media.
+								gencopy –d /dev/cd0 I:bos.perf R:cdrecord : copies bos.perf and cdrecord images from CD media to the default directory (/usr/sys/inst.images).
+
+installp					<--Install, update, and perform maintenance tasks on software.
+								installp -aXYd /dev/cd0 bos.perf : installs (automatically committed) all filesets within bos.perf from /dev/cd0, expands file systems if necessary (-X), and accepts software licenses (-Y).
+								installp -pad /dev/cd0 X11.Dt : previews installation of X11.Dt from /dev/cd0.
+								installp -u -V2 X11.Dt : removes fileset X11.Dt with a verbose display of successes, warnings and failures.
+								installp -ld /dev/cd0 : lists all software products and their separately installable options on /dev/cd0.
+								installp -cgX all : commits all applied updates and removes the filesets for the previous version.
+								installp -C : cleans up after a failed installation.
+
+mkinstallp					<--Creates software packages in installp format.
+
+rpm						    <--Installs, upgrades, queries, and deletes Linux RPM packages and maintains the RPM package database (located in /var/opt/freeware/lib/rpm).
+								rpm -qa : queries installed RPM packages.
+								rpm -Uvh * : installs the RPM packages in the current directory.
+
+lslpp						<--Displays information about installed filesets/fileset updates.
+								lslpp -l bos.net.nfs.client : displays the maintenance level and state.
+								lslpp -L all : lists all installed software.
+								lslpp -L bos.dosutils : check if software installed.
+								lslpp -f  bos.perf : displays the names of all the files of fileset bos.perf.
+								lslpp -ha : lists installation history of filesets.
+								lslpp -w /usr/sbin/nfsd : lists the fileset that the file belongs to.
+								lslpp -E bos.rte : displays the license agreements of the installed filesets.
+								lslpp -v :shows only the filesets that do not have the required prerequisites or are not completely installed.
+								lslpp -al ssp.basic		-->Show version of SSP (IBM SP switch) software:
+								
+inulag						<--Manages license agreements (front end).
+								inulag -l : lists all available software license agreements.
+
+epkg						<--Creates emergency fix (efix) packages that can be installed by the efix manager, emgr.
+								epkg perf : runs the epkg command in interactive mode and creates efix package perf.
+
+emgr						<--Starts the emergency fix (efix) manager, which installs, removes, lists, and checks system efixes. The efix manager installs packages created with the epkg command and maintains a database containing efix information. Databases are in the /usr/emgrdata/DBS directory.
+								emgr -l : lists all efixes on the system.
+								emgr -X -e perf.040503.epkg.Z : installs efix package perf.040603.epkg.Z and automatically expand file systems if needed.
+
+lppmgr						<--Manages an existing installp image source.
+								lppmgr -d /images -u : lists all duplicate and conflicting updates in image source directory /images.
+								lppmgr -d /images -u -r : removes all duplicate and conflicting updates in image source directory /images.
+
+lppchk						<--Verifies that files of an installable software product (fileset) match the SWVPD database information for file sizes, checksum values, or symbolic links.
+								lppchk -v : verifies that all filesets have all required requisites and are completely installed.
+								lppchk -c X11.Dt : checks that file checksums and sizes of X11.Dt are consistent with SWVPD.
+								lppchk -l 'bos*' : verifies the symbolic links of all 'bos*' software products.
+
+compare_report				<--Compares fileset levels to those available and generates a report of filesets needed.
+								compare_report -s -r /tmp/LatestFixData52 -l : compares the software installed on a system (-s) to the report of available updates (-r) LatestFixData52, available from the support Web site at IBM.
+
+oslevel						<--Reports the latest installed maintenance level of the system.
+								oslevel -r : determines the highest recommended maintenance level reached for the current version of AIX.
+								oslevel -lr 5100-04: lists which fileset updates are missing if after installing ML 04 on 5100-03 the command oslevel -r still shows 5100-03 (so, preferrably no output!).
+
+instfix						<--Installs filesets associated with keywords or fixes.
+								instfix -i | grep ML : displays all ML's installed.
+								instfix -ik "IY39231 IY38794" : checks if fixes IY39231 and IY38794 are installed.
+								instfix -k IY42424 -d /dev/fd0 : installs fix IY42424 from diskette.
+
+install_all_updates			<--Updates installed system software to the latest level that is on the media and verifies the current recommended maintenance level.
+								install_all_updates -d /dev/cd0 : installs all installp updates on /dev/cd0 and verifies the current recommended maintenance level.
+								install_all_updates -d /images -rc : commit installs all installp updates and installs any installable rpm updates in directory /images.
+
+whence						<--Displays the absolute path name.
+								whence nfsd : displays the full path of the nfsd program.
+
+what						<--Displays identifying information in files.
+
+which_fileset				<--Displays which fileset owns a command.
+								The bos.content_list fileset must be installed.
+								which_fileset topas : displays which fileset owns the topas command.
+
+inutoc						<--Creates a .toc file.
+								inutoc : creates the .toc file for the /usr/sys/inst.images directory.
