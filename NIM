@@ -1,0 +1,511 @@
+========================================================================>
+				NETWORK INSTALLATION MANAGEMENT
+========================================================================>
+By Using NIM Configuration/NIM Server, we can perform the OS Installations, TL Upgrades, and any optional softwares (java, sap etc) 
+installation through network, without cd-rom interruption.
+The main advantage of the nim server we can perform any installations at a time on bulk of servers.
+In NIM configuration, Network is the main role to perform the installations.
+
+NIM SERVER CONFIGURATION/TO BUILD NIM SERVER:
+a) Create NIM Server/Lpar
+b) Install Aix OS (5.3,6.1 or 7.1) on NIM Server.
+c) Install the NIM supported file sets /softwares on the NIM Server from the same OS CD.
+NOTE: If server is running with 6.1 version, NIM supported file sets we have to install from 6.1 CD only.
+# installp -agXY -d /dev/cd0 bos.sysmgt.nim.master bos.sysmgt.nim.spot
+	(or) 
+# smitty install -> Install and update software -> Install software -> INPUT device/ director for software [/dev/cd0]
+	* INPUT device 				/ directory for software 	/dev/cd0
+	* SOFTWARE to install 		[Select Nim software]			+ 
+	COMMIT software updates? 				No 					+
+	SAVE replaced files? 					yes 				+
+	EXTEND file systems if space needed?	yes 				+
+	DETAILED output? 						yes 				+
+	ACCEPT new license agreements? 			yes 				+
+	
+# lslpp -l |grep -i nim 	--> To list installed nim file sets.
+NOTE: bos.sysmgt.nim.client file sets will be install, when we are installing operating system. if 
+	we need to configure any aix server as NIM server we have to install master and spot file sets.
+
+d) Configure the NIM Network:
+	Configure the IP address for available ethernet adapter then proceed with below steps
+	smitty nim
+	Configure the nim environment
+	Advance Configuration
+	Initialize the NIM Master only
+	* Network Name [nim_network]
+	* Primary Network Install Interface [en0]
+# lsnim -c networks
+nim_network networks ent
+NOTE: Once configure the nim network, two nim demons will be started such as: nimesis, nimd
+
+e) Configure the lpp_source: 
+	lpp_source Defination: lpp_source is a resouce in NIM server, in lpp_source file system we will copy the OS images from the CD so it is equal to OS cd only. 
+	by using lpp_source we can install OS on multiple nim clients at a time.
+NOTE: before configure lpp_source we have to create the one lpp_source file system to store/copy the OS images.
+	(Ex: /export/lpp_source or /export/nim/lpp_source)
+	Ex:
+	# crfs -v jfs2 -g nimvg -a size=10G -A yes -m /export/lpp_source
+	# mount /export/lpp_source
+NOTE: 
+1) lpp_source file system minimum 5G size required to copy one version OS.
+2) lpp_source file system we can create any one of the VG, which VG we are having free space.
+	Once create lpp_source file system follow below steps to copy OS images from CD to FS (/export/lpp_source).
+	# smitty nim
+	> Perform nim administration tasks
+	> Manage Resources
+	> Define a resource
+	> Select the resouce "lpp_source"
+	> Fill the below final window
+	 *Resource Name [lpp5304]
+	 *Resource Type [lpp_source]
+	 *Server of Resource [master]
+	 *Location of Resource [/export/lpp_source]
+	 source of installation images [cd0]
+NOTE: once click enter cd0 images will copy into /export/lpp_source file system.
+	lpp_source configuration will take 30 to 45 minutes, if we have more free memory and CPU, it will take 10 to 20 minutes time.
+
+f) Configure the SPOT:
+	SPOT Definition: SPOT stands for Shared Product Object Tree, SPOT we can configure from the lpp_source or mksysb resources, 
+	if we need to installp OS (lpp_source) or rootvg mksysb restoration we should configure the respected spot for them. without spot we can’t install OS 
+	(lpp_source) or we can not restore rootvg mksysb backup.
+	SPOT is equal to /usr file system, it is contain the booting related commands, the nim clients initially boot from the SPOT only.
+	Before configure the SPOT we need to create separate file system to store SPOT related data. Minimum 512MB space is required to configure one OS version spot.
+	
+	EX: /export/spot or /export/nim/spot
+	# crfs -v jfs2 -g nimvg -a size=5G -A yes -m /export/spot
+	# mount /export/spot
+NOTE: minimum spot file system space is required 512MB to store one version OS or one server mksysb. 
+	Once spot file system created & mounted follow the below steps to configure the spot from lpp_source.
+	# smitty nim
+	> Perform nim Administration tasks
+	> Manage Resources
+	> Define a Resource
+	> Select a resource "spot"
+	> fill the below final window step
+	 *Resource Name [spot5304]
+	 *Resource type [spot]
+	 *Server of Resource [master]
+	 *Source of Install images [lpp5304]
+	 *Location of resource [/export/spot]
+	Once filled fields hit enter to configure the spot from lpp_source.
+
+g) Configure the NIM Client:
+	Before configure the nim client we have to add client server IP and hostname in /etc/hosts file on NIM Server. 
+	once added client entries on /etc/hosts file follow the below steps to configure the nim client.
+	# smitty nim
+	> Perform NIM Administration tasks
+	> Manage Machines
+	> Define a machine
+	 *Host name of the machine [nimclient1]
+	hit two times enter, client will be configure.
+	# lsnim -c machines 	--> To list the configured client servers.
+
+TO REMOVE THE NIM CONFIGURATION:
+	1) #smitty nim --> perform nim admin tasks -> unconfigure nim
+	2) remove the nim file systems
+	3) uninstall nim softwares
+	6) Add/Allocate the resources (lpp_source & spot) to nim clients, on which are the servers we have to install OS.
+		a) #smitty nim_bosinst
+		b) Select the client server (ex: sapserver),
+		c) Select Installation Environment Ex: rte for lpp_source installation.
+		d) Select the lpp_source which version going to install [ex: 5.3) "lpp5304"
+		e) Select respected spot Ex: "spot5304"
+		On Final window fill the below steps.
+		* Installation Target [aix3]
+		*Installation Type [rte]
+		*Spot [spot5304]
+		*lpp_source [lpp5304]
+		Accept License Agreement [yes]
+		Force PUSH Installation [no]
+		Initiate reboot and Install now [no]
+		Accept new license Agreement [yes]
+NOTE: Before install OS, we need add the minimum below hardware configuration.
+	a) one hard disk (minimum 5 to 10G)
+	b) One Ethernet Adapter (Network)
+	c) Minimum CPU and Memory.
+	7) Go to client side to install the OS by using below steps.
+		Once added required hardware, Start/Activate the server and enter SMS menu.
+		Select Server -> Operations -> Activate --> Profile --> Advanced --> Select SMS menu --> click OK	
+		Once we have entered into SMS menu we have to perform below two steps to start installation.
+		a) ping test between nim server & client server
+		b) Select first boot device as Ethernet adapter because installation will done through the network.
+		a) PING TEST STEPS:
+		1) Enter SMS menu
+		2) Select "Setup Remote IPL (initial program load)
+		3) Select the Ethernet adapter 
+		4) Select the "IP Parameters" option to add Server & Client IPs
+		5) Once added IPs, return back previous window (esc)
+		6) Select the "Ping test" option.
+		7) Execute the ping test by select number "1"
+		b) SELECT FIRST BOOT DEVICE AS NETWORK ADAPTER FOLLOW THE BELOW 
+STEPS:
+	1) Come to the Main menu in SMS (m)
+	2) Select boot options (5)
+	3) Configure boot device order (2)
+	4) Select 1st boot device (1)
+	5) Select Network (6)
+	6) Select the Ethernet adapter as 1st boot device 
+	7) Select Set boot sequence: configure 1st boot device (2).
+	8) Select number "1" Ethernet adapter device
+	9) Exit from SMS menu.
+NEXT: Once exit from SMS menu Installation will start then follow/select the installations options as usual like cd installation.
+	1) Define Console window
+	2) Slect Language English
+	3) Installation setting window, here three options
+	a) Default settings
+	b) Change/Show installation settings
+	c) Maintenance mode
+	Once setting completed select "1" and "0" to proceed with installation.
+
+TO REMOVE NETWORK:
+	Smitty nim
+	Perform NIM Administration Tasks
+	Manage Networks
+	Remove a Network
+	Select the Network, which is need to remove.
+	click enter button two times.
+	To Install OS on servers by using NIM server.
+	Follow the below steps on NIM Server:
+	1) Configure the NIM Server
+	2) Configure the NIM Network
+	3) Configure the lpp_source
+	4) Configure the spot
+	5) Configure the NIM Client
+	6) Add the resources (lpp_source and SPOT ) to the nim clients.
+	7) Go to client side install the OS by using below steps.
+TROUBLESHOOTINGS:
+	Problem: Ping test fails
+	Find the issue:
+	1) Verify adapters state on NIM server and Clients.
+	2) Verify Interfaces state both sides
+	3) Verify the LAN cables link status.
+	4) IP Parameters may be wrong.
+
+PROBLEM2:
+	Once assigned resources to client. Client not booting to install OS via NIM.
+	Reasons:
+	1) Verify the ping test. if success then
+	2) May be bootd / tftpd demons not running on NIM server
+		# bootps -d -d -d -d -d
+	3) May be /etc/niminfo file missing on NIM server
+	4) may be lpp_source or SPOT not good /not configured properly.
+
+NIM ACTIVITIES:
+	0) Configure NIM Server
+	1) How to install OS on new servers through NIM Server. (or) How to install OS by using lpp_source on NIM clients.
+	2) How to perform Migration Installation through NIM Server on nim clients.
+	3) How to take the mksysb backup of nim clients on NIM Servers.
+	4) How to restore mksysb backup on nim clients by using NIM Server.
+	5) How to perform TL Upgrade on NIM Clients via NIM server.
+(II) How to perform Migration Installation through NIM Server on nim clients.
+	We can perform migration installation two ways on nim clients by using nim server.
+	1) Manually we can assign the latest version resources to nim clients perform the pull method.
+	2) By using "nimadm" command we can perform.
+
+MIGRATION INSTALLATION VIA NIMADM COMMAND:
+	nimadm is one of the advanced feature in NIM installations, when we are Migrating OS from lower version to higher version we can use "#nimadm" command to perform the migration 
+	installation. Once executed nimadm command on nim server, the command will run the 12 Phases/Steps to complete Migrations Installation on client side.
+	Ex: sapserver is nim client and running with 5.3 version. Now how to migrate sapserver with 6.1 version through nimadm.
+	FOLLOW THE BELOW STEPS TO MIGRATE OS.
+	PRE-WORKS:
+	1) Take one empty hard disk on nim client (sapserver) Ex: hdisk1.
+	2) Make sure network communication between nim server and client by adding both servers IPs on /etc/hosts both sides.
+	3) Configure the 6.1 version lpp_source and spot.
+	4) Configure the sapserver client server
+	5) /etc/niminfo file should be presented on nim server and nim client side also (aix1).
+	6) Enable the NIM operation permissions to nim server on nim clients. 
+	7) Nim client side and NIM server alt_rootvg supported file sets should be installed.
+		bos.alt_disk_install.rte
+		bos.alt_disk_install.boot_images
+		Resources: lpp6108 and spot6108
+	NIM client: sapserver, Empty disk: hdisk1
+NIMADM COMMAND:
+NOTE: nimadm command we will run on the NIM Server.
+	# nimadm -j <vgname> -l <lpp_source> -s <spot> -c <client server> -d <client emptydisk> -Y
+	EX:# nimadm -j nimvg -l lpp6108 -s spot6108 -c sapserver -d hdisk1 -Y
+	j - vgname means on Which VG lpp_source & Spot file systems are presented.
+	-l -> lpp source name, which OS version going to Migrate/Install
+	-s -> respected SPOT of lpp_source
+	-c -> Client server name, which is going to Migrate
+	-d->Client side empty Hard disk to create Clone/alt rootvg
+	-Y -> Accept the licence aggrement.
+	Once executed nimadm command it will run the below 12 phases to completed migration installation.
+	NIMADM 12 PHASES:
+	1) It will create the alternate rootvg on nim client.
+	2) Nim server will export the all alternate file systems (with read/write permissions).
+	3) On clients side old rootvg data will take backup and it will restore on the altinst_rootvg.
+	4) Pre-migration script will be execute.
+	5) Client server configuration files will be saved.
+	6) All old version OS packages will be migrated with new version packages
+	7) Once OS packages migrated, Post-Migration script will be executed.
+	8) #bosboot command will create boot image on alternate_rootvg disk
+	9) all alt filesystem will be removed from NIM server.
+	10) alt filesystems are mounted on nim client.
+	11) again alt_disk_install command will run to verify final adjustments in altinst_rootvg status.
+	12) bootlist order will created as (hdisk1) and reboot the system.
+
+MKSYSB BACKUP AND RESTORE THROUGH NIM SERVER:
+MKSYSB BACKUP VIA NIM:
+	mksysb backup we can take two ways in nim server.
+	1) Manually mksysb backup
+	2) Automatically mksysb backup through NIM Server
+	Nim Server: 192.168.1.200
+	Nim client: 192.168.1.30
+NOTE: All servers mksysb backups we will store under /export/nim/mksysb (or) /export/nim/image (or) /export/mksysb, /export/image file systems
+	1) Manual nim clients mksysb backup:
+	Create mksysb image on nim client and copy to the NIM server by using FTP or NFS.
+	a) Login client server
+	b) create mksysb image into any file system
+		EX: #mksysb -ieX /tmp/mksysbfilename
+	c) copy mksysb image on nim server under /export/nim/mksysb file system by using NFS or FTP
+	2) Automatic mksysb backup on nim server:
+	a) Login to the NIM Server and NIM client server.
+	b) Verify the network communication between both servers
+	c) Ensure the /etc/niminfo file should be present on both servers.
+		# nimconfig -r -> To create /etc/niminfo file on NIM server.
+	To create /etc/niminfo file on nim client server.
+		# niminit (or) smitty nim -> Configure Network Installation Management Client Fileset -> fill below options
+	* Machine Name [sapserver]
+	* Primary Network Install Interface [en0] +
+	* Host Name of Network Install Master [nimserver]
+	d) Enable the NIM Server permissions on nim client side (ex:aix100)
+		# smitty nim -> Manage Network Install permissions -> Select enable option -> enter
+	e) Configure the NIM client on server. if already configured ignore this step (#lsnim -c machines)
+	f) Take the mksysb backup by using below steps.
+		# smitty nim
+		> Perform NIM Administrations Tasks
+		> Manage Resources
+		> Define a Resource
+		> Select mksysb resources "mksysb"
+		> Fill the below fields in finally window.
+		 *Resource Name [aix100_mksysb_08232016]
+		 *Resource Type [mksysb]
+		 *Server of Resource [master]
+		 *Location of Resource [/export/mksysb/sapserver/sapserver_mksyb_5308] --> aix100_mksyb_5308 is rootvg image file name.
+		 *Create system backup images [yes]
+		 *NIM Client to Backup [aix100] --> on which client mksysb backup taking.
+
+RESTORE MKSYSB BACKUP IMAGE VIA NIM SERVER:
+MANUALLY BACKUP RESTORATION:
+	a) Create mksysb resource/image on NIM Server by using backup image file (mksysb_sapser_5304_122716).
+	b) Create SPOT with respected mksysb
+	c) Configure the NIM client
+	d) Assign the resources (mksysb & spot) to nim client
+	e) Go to the client side SMS menu, do ping test and first boot device setting.
+	f) Exit from SMS menu and follow the installation steps.
+NOTE: Change show settings we can select installation type New and completed overwrite and same rootvg disk.
+	a) Create mksysb image on NIM Server by using backup image file.
+		# smitty nim
+		> Perform NIM Administration tasks
+		> Manage resource
+		> Define a resource
+		> Select "mksysb" resource
+		> Fill the below steps in final window
+		*Resource Name [sapserver_mksysb_5304] -> Restoration image name.
+		*Resource Type [mksysb]
+		*Server of resource [master]
+		*Location of resource [/export/mksysb/sapserver/sapserver_mksyb_5304]
+	b) Create SPOT with respected mksysb:
+		# smitty nim
+		> Perform NIM Administration Tasks
+		> Manage Resource
+		> Define a Resource
+		> Select "spot" resource
+		> Fill the below final window steps:
+	     *Resource Name [sapserver_spot_5304]
+	     *Resource Type [spot]
+	     *Server of Resource [master]
+	     *Source of Install image [sapserver_mksysb_5304] --> Select correct client server image file which is need to be restore.
+	     *Location of Resource [/export/spot/]
+	c) Configure the NIM client, if already configured ignore this step (#lsnim -c machines).
+	d) Assign the resources (mksysb & spot) to nim client:
+		# smitty nim_bosinst
+		> Select client server "sapserver" to restore mksysb
+		> Select Installation environment "mksysb - Install from a mksysb image"
+		> Select correct mksysb image "sapserver_mksysb_5304"
+		> Select correct spot "sapserver_spot_5304"
+		> Fill the below fields on Final window.
+		* Installation Target [sapserver]
+		*Installation Type [mksysb]
+		*spot [sapserver_spot_5304]
+		*mksysb [sapserver_mksysb_5304]
+		Accept new license Agreement [yes]
+		Force PUSH Installations [no]
+		Initiate reboot and Installation Now [no]
+		Accept new license Agreement [yes]
+	e) Go to the client side SMS menu, do ping test and first boot device setting.
+	f) Exit from SMS menu and follow the installation steps.
+
+AUTOMATICALLY MKSYSB BACKUP RESTORATION:
+	If we have mksysb image backup by using automatically mksysb backup concept no need to configure NIM mksysb because 
+	automatically backup method will configure NIM mksysb image. #lsnim -t mksysb
+	a) lsnim -t mksysb
+		mksysb_sapser_5304
+	b) Create SPOT
+	c) Configure NIM client (aix100)
+	d) Assign the nim resources (mksysb and spot) to client server.
+	e) Go to NIM client side in SMS menu, ping test and first boot device select network and exit from SMS menu.
+	f) Exit from SMS menu and follow the installation steps.
+NOTE: Change show settings we can select installation type New and completed overwrite and same rootvg disk.
+
+What is recent activity
+What is recent troubleshooting
+What is recent critical activity done
+	ANS) One of the production server rootvg corrupted after TL upgrade installations/OS Migration then we have restored mksysb image from the NIM Server by using below steps.
+	a) We have all servers rootvg images on /export/mksysb/ file system in NIM server.
+	b) login to the nim server.
+	c) Verified network communication between both servers
+	d) Configured NIM mksysb by using rootvg image backup file.
+	e) Configured spot
+	f) Configured NIM client (sapserver)
+	g) assgined resources to nim client
+	f) enter into SMS menu in client, ping test and network selected first boot device, exit from sms menu.
+	h) Follow the installation steps.
+Note: The restoration will take time 45 minutes to 1 hour.
+	TL Upgrade by Using NIM Server:
+	TL Upgrade we can do two ways by using NIM server.
+	1) By using NFS/FTP we can install TL packages
+	2) By using lpp_source we can install TL Packages
+Note: To install TL Packages SPOT is not required because client server already running with OS.
+	1) To Install TL packages from 61-06 to 08 Level By using NFS/FTP.
+		NIM Server: 192.168.1.200
+		Client Server: 192.168.1.30
+		TL Packages location : /export/softwares/TL08
+		a) Take all pre-works on nim client before install TL packages
+		b) Go to NIM Server export the /export/software file system.
+		# vi /etc/exports
+		/export/softwares
+		:wq
+		#exportfs -a
+		c) Go to client side mount the NFS file system
+		#showmount -e 192.168.1.200
+		Op: /export/softwares
+		#mkdir /local
+		#mount 192.168.1.200:/export/softwares /local
+		#cd /local/TL08
+		#smitty update_all -> To update TL packages
+	2) To Install TL Packages by using lpp_source
+		1) Configure lpp_source
+		2) Configure client
+		3) Go to client side and Install TL Packages
+			# smitty nim_task_install
+			Resource name [lpp6108TL]
+			Location of resources [/export/nim/lpp_source]
+			Source of install [/export/softwares/TL08]
+			Note: To install TL Packages SPOT is not required because client server already running with OS.
+
+NIM Commands:
+# lsnim --> To list all nim resources, machines, networks etc.
+# lsnim -l --> To list all nim resources, machines, networks with their attributes.
+# lsnim -l <resourcename> --> To list the resource attributes.
+# lsnim -c networks --> To list nim networks.
+# lsnim -c resources --> To list nim resouces (lpp_source, mksysb and spots)
+# lsnim -c machines --> To list NIM client servers.
+# lsnim -t lpp_source --> To list only lpp sources
+# lsnim -t spot --> To list only spots
+# lsnim -t mksysb --> To list only mksysbs
+	To create lpp_source/mksysb/spot by using command mode.
+	# nim -o define -t lpp_source -a location=<lpp_sourcefilesystem> -a server=<server of resource> -a source=<source of images><lpp_source_name> --> To create lpp_source.
+	Ex: # nim -o define -t lpp_source -a loaction=/export/lpp_source/ -a server=master -a source=/dev/cd0 lpp5304
+	To create NIM mksysb
+	# nim -o define -t mksysb -a location=<mksysb filesystem> -a server=<server of resource> -a source=<source of images><mksys_resource_name> -->
+	Ex: # nim -o define -t mksysb -a location=/export/mksyb -a server=master -a source=/export/mksysb/aix100_mksysb_53 sapserver_mksysb_5304
+	# nim -o define -t spot -a server=<server of resource> -a source=<lpp_source/mksysb> -a location=<spot file system><spot resource name> --> To create spot
+	Ex: # nim -o define -t spot -a server=master -a source=/export/nim/lpp_source/lpp5403 -a location=/export/spot/ spot5403 --> To create spot for aixlpp53 installation
+	# nim -o define -t spot -a server=master -a source=/sapserver_mksysb_5304 -a location=/export/spot aixmksysb_spot_53 --> To create spot for aix100 server mksyb restoration.
+	# nim -o reset -a force=yes client/master --> To reset the client server or master server.
+	EX: # nim -o reset -a force=yes aix100
+	by using smity
+	# smitty nim
+	Perform nim Administration tasks
+	Manage machines
+	Perform operations on Machines
+	Select server
+	Select reset option and enter
+	
+HOW TO DEALLOCATE/REMOVE THE RESOURCES FROM THE NIM CLIENT.
+	# smitty nim
+	Perform nim Administration tasks
+	Manage machines
+	Perform operations on Machines
+	Select server
+	Select "reset"
+	Fill fields final window 
+	Target name [sapserver]
+	Deallocate all resources [yes]
+	Force [yes]
+	and enter.
+	# nim -Fo deallocate -a suclass=all clientname -> To deallocate the resources.
+	# nim -Fo check <lpp/mksysb/spot resource> --> To check the resource condition/status/health 
+	checking etc.,
+	To create /etc/niminfo file on nim server side and nim client side.
+NIM SERVER:
+	# smitty nim
+	Perform nim adiminstration Tasks
+	Rebuild the niminfo file on master enter
+	(or)
+	# nimconfig -r --> To create nim info file
+	NIM Client side
+	# smitty nim
+	Configure Network Installation Management client fileset
+	*Machine Name [aix100]
+	* Primary Network Install Interface [en0]
+	* Hostname of Network Install Master [nimserver]
+	(or)
+	# niminit -a pif_name=en0 -a name=aix100 -a master=nimserver
+
+TO REMOVE THE MACHINES/NETWORKS/LPP_SOURCES/SPOTS/MKSYSB.
+	EX:smitty nim
+	Perform NIM Administration Tasks
+	Manage Networks --> To remove network
+	Manage resources --> To remove resources (spot/mksysb/lpp_sources)
+	Manage machines --> To remove clients.
+NIM Demons:
+Nim network demons:
+	1) nimesis
+	2) nimd 
+	above demons will create after configured network
+	Client side booting supported demons are"
+	3) bootpd
+	4) bootps 
+	5) tftpd 
+NFS demons also main role in NIM
+NIM CONFIGURATION FILES:
+	/etc/niminfo 
+	/etc/bootptap
+	/etc/hosts
+	/etc/exports
+	/ftfpboot --> It is directory.
+NIM PORTS:
+	1058 --> NIM server port
+	1059 --> NIM Registration port
+	# /etc/niminfo: It is important nim configuration file should be presented on both sides to performa nim operations. 
+		this file contains the nim server and client server hostnames, IPs and port numbers etc.
+	# /etc/bootptab: This is one of the nim configuration file, once assigned the reources to nim client from 
+		NIM server, one entry will create on /etc/bootptab.
+NOTE: Once installation completed entry will remove from /tftpboot directory
+Entry Format:
+	nimclientname: client IP: nimserver IP: netmaskvalue
+	Ex: aix100: ip=192.168.1.10:192.168.1.200:255.255.255.0
+	/etc/hosts: This is network configuration file both sides should be presented with both servers IPs and Hostname
+	/etc/exports: It is NFS configuration file in nim NFS is main role to perform the installations on nim clients. 
+		NIM server export the nim file systems and import into client side in the time of lpp_source installations or mksysb restoration etc.
+	/tftpboot: It is very important directory in NIM, once assigned the resources to client server 3 files/entries will create under /tftpboot, 
+		after installation completed the entries will be remove from /tftpboot directory.
+	3 ENTRIES FORMAT:
+	a) file1
+	sapserver_mksysbspot_53.chrp.mp.ent 
+	sapserver - client server
+	mksysbspot_53 -> Spot name
+	chrp.mp.ent --> mp means 32 bit kernel
+	chrp.64.ent --> 64 kernel
+	b) file2
+	sapserver -> /tftpboot/aix53spot.chrp.mp.ent 
+	One soft link file will create with client name and spot file.
+	c) file3
+	sapserver.info
+	this client information file, by using this file we can see installation completed percentage/information in the time of installation.
+	#lsnim -a info (or) lsnim -a aix100 --> To see the client information/ Installation Percentage status.
+
+
+
