@@ -1,0 +1,137 @@
+NOTE: IPs and details used for document are for example purpose, for each client use respective IP and corresponding subnet, gateway details.
+
++ Below procedure is to be followed on affected servers
++ Before proceeding make sure to have below commands output captured.
+
+#uname -Mu
+#uname -Lu
+#ifconfig -a
+#netstat -rn
+#smitty tcpip  > to capture ip configuration for both interfaces en0 and en1
+#mount
+#oslevel -s
+
+
++ Reboot the server if df -gt hangs due to NFS retry issue.
+#shutdown -Fr now
+
++ Each AIX client has two interface en0 and en1
+
+	en0 will have NAS IP 
+	en1 will have application / data IP 
+
+PROCEDURE to be followed - 
+
+#ifconfig en0 down detach
+#ifconfig en1 down detach
+#rmdev -Rdl inet0
+#rmdev -Rdl ent0
+#rmdev -Rdl ent1
+#cfgmgr -v
+Or
+
+ifconfig en0 down detach
+ifconfig en1 down detach
+rmdev -Rdl en0
+rmdev -Rdl et0
+rmdev -Rdl ent0
+rmdev -Rdl en1
+rmdev -Rdl et1
+rmdev -Rdl ent1
+
+cfgmgr –v
+
++ Configure IPs 
+
+-	Assign data IP first on en1  (interface for application / data IP)
++ While configuring IPs on interface do the following – 
+
+smitty tcpip 
+	> Minimum Configuration & Startup 
+		> en1      Standard Ethernet Network Interface
+	
+
+
+
+
+
+
+				
+* HOSTNAME                                          		 [sbiimerprda13]
+* Internet ADDRESS (dotted decimal)              	    [10.189.127.13]
+  Network MASK (dotted decimal)                     	 [255.255.255.0]
+* Network INTERFACE                             		      en1
+  NAMESERVER
+           Internet ADDRESS (dotted decimal)     	    [10.189.123.100]
+           DOMAIN Name                             		  [sbiinb.com]
+  Default Gateway
+       Address (dotted decimal or symbolic name)     [10.189.127.1]
+       Cost                                          []                       #
+       Do Active Dead Gateway Detection?         		     no                     +
+  Your CABLE Type                                		     tp                     +
+  START Now                                          		   yes                    +
+
+  and press enter .
+  
+
+-	 Then assign IP to interface en0 (Interface for NAS)
+
+  Only mention Hostname / IP address and corresponding subnet.
+  Leave rest of the options empty.
+  
+  * HOSTNAME                                        		   [sbiimerprda13]
+* Internet ADDRESS (dotted decimal)             	     [10.189.133.77]
+  Network MASK (dotted decimal)                     	 [255.255.255.192]
+* Network INTERFACE                                		   en0
+  NAMESERVER
+           Internet ADDRESS (dotted decimal)    		     []
+           DOMAIN Name                            			   []
+  Default Gateway	
+       Address (dotted decimal or symbolic name)  	   []
+       Cost                                      				    [0]                      #
+       Do Active Dead Gateway Detection?           		   no                     +
+ Your CABLE Type                                   			  tp                     +
+  START Now                                       			    yes 
+  
+  
+
+
+
+
+
+
+
+
+
+
+  
+  + Verify subnet for both IPs in ifconfig output 
+#ifconfig -a
+  
+  + Then verify /etc/hosts, it should have entries as under and if not make necessary changes in /etc/hosts using vi editor.
+
+#cat /etc/hosts |grep -i 10.189.133.77	(NAS IP should have nas label)
+10.189.133.77   sbiimerprda13-nas
+#cat /etc/hosts |grep -i 10.189.127.13	(Data IP)
+10.189.127.13   sbiimerprda13
+
+
++ Reboot the server – 
+#shutdown -Fr now
+
+
+Add persistent route for NAS IP - 
+#chdev -l inet0 -a route=net,-netmask,255.255.255.224,-static,10.189.122.170,10.189.133.65
+chdev -l inet0 -a route=net,-netmask,255.255.255.224,-static,<NAS storage IP>,<NAS gateway>
+
+Check netstat for desired output.
+#netstat -rn
+
++ Mount all your NAS mounts
+
++ Perform some write operation on NAS mounts.
+
+route add -net 10.209.121.11 -netmask 255.255.255.192 10.209.118.1
+
+ 
+`
