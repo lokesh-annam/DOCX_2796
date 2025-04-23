@@ -1,0 +1,187 @@
+FILE MANAGEMENT:-
+
+AIX supported file system types:
+standard Journaled File System (JFS)	max. file size 2 GB, max. file system size 1 TB
+large file enabled JFS	max. file size 64 GB, max. file system size 1 TB
+Enhanced Journaled File System (JFS2)	max. file size tested 1 TB (AIX currently supports up to 16 TB using the 64-bit kernel, 1 TB using the 32-bit kernel), max. file system size tested 1 TB,  architectural max. file system size 4 PB.
+The JFS2 outline log can be up to 1 GB (32-bit kernel) and up to 64 GB (64-bit kernel).The JFS2 inline log size can be from 256 KB up to 16 GB.
+General Parallel File System (GPFS)	Provides a cluster-wide file system allowing users shared access to files spanning multiple disk drives.
+RAM File System	Up to 8 RAM disks can be created (2 GB size limitation is removed in AIX V5.2). Size cannot be changed afterwards.
+Network File System (NFS)	NFS allows programs on one system to access files on another system transparently by mounting the remote directory.
+CD-ROM File System (CDRFS)	A read-only local file system implementation under the logical file system (LFS) layer. Supported are ISO 9660:1988(E) standard, the High Sierra Group Specification, the Rock Ridge Group Protocol, the CD-ROM eXtended Architecture File Format (in Mode 2 Form 1 sector format only). CDs are automatically mounted by default.
+DVD-ROM File System (UDFS)	A read-only file system stored on DVD-ROM media. UDFS format versions 1.50, 2.00, and 2.01 are supported.
+DVDs are automatically mounted by default.
+Cache File System (CacheFS)	CacheFS is used to enhance read performance of remote file systems (NFS) or slow devices such as CD-ROM. CacheFS handles files larger than 2 GB.
+
+Default AIX file systems:
+fs		lv			description
+/		hd4  		The / (root) file system contains files and directories critical for system operation.
+/usr	hd2			Files that can be shared by machines of the same hardware architecture are located in the /usr file system. Architecture-independent, shareable text files, such as manual pages, are located in the /usr/share directory.
+/var	hd9 		var 	Variable per-client files, such as spool and mail files, are located in the /var file system.
+/home  	hd1			The /home file system is the mount point for user home directories.
+/tmp	hd3			The /tmp file system contains system-generated temporary files.
+/opt	hd10opt 		The /opt file system is reserved for the installation of add-on application software packages.
+/proc	-			The /proc pseudo file system provides access to the state of each active process and thread in the system by mappping processes and kernel data structures to corresponding files.
+
+df							<--Reports information about space on file systems.
+								df -m /usr : displays information about file system /usr in MB (-m) blocks (use -g for GB).
+
+quot						<--Summarizes file system ownership.
+								quot -f /home : displays the number of files and bytes owned by each user in the /home file system.
+
+du							<--Summarizes disk usage.
+								du -sg /home : displays the total disk usage in GB (-g) for all files in directory tree /home.
+
+find						<--Recursively searches the directory tree with a matching expression.
+								find . -type f -exec grep "unix" {} \; -print : looks for string "unix" and prints the names of the files in which it is found.
+							find / -xdev -type f -name "cor*" -size +10000c -exec ls -l {} \;
+
+							/                        where to find
+							-xdev                    looks only in the given fs
+							-type f                  what type to look for (f: file, d: direcory)
+							-name "cor*"             name to look for
+							-size +10000c            search for the given size (+10000c : greater than 10000 character (larger then 10kbyte))
+							-size +2                 search for greater than 1kbyte (bloxk size is 512 byte, that's why +2 is given)
+							-exec ls -l {} \;        what command to execute
+													 ({}: it represents each findings and \; is needed at the end of line)
+													 e.g. find /home -xdev -name "*.old" -exec rm {} \;
+							-mtime -1                file modifocation date is less then 1 day (+1 means older than 1 day)
+
+						find . -name '*.ksh' -ok rm {} \; this will ask if the command (rm) should be executed or not (much safer if find is not perfect)
+						find /etc/rc.d -ls           it lists the files and dirs in the given dir
+						find /tmp/bb -exec awk '/func/ {print FILENAME}' {} \;   it will check in /tmp/bb if any files contains the word "func" and list those
+
+fileplace					<--Displays the placement of file blocks within logical or physical volumes.
+								fileplace -v data3 : displays the placement of a file in its LV, including statistics on how widely the file is spread across the volume and the degree of fragmentation in the volume (-v).
+
+lsfs						<--Displays the characteristics of file systems. Uses /etc/filesystems (system file with stanzas of the known file systems and their characteristics).
+								lsfs : shows all file systems in the /etc/filesystems file.
+								lsfs -q /usr : shows the LV size, file system size, the fragment size, the compression algorithm and the number of bytes per i-node (nbpi) of the /usr file system.
+								lsfs -v jfs2 : shows all file systems of vfs type jfs2.
+
+crfs						<--Adds a file system. The smallest file system is equal to one PP.
+								crfs -v jfs -g datavg -a size=32M -m /user : creates a JFS of 32 MB with /user as the mount point in VG datavg.
+								crfs -v jfs2 -g rootvg -a size=128M -m /data -A yes -p rw -a agblksize=2048 : creates a JFS2 of 128 MB with /data as the mount point, automatically mounted at system restart (-A), with 4K as the smallest file system block size that can be allocated to a file.
+								crfs -v jfs -a bf=true -g'ptmpvg' -a size='884998144' -m'/ptmp2' -A''` |  locale yesstr | awk -F: '{print $1}'`'' -p'rw' -t''`locale yesstr | aw |   k -F: '{print $1}'`'' -a nbpi='131072' -a ag='64'  
+								If you need files larger than 2 gigabytes in size, this is better.
+								It should allow files up to 64 gigabytes:
+								
+mkfs						<--Makes a new file system on a specified existing device (LV).
+								mkfs -s 64M /data /dev/lvdata : creates an empty 64 MB file system on LV lvdata. 
+								mkfs -o name=/user /dev/lvuser : creates an empty file system on the /dev/lvuser device, with mount point /user. The new file system occupies the entire device and has the default fragment size (4096 bytes) and the default nbpi ratio (4096).
+
+chfs						<--Changes attributes of a file system.
+								chfs -a size=+16M /data : increases the size of the /data file system by 16 MB.
+								chfs -a size=64M /data : changes the size of the /data file system to 64 MB (provided it was previously no larger than this).
+								chfs -A yes /data : sets the mount=true attribute in /etc/filesystems for file system with mount point /data.
+
+rmfs						<--Removes a file system.
+								rmfs -r /data : removes file system /data, it's mount point (-r) and it's LV.
+								reduce fs	Official procedure 1:
+								1. Make a backup of the file system.
+								2. Remove the file system.
+								3. Create a new file system using the same name and reduced size.
+								4. Restore the backup of the file system into the new file system.
+								Official procedure 2:
+								1. Make a mksysb (VG rootvg) or savevg (other VGs).
+								2. Restore the VG using the shrink file systems option.
+
+mount						<--Makes a file system available for use.
+								mount : lists the mounted file systems.
+								mount all or mount -a : mounts all file systems in /etc/filesystems marked by the mount=true attribute (file systems marked by the mount=automatic attribute are not mounted - they are mounted by the boot process).
+								mount /dev/lvdata : mounts the file system (in LV lvdata) using the default mount point from /etc/filesystems.
+								mount -v cdrfs -o ro /dev/cd0 /mnt : mounts the CDROM on /mnt.
+
+umount or unmount			<--Unmounts a previously mounted file system, directory, or file.
+								umount all : unmounts all file systems in /etc/filesystems marked by the mount=true attribute (file systems marked by the mount=automatic attribute are not unmounted).
+								umount -f /mnt : forces the unmount of the /mnt NFS file system.
+
+cdmount						<--Makes a file system available for use on a device managed by the cdromd daemon (automatically mounts a CD-ROM or DVD-ROM when it is inserted in a device, and provides the server function for all cd/dvd related commands).
+								cdmount cd0 : mounts a file system on cd0.
+								startsrc -s cdromd : starts the cdromd daemon which reads the /etc/cdromd.conf configuration file. 
+
+cdcheck						<--Asks cdromd daemon information about a device.
+								cdcheck -m cd0 : asks cdromd if a CD is mounted on cd0.
+
+cdeject						<--Ejects a media from a CD drive managed by cdromd.
+								cdeject cd0 : ejects a CD from cd0.
+
+cdumount					<--Unmounts a previously mounted file system on a device managed by cdromd.
+								cdumount cd0 : unmount a file system on cd0.
+
+fuser						<--Identifies processes using a file or file structure.
+								fuser -u /data : lists the process numbers and user login names of processes using the /data file system.
+
+defragfs					<--Increases a file system's contiguous free space by reorganizing scattered allocations.
+								defragfs /home : defragments the /home file system.
+								defragfs -s /data : generates a report on the fragmentation in the /data file system.
+
+lmktemp						<--lmktemp largefile 1073741824 : Create a 1GB file named largefile.
+
+fsck						<--Checks file system consistency and interactively repairs the file system.
+								By default, the /, /usr, /var, and /tmp file systems have a check=false attribute in their /etc/filesystem stanzas.
+								fsck -p /dev/lv00 : fixes minor problems with the /dev/lv00 file system automatically and if the primary superblock is corrupt, the secondary superblock is verified and copied to the primary superblock.
+								dd count=1 bs=4k skip=31 seek=1 if=/dev/lvdata of=/dev/lvdata : copies the backup superblock of the /dev/lvdata file system over the primary superblock.
+								fsck -V jfs2 /data : checks JFS2 with mount point /data for consistency and repairs problems found.
+
+dd							<--Converts and copies a file.
+								dd count=1 bs=4k skip=31 seek=1 if=/dev/lvdata of=/dev/lvdata : restores the backup of the superblock over the primary superblock (use when the superblock of the JFS on /dev/lvdata is corrupted (or dirty). 
+
+logform						<--Rebuild the JFS log.
+								logform /dev/hd8 : rebuilds the jfslog of rootvg, after booting the machine into maintenance mode (attention: The logform command should only be run on closed LVs).
+								logform -V jfs2 /dev/jfs2log : rebuilds the jfs2log /dev/jfs2log.
+
+snapshot					<--Modifies, creates or queries properties a JFS2 snapshot (a consistent block level image of a file system). The bos.rte.file fileset must be installed.
+								snapshot -o snapfrom=/data /dev/snapsb : creates a snapshot for the /data file system on the exisiting /dev/snapsb LV.
+								snapshot -d /dev/snapsb : deletes the snapshot and the LV containing the snapshot.
+
+backsnap					<--Creates and backs up a JFS2 snapshot.
+								backsnap -m /tmp/snapshot/data -s size=16M -i -f /dev/rmt0 /data : creates a 16 MB LV, creates a snapshot for the /data file system on the created LV, mounts the snapshot on /tmp/snapshot/data and backups the files and directories in that file system by name to /dev/rmt0.
+
+fsdb						<--Examines and modifies snapshot superblock, snapshot map, block xtree copy, and segment headers. Mounted file systems cannot be modified.
+								fsdb /data : debugs file system /data.
+
+dumpfs						<--Dumps file system information (superblock, i-node map, and disk map) for debugging.
+								dumpfs /dev/hd2 : prints the information for /dev/hd2.
+
+lsvfs						<--Lists entries in the /etc/vfs file.
+
+crvfs						<--Creates entries in the /etc/vfs file.
+
+chvfs						<--Changes entries in the /etc/vfs file.
+
+rmvfs						<--Removes entries in the /etc/vfs file.
+
+mkramdisk					<--Creates a RAM disk using a portion of RAM (pinned by default). Use only for data that can be lost. Setup procedure creating a 8 MB RAM disk:
+								mkramdisk 8m
+								ls -l /dev | grep ram
+								mkfs -V jfs /dev/ramdiskx
+								mkdir /ramdiskx
+								mount -V jfs -o nointegrity /dev/ramdiskx /ramdiskx
+								where x is the logical RAM disk number.
+								To remove the RAM filesystem:
+								unmount /ramdiskx
+								rmramdisk /dev/ramdiskx
+								
+cfsadmin					<--Administers disk space used for CacheFS.
+								cfsadmin -c /cache1 : creates a cache directory named cache1.
+								mount -V cachefs -o backfstype=nfs,cachedir=/cache1 server2:/data /ldata : CacheFS-mounts the file system /data from remote host server2 on mount point /ldata of the client using cachedir /cache1.
+								cfsadmin -l /cache1 : lists file systems and statistics for cache1.
+								cfsadmin -d all /cache1 : removes all cached file systems from the /cache1 directory.
+
+mkcfsmnt					<--Mounts a CacheFS directory.
+								mkcfsmnt -d /mnt -t nfs -h server2 -p /home -c /cache1 -N : mounts the /home file system of server2 locally on the /mnt directory using /cache1 as CacheFS.
+
+cachefslog					<--Controls the logging of a cache file system.
+								cachefslog -f /cache1/cachelog /mnt : sets up the file /cache1/cachelog to log CacheFS statistics.
+
+cachefswssize				<--Displays the work space size for a cache file system.
+								cachefswssize /cache1/cachelog : displays the work space size of the cache filesystems being logged in the file /cache1/cachelog..
+
+fsck_cachefs				<--Checks the integrity of data cached with CacheFS.
+								fsck_cachefs -o noclean /cache1 : forces a check on the cache directory.
+procfiles
+procfiles -n `ls /proc` : lists all the process and files they have open.
+
+find
+find / -xdev -type f -mtime -1 -ls | sort +6nr | head -n 20 : lists the top-20 largest files in / that where used within the last 24 hours.
