@@ -1,0 +1,78 @@
+bootinfo -b
+lspv
+unmirrorvg rootvg hdisk0
+lsvg -p rootvg
+reducevg rootvg hdisk0
+lsvg -p rootvg
+lspv
+alt_disk_copy -d hdisk0
+
+
+
+alt_rootvg_op -W -d hdisk0
+
+chroot /alt_inst /usr/bin/ksh
+lspv
+
+emgr -l
+remove emgr all
+exit
+lspv - check 
+
+cd /tmp
+nohup alt_rootvg_op -C -b update_all -l /mksysb_backup/prabha/7200-05-04/installp/ppc &
+tail -f nohup.out
+
+
+
+
+cd /mksysb_backup/prabha/7200-05-04
+cp -pr emgr /alt_inst/tmp/
+
+chroot /alt_inst /usr/bin/oslevel -s
+chroot /alt_inst /usr/sbin/emgr -e /alt_inst/tmp/emgr/ppc/IJ44425m4a.221220.epkg.Z
+chroot /alt_inst /usr/sbin/emgr -e /alt_inst/tmp/emgr/ppc/IJ43869m4b.230216.epkg.Z
+chroot /alt_inst /usr/sbin/emgr -e /alt_inst/tmp/emgr/ppc/IJ41975s4a.221017.epkg.Z
+chroot /alt_inst /usr/sbin/emgr -e /alt_inst/tmp/emgr/ppc/IJ42159s4a.221017.epkg.Z
+chroot /alt_inst /usr/sbin/emgr -e /alt_inst/tmp/emgr/ppc/IJ41974s4a.221017.epkg.Z
+chroot /alt_inst /usr/sbin/emgr -e /alt_inst/tmp/emgr/ppc/IJ43876s4a.221017.epkg.Z
+chroot /alt_inst /usr/sbin/emgr -e /alt_inst/tmp/emgr/ppc/IJ43877s4a.221017.epkg.Z
+chroot /alt_inst /usr/sbin/emgr -e /alt_inst/tmp/emgr/ppc/IJ44559m4a.221214.epkg.Z
+chroot /alt_inst /usr/sbin/emgr -e /alt_inst/tmp/emgr/ppc/IJ42163m4a.221213.epkg.Z
+chroot /alt_inst /usr/sbin/emgr -e /alt_inst/tmp/emgr/ppc/IJ42677s4a.221227.epkg.Z
+chroot /alt_inst /usr/sbin/emgr -l
+chroot /alt_inst /usr/bin/oslevel -s
+
+lspv
+alt_rootvg_op -St altinst_rootvg
+
+bootlist -om normal hdisk0 hdisk1 
+bootlist -m normal -o
+
+
+cd /mksysb_backup/AIX72_TL5_SP3
+
+lslpp -l X11.base.lib
+
+simpana list
+simpana status
+/opt/splunkforwarder/bin/splunk status
+lssrc -s ds_agent
+
+mksysb -i -e /sysmonlogs/mksysb_bkp_070522/sbiimerdrw11.mksysb
+
+chroot /alt_inst /usr/sbin/emgr -e /alt_inst/tmp/emgr/ppc/IJ43869m4a.221017.epkg.Z
+
+alt_rootvg_op -X old_rootvg
+alt_disk_copy -d hdisk1
+bootlist -m normal -o
+bootlist -om normal hdisk0 hdisk1 
+bosboot -a
+
+
+migratepv hdisk1 hdisk0
+
+
+
+
+
