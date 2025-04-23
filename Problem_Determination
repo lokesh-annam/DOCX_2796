@@ -1,0 +1,249 @@
+CHAPTER 11. PROBLEM DETERMINATION
+ERROR LOG: By Using error log we can identify the system errors/problems, it is one of the advanced facility in Aix to identify the system software or hardware errors.
+
+HARDWARE ERRORS:
+Harddisk Failed
+Adapters Failed
+Adapters Link problems
+Sysplanner Failed
+VRM (Voltage Regulator Module) Failed
+DIMM/Memory Failed
+CD-ROM Errors
+Tape Drive Errors
+SOFTWARE ERRORS:
+Low paging space
+File systems problems
+Logical volumes Problems
+Super block corrupted
+Application Problems
+Deamons Problems etc.,
+LOCATION:
+/var/adm/ras/errorlog
+
+ERROR DAEMON: /usr/lib/errdemon
+# ps -ef |grep -i err 		--> To check the errdemon status.
+# ps -ef |grep -i err 
+	root 200866 1 0 09:19:32 - 0:00 /usr/lib/errdemon
+# /usr/lib/errstop 			--> To stop the error demon.
+# /usr/lib/errdemon 		--> To start the error demon.
+# /usr/lib/errdemon -l		--> To read the confiration that errdemon is running.
+# /usr/lib/errdemon -s <sizeinbytes> --> To Increase the errorlog.
+# /usr/lib/errdemon -B buffer_size -i file_name -s file_size	--> the daemon runs with the default parameters: file name, size, and the amount of 
+																	memory allocated to its buffer. 																	
+# errpt			--> Display Information obtained from the current error log file.
+# errpt -aj B6267342	--> For detailed information an error with the identifier.		
+# errpt -a		--> Command and redirect the result to the file.
+# errpt -j <IDname> 	--> To list the particular ID related errors,
+# errpt -d S 	--> To list the software errors with short details.
+# errpt -a -d S --> To list the software errors with full details.
+# errpt -d H 	--> To list the hardware errors with short detail.
+# errpt -a -d H --> To list the hardware errors with full details.
+# errpt -d O 	--> To list the other errors
+# errpt |more
+	IDENTIFIER: ID name of the error
+	TIMESTAMP: The date & time of error generated.
+	T/type: Type of error (TEMP/PERM/INFO/UNKN).
+	C/Class: Class of error (Software/Hardware/OPERATOR)
+	RESOURCE_NAME: What is main resource to generated error (Ex: hdisk, sysplanner, FS, LV 
+	and Daemon).
+	DESCRIPTION: Error short Description:
+# errpt -s <startdate> -e <enddate> 	--> To display the errors on particular dates.
+	Date Formate: 0809123016 (MMDDhhmmYY)
+CLEARING THE ERROR LOG (ERRCLEAR)															
+
+# errclear 30			--> Deletes all entries older than 30 days.
+# errclear -d S 30			--> Removes all S-class errors (software) older than 30 days.
+# errclear -j 192AC071 3	--> Removes all errors with the id. 192AC071 older than three days.
+# errclear -l 24 0		--> Deletes an error with the sequence number 24.																	
+# errclear -d S 0 		--> To clear Software errors
+# errclear -d H 0 		--> To clear Hardware errors
+# errclear -d O 0		--> To clear Other errors
+# errclear 0 			--> To clear total system errors (hardware/software/Othter etc.)
+	NOTE: Before clear the errors take the backup of errorlog safe side to check old errors in future.
+# errlogger "my test error in aix1 server" -> To generate the error into error log manually.
+	NOTE: if errlog file not available or removed by some one. follow the below steps to create log file.
+/usr/lib/errstop
+/usr/lib/errdemon
+Once stop/start the errdemon the errlog file will create automaticlly.
+
+# crontab -l | grep err
+0 11 * * * /usr/bin/errclear -d S,O 30 # Removes all software errors older than 30 days.
+0 12 * * * /usr/bin/errclear -d H 90 # Removes all hardware errors older than 90 days.
+
+/var/adm/ras/errlog			--> the error and the additional information are logged in the log file.
+/etc/syslog.conf	--> Its configuration can be customized by modifying the configuration file.
+
+DIAG
+
+# diag -d fcs0 -c # Diagnostics of the fcs0 fiber channel adapter.
+# diag -AecS 5 # Advanced SCSI diagnostics, including an error log analysis.
+
+====================Log Files====================================
+messages:-
+	/var/adm/ras
+syslog:-
+	/var/adm/ras
+mail:-
+	/usr/spool/mqueue/syslog
+cron:-
+	/var/adm/cron/log
+boot:-
+	/var/adm/ras
+	
+	alog -o -t boot
+	alog -o -t console
+	alog -L  (list all the logs available)
+Error logging:-
+	/usr/lib/errdemon -l (display attributes)
+	/usr/lib/errdemon (start error logging)
+	/usr/lib/errstop (stop error logging)
+	
+	# use with above errorlog file
+	errpt (summary errorlog report)
+	errpt -a (detailed errorlog report)
+	errpt -j <identifier> (single errorlog report)
+	
+	errclear (clears errorlog)
+	errclear -d <class><days> (clears class errors)
+	
+	errlogger "message upto 230 chars"
+
+Crash Dump
+	sysdumpdev -l (list dump destination)
+	sysdumpdev -e (estimates dumpsize)
+	sysdumpdev -L (info)
+	
+	sysdumpstart -p (start dump primary)
+	sysdumpstart -s (start dump secondary)
+	
+	# set the dump device permanently
+	sysdumpdev -p <dump device> -P
+	
+	# analyse dump file
+	echo "stat\n status\n t -m" | crash /var/adm/ras/vmcore.0
+	
+====================================================================================
+				SYSTEM DUMP
+====================================================================================
+SYSTEM DUMP: it contains the information about system booting errors. (or) if system having any booting related problems, 
+we can create/generate the System Dump file (vmcore file) to analyze the system booting related problems by IBM.
+In Aix we have two dump devices 
+1) primary dump device
+2) secondary dump device
+1) PRIMARY DUMP DEVICE:
+	If real memory below 4GB (<4GB) primary dump device is /dev/hd6
+	If real memory =>4GB primary dump device is /dev/lg_dumplv
+2) SECONDARY DUMP DEVICE:
+Default secondary dump device is /dev/sysdumpnull
+NOTE: 
+1) If we need additional dump devices, we can create by using #mklv command.
+2) If primary dump device is /dev/hd6 or /dev/lg_dumplv, once generated dump file the vmcore file will create and copy into the /var/adm/ras location.
+3) If primary dump device is /dev/sysdumpnull, once dump generated, vmcore file will create but 
+	vmcore core will not copy into the /var/adm/ras location, because the vmcore file delete by the sysdumpnull.
+	so if we need to create dump file (vmcore) we should not keep primary dump device as 
+/dev/sysdumpnull.
+PRE-CHECKS BEFORE CREATE DUMP FILE:
+1) Estimate the dump size
+2) Verify the /var file system size, /var file system free space should => estimated dump size.
+# sysdumpdev -l --> To list the primary & secondary dump devices information.
+# mklv -y <lvname> -t sysdump <vgname><nooflps><pvname>
+# sysdumpdev -p /dev/dumplv --> To change the primary device temporarly.
+# sysdumpdev -Pp /dev/dumplv --> To change the primary dump device permanently
+# sysdumpdev -s /dev/dumplv --> To change the secondary dump device temporarly.
+# sysdumpdev -P-s /dev/dumplv --> To change the secondary dump device permanently.
+# sysdumpdev -e --> To estimate the dump file size before creating. the size it will list on bytes. 
+	we can convert the bytes size into MBs to estimate required space on dump logical volumes (/dev/lg_dumplv etc.)
+# sysdumpstart -p --> To create/generate system dump file (vmcore) from the primary dump device.
+# sysdumpstart -s --> To generate system dump file (vmcore) from the secondary dump device.
+# savecore -d <location> --> To generate the dump file (vmcore) manually after create.
+# savecore -d /var/adm/ras
+# sysdumpdev -L --> To list the last time or previously created dump device information.
+
+LED code of Dump Device: 0c2
+Recent Problems:
+Problem: Dump file not generated
+Reason: No enough space on /var file system to copy the dump file (vmcore).
+(or) Primary dump device if /dev/sysdumpnull.
+(or) No enough space Primary or Secondary dump device.
+Issue Fixed:
+Increased /var file system.
+Increased Primary/Secondary dump device space
+
+sysdumpdev					<--Changes the primary or secondary dump device designation in a running system. 
+								The default primary dump device is LV /dev/hd6 and the default secondary dump device is /dev/sysdumpnull. 
+								A dedicated primary dump device LV /dev/lg_dumplv is created (if sufficient disk space is available) in systems with at least 4 Gigabytes of real memory.
+	# sysdumpdev -l : To list the primary & secondary dump devices information.
+	# sysdumpdev -P -p /dev/hd7 : changes the primary dump device permanently from the default to LV /dev/hd7.
+	# sysdumpdev -e : estimates the dump size (in bytes) for the current running system.
+	# sysdumpdev -L : displays statistical information about the last dump.
+	# chdev -l sys0 -a autostart=true : automatically reboot after a crash (default is false).
+
+dumpcheck					<--Checks the disk resources used by the system dump and logs in the system error log. Run default by cron at 3:00 pm local time each day.
+								/usr/lib/ras/dumpcheck -p : requests a dumpcheck. The result is printed to stdout (-p).
+								/usr/lib/ras/dumpcheck -r : discontinues running dumpcheck (removes the crontab entry).
+
+kdb							<--Displays system images for examining a dump.
+								kdb /var/adm/ras/vmcore.0 /unix : starts kdb using the uncompressed dump file /var/adm/ras/vmcore.0 and kernel file /unix.
+
+snap						<--Gathers system configuration information and compresses the information into a pax file.
+								snap -a -o /dev/rmt0 : gathers all system configuration information (needs approximately 8 MB space in directory /tmp/ibmsupt) and creates a compressed pax image (snap.pax.Z) of directory /tmp/ibmsupt.
+
+snapcore					<--Gathers the core file, program, and libraries used by a program to directory /tmp/snapcore (default) and compresses the information into a pax image. The collected information allows debugging and resolving problems within an application.
+								snapcore -d /tmp/snapcore2 core.xx : gathers all needed information for core dump file core.xx and writes it to directory /tmp/snapcore2/snapcore_32811.pax.Z, where 32811 is the process id ($pid) of the snapcore command.
+								uncompress -c snapcore_32811.pax.Z | pax : displays the contents of the pax archive.
+								check_core	Used by snapcore to gather all information about a core dump. The bos.rte.serv_aid fileset must be installed.
+								/usr/lib/ras/check_core core.xx : displays a list containing the program that caused core dump core.xx and the used libraries.
+
+shconf						<--Manages the system hang detection parameters for the system hang daemon shdaemon.
+								shconf -d : displays if priority problem detection and lost I/O detection are enabled or not.
+								shconf -E -l prio -H : displays the current shdaemon settings.
+
+dump						<--								 
+								dump -ov /dir/xcoff-file
+===================================================================
+			PMR/SNAP/PERF PMR
+===================================================================
+PROBLEM MANAGEMENT REQUEST (PMR):
+When we are facing any software/hardware minor or major problems in the Aix servers, if Aix admin not able to fix the problems then we can contact to the IBM to open the PMR.
+IBM Contact Number: 18004267378
+Option1: Hardware Problems
+Option2: Software problems
+IBM will ask below details before Help us:
+Hardware/Software problem?
+Your Name
+Your Company Name
+Customer ID Ex: 21281138 (Disney Project)
+Server Model #prtconf |more
+Server Serial number
+What is Aix OS Version installed
+What is your problem
+Your contact details (Phone, Mail IDs)
+Priority of the PMR
+Take your PMR number (63721 082 000)
+63721 PMR number
+082 Branch code
+Then IBM will ask us to upload the server snap file into IBM site.
+SNAP File:
+The snap file contains/collect the total information about server. 
+TO CREATE SNAP FILE:
+#snap -r --> To remove the old SNAP file, before create new snap file.
+#snap -gc or ac -->To create snap file
+#cd /tmp/ibmsupt -> To enter snap file location
+#ls -l snap*
+rename the snap file with PMR number
+#mv snap.pax.Z 63721.082.000.snap.pax.Z
+Once snap is created/ready, Now we can upload the snap file into the IBM Site via FTP:
+Software Site: testcase.software.ibm.com
+Hardware Site: testcase.boulder.ibm.com
+Suppose if Hardware case:
+#ftp testcase.boulder.ibm.com
+User name: anonymous
+Passwd: surendra.s@hcl.com
+#cd /toibm/hw --> Hardware snap file upload location
+or /toibm/aix (For software snap file upload location)
+#bin
+#hash
+#prompt
+#put 63721.082.000.snap.pax.Z
+NOTE: If we dont know how to upload the snap file, ask IBM technician He will provide total details/commands step by step to upload the snap file.
+
