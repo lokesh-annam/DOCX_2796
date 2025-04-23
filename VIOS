@@ -897,3 +897,29 @@ SHELL COMMANDS
 $
 $ cat config/ntp.log	--> 
 $ vi /home/padmin/config/ntp.conf	--> Network Time Protocol configuration
+Server will have VIO‘s configuration backup in case of any failure or crash 
+Steps :
+viosbr -backup -file sbiwmr11_23_vio_bkp_28Aug		<-- We need to run below command to take VIOS configuration backup
+Verify: 
+$ viosbr -view -list		<-- Once backup completed we can check the configuration bacup status by using below command
+sbiwmr11_23_vio_bkp_28Aug.tar.gz
+$ viosbr -view -file sbiwmr11_23_vio_bkp_28Aug.tar.gz
+$  backupios -file /home/padmin/web1_mksysb_29Aug.mksysb -mksysb
+
+Etherchannel Configuration and SEA modification in VIOS:- 
+Procedure:-
+# lsdev –Cc adapter		<-- Check available adapter information
+# ifconfig –a		<-- check current IP configuration output
+# ifconfig enX down		<-- once we are ready with your pre-requisites, bring down sea adapter and detach the adapter
+# ifconfig enX detach
+# rmdev –Rdl ent6 
+# smitty etherchannel (Primary/backup adapter)		<-- Create etherchannel with available free Ethernet adapter (for example ent1 & ent3) once we created etherchannel we will get new Ethernet adapter (entXX).
+# lsdev –Cc adapter | grep –i channel		<-- Now create new sea with newly created etherchannel adapter
+# mkvdev –sea entXX
+# lsattr –El (SEA-entXX)
+Rollback Action:
+Incase of any failure in newly created we need to revert back with old configurations:
+
+
+
+
