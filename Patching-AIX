@@ -1,0 +1,42 @@
+prechecks:
+
+mksysb -ieX /mksysb_backup_UAT/mksysb/Others/sbiikonywuata149.mksysb
+
+bash
+clear
+cd /scripts
+./serverinfo.sh
+ifconfig -a
+df -gt
+netstat -rn
+oslevel -s
+uptime
+
+
+lspv
+lsvg -l rootvg
+lsvg -p rootvg
+lspv -l hdisk1
+unmirrorvg rootvg 
+chpv -c hdisk1
+lspv -l hdisk1
+migratepv hdisk1 hdisk0
+lsvg -p rootvg
+reducevg rootvg hdisk1
+lsvg -p rootvg
+alt_disk_copy -d hdisk1 -B
+
+
+bootinfo -b
+bootlist -m normal -o
+bootlist -m normal -o hdisk0
+bosboot -ad /dev/hdisk0
+oslevel -s
+
+/usr/sbin/emgr -P
+emgr -r -L IJ29230m7a
+
+
+
+cd /sysmonlogs/7100-05-08-2114/H98473813
+smitty update_all
