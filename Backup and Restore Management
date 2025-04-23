@@ -1,0 +1,248 @@
+BACKUP AND RESTORE MANAGEMENT:-
+
+lsmksysb					<--Lists or restores the contents of a system backup.
+								lsmksysb : lists the contents of a system backup located on default device /dev/rmt0.
+								lsmksysb -f /dev/cd0 -s : lists the contents of a non-rootvg VG backup (-s).
+								lsmksysb -B : displays the volume group backup log.
+								lsmksysb -f /dev/cd0 : lists the contents of the system backup located on device /dev/cd0.
+								lsmksysb -f /dev/cd0 -r ./etc/inittab : restores /etc/inittab from the system backup on device /dev/cd0.
+								lsmksysb -r -d /tmp/etc ./etc : restores all files in the /etc directory of the rootvg backup on /dev/rmt0 and write the restored files to /tmp/etc.
+
+mksysb						<--Creates a bootable system backup of the rootvg volume group. Uses /image.data (contains information on VGs, LVs, file systems, paging space, and PVs for an mksysb backup) and/bosinst.data (specifies requirements at the target system for an mksysb backup (INSTALL_METHODPROMPT, CONSOLE, DESKTOP, RECOVER_DEVICES, HDISKNAME, etc.).
+								mksysb -i -e /dev/rmt0 2>/tmp/mksysb.err : creates a system backup (-i generates the /image.data file) while excluding from the mksysb backup the user specified files and directories in /etc/exclude.rootvg.
+								Procedure to restore /etc/inittab:
+								Find out the blocksize of the fourth image if not default:
+								cd /tmp
+								tctl -f /dev/rmt0 rewind
+								chdev -l rmt0 -a block_size=512
+								restore -s2 -xqdvf /dev/rmt0.1 ./tapeblksz
+								cat ./tapeblksz
+								chdev -l rmt0 -a block_size=[number in the ./tapeblksz file]
+								Restore /etc/inittab:
+								cd /
+								tctl -f /dev/rmt0 rewind
+								restore -s4 -xqdvf /dev/rmt0.1 ./etc/inittab
+
+mkszfile					<--Saves the system state for reinstallation on the current system or on another system in the /image.data file.
+								mkszfile : creates or overwrites /image.data.
+
+mkcd						<--Creates a multi-volume CD (or CDs) or DVD from a mksysb or savevg backup image. Supported are: bootable and non-bootable CDs in Rock Ridge (ISO9660) or UDF (Universal Disk Format) format. Only CHRP platform supports booting from DVD.
+								mkcd -d /dev/cd0 : creates a bootable system backup on CD-R /dev/cd0.
+								mkcd -U -d /dev/cd1 -V rootvg : creates a mksysb image (UDF format) on DVD-RAM.
+
+savevg						<--Finds and backs up all files belonging to a specified volume group.
+								savevg -i uservg : backs up VG uservg to the default tape drive (dev/rmt0) and creates a new /tmp/vgdata/uservg/uservg.data file (-i).
+
+mkvgdata					<--Creates a /tmp/vgdata/vgname/vgname.data file containing information about a volume group for use by savevg and restvg.
+								mkvgdata uservg : creates a new /tmp/vgdata/uservg/uservg.data file.
+
+restvg						<--Restores the user volume group and all its containers and files.
+								restvg -l -f /dev/rmt0 : displays VG information about the VG backed up on the tape in /dev/rmt0.
+								restvg -s -f /dev/rmt0 hdisk1: restores the VG image from /dev/rmt0 onto PV hdisk1 with the LVs created at the minimum size possible to accommodate the file systems (-s: shrink file systems).
+
+listvgbackup				<--Lists or restores the contents of a volume group backup. listvgbackup -r and restorevgfiles are interchangeable (perform identical operations).
+								listvgbackup -f /dev/cd0 : lists the contents of the system backup on device /dev/cd0.
+								listvgbackup -r -s ./data/mydata : restores the /data/mydata file from a non-rootvg backup on device /dev/rmt0.
+
+restorevgfiles				<--Restores files from a backup source.
+								restorevgfiles -f /dev/cd0 -s -d /tmp ./data/mydata : restores the /data/mydata file from a non-rootvg backup on /dev/cd0 to the /tmp directory.
+
+backup						<--Backs up files and file systems including extended permissions (ACLs).
+								find . -print | backup -i -q -f /dev/rmt0 : backs up all the files and subdirectories in the current directory to /dev/rmt0 using relative path names, without prompting to prepare the backup medium (-q).
+								backup -0 -u -f /dev/rmt0 /home : backs up all the files (level 0) in the /home file system to /dev/rmt0 and updates /etc/dumpdates (-u).
+
+restore						<--Extracts files from archives created with the backup command.
+								restore -Pa -vf /dev/rmt0 : restores only the permissions of the files on the tape archive.
+								restore -s4 -Tdvqf /dev/rmt0.1 : lists contents of a mksysb tape.
+								restore -s4 -xdvqf /dev/rmt0.1 ./etc/inittab : restores the inittab file from tape.
+
+pax							<--Extracts, writes, and lists members of archive files; copies files and directory hierarchies.
+
+tar							<--Manipulates archives. Use /opt/freeware/bin/tar for the Linux tar.
+								tar -cvf /dev/rmt0 * : backs up the current directory to /dev/rmt0.
+								tar -xvf /dev/rmt0 /etc/passwd : extracts the file /etc/passwd form tape.
+
+tcopy						<--Copies a magnetic tape.
+								tcopy /dev/rmt0 /dev/rmt1 : duplicates tape from tape device /dev/rmt0 to /dev/rmt1.
+								tcopy /dev/rmt0 : shows the block size in bytes for each tape file.
+
+cpio						<--Copies files into and out of archive storage and directories.
+								find /home -print | cpio -ocvB > /dev/rmt0 : backs up /home to /dev/rmt0 using absolute path names.
+								cpio -idmv </dev/rmt0 : restores all files from /dev/rmt0 while retaining previous file modification time (-m).
+								cpio -i "ma*" "myfile" </dev/rfd0 : restores all files that match ma* and the file myfile from diskette.
+
+dd							<--Converts and copies a file.
+								dd if=/dev/rmt0 bs=128k count=1 | wc -c : reads a single block from /dev/rmt0 and finds out used block size.
+								chdev -l rmt0 -a block_size=512 : changes the block size of /dev/rmt0 to 512 bytes.
+								dd if=/dev/fd0 of=/tmp/fdcopy : copies the contents of the diskette into /tmp/fdcopy.
+
+tctl						<--Gives subcommands to a streaming tape device. Default device is /dev/rmt0.
+								tctl fsf 3 : moves forward three file marks.
+								tctl -f /dev/rmt1 rewind : rewinds the rmt1 tape device.
+								tctl rewoffl : rewinds the tape and takes the tape drive offline.
+								
+================================================================================================>
+AIX rsync:-
+
+/usr/bin/rsync -ltpvrog  -e ssh  --rsync-path=/usr/bin/rsync root@10.0.254.11:/doc-root/*  /doc-root/
+/usr/bin/rsync -ltpvrog  -e ssh  --rsync-path=/usr/bin/rsync root@10.0.252.112:/batchdump/doc-root/*  /batchdump/doc-root/
+/usr/bin/rsync -ltpvrog  -e ssh  --rsync-path=/opt/sfw/bin/rsync root@10.0.252.112:/batchdump/doc-root/*  /batchdump/doc-root/
+
+Backup and Restore Management
+lsmksysb
+Lists or restores the contents of a system backup.
+lsmksysb : lists the contents of a system backup located on default device /dev/rmt0.
+lsmksysb -f /dev/cd0 -s : lists the contents of a non-rootvg VG backup (-s).
+lsmksysb -B : displays the volume group backup log.
+lsmksysb -f /dev/cd0 : lists the contents of the system backup located on device /dev/cd0.
+lsmksysb -f /dev/cd0 -r ./etc/inittab : restores /etc/inittab from the system backup on device /dev/cd0.
+lsmksysb -r -d /tmp/etc ./etc : restores all files in the /etc directory of the rootvg backup on /dev/rmt0 and write the restored files to /tmp/etc.
+mksysb
+Creates a bootable system backup of the rootvg volume group. Uses /image.data (contains information on VGs, LVs, file systems, paging space, and PVs for an mksysb backup) and/bosinst.data (specifies requirements at the target system for an mksysb backup (INSTALL_METHODPROMPT, CONSOLE, DESKTOP, RECOVER_DEVICES, HDISKNAME, etc.).
+mksysb -i -e /dev/rmt0 2>/tmp/mksysb.err : creates a system backup (-i generates the /image.data file) while excluding from the mksysb backup the user specified files and directories in /etc/exclude.rootvg.
+Procedure to restore /etc/inittab:
+Find out the blocksize of the fourth image if not default:
+cd /tmp
+tctl -f /dev/rmt0 rewind
+chdev -l rmt0 -a block_size=512
+restore -s2 -xqdvf /dev/rmt0.1 ./tapeblksz
+cat ./tapeblksz
+chdev -l rmt0 -a block_size=[number in the ./tapeblksz file]
+Restore /etc/inittab:
+cd /
+tctl -f /dev/rmt0 rewind
+restore -s4 -xqdvf /dev/rmt0.1 ./etc/inittab
+mkszfile
+Saves the system state for reinstallation on the current system or on another system in the /image.data file.
+mkszfile : creates or overwrites /image.data.
+mkcd
+Creates a multi-volume CD (or CDs) or DVD from a mksysb or savevg backup image. Supported are: bootable and non-bootable CDs in Rock Ridge (ISO9660) or UDF (Universal Disk Format) format. Only CHRP platform supports booting from DVD.
+mkcd -d /dev/cd0 : creates a bootable system backup on CD-R /dev/cd0.
+mkcd -U -d /dev/cd1 -V rootvg : creates a mksysb image (UDF format) on DVD-RAM.
+savevg
+Finds and backs up all files belonging to a specified volume group.
+savevg -i uservg : backs up VG uservg to the default tape drive (dev/rmt0) and creates a new /tmp/vgdata/uservg/uservg.data file (-i).
+mkvgdata
+Creates a /tmp/vgdata/vgname/vgname.data file containing information about a volume group for use by savevg and restvg.
+mkvgdata uservg : creates a new /tmp/vgdata/uservg/uservg.data file.
+restvg
+Restores the user volume group and all its containers and files.
+restvg -l -f /dev/rmt0 : displays VG information about the VG backed up on the tape in /dev/rmt0.
+restvg -s -f /dev/rmt0 hdisk1: restores the VG image from /dev/rmt0 onto PV hdisk1 with the LVs created at the minimum size possible to accommodate the file systems (-s: shrink file systems).
+listvgbackup
+Lists or restores the contents of a volume group backup. listvgbackup -r and restorevgfiles are interchangeable (perform identical operations).
+listvgbackup -f /dev/cd0 : lists the contents of the system backup on device /dev/cd0.
+listvgbackup -r -s ./data/mydata : restores the /data/mydata file from a non-rootvg backup on device /dev/rmt0.
+restorevgfiles
+Restores files from a backup source.
+restorevgfiles -f /dev/cd0 -s -d /tmp ./data/mydata : restores the /data/mydata file from a non-rootvg backup on /dev/cd0 to the /tmp directory.
+backup
+Backs up files and file systems including extended permissions (ACLs).
+find . -print | backup -i -q -f /dev/rmt0 : backs up all the files and subdirectories in the current directory to /dev/rmt0 using relative path names, without prompting to prepare the backup medium (-q).
+backup -0 -u -f /dev/rmt0 /home : backs up all the files (level 0) in the /home file system to /dev/rmt0 and updates /etc/dumpdates (-u).
+
+restore
+Extracts files from archives created with the backup command.
+restore -Pa -vf /dev/rmt0 : restores only the permissions of the files on the tape archive.
+restore -s4 -Tdvqf /dev/rmt0.1 : lists contents of a mksysb tape.
+restore -s4 -xdvqf /dev/rmt0.1 ./etc/inittab : restores the inittab file from tape.
+pax
+Extracts, writes, and lists members of archive files; copies files and directory hierarchies.
+tar
+Manipulates archives. Use /opt/freeware/bin/tar for the Linux tar.
+tar -cvf /dev/rmt0 * : backs up the current directory to /dev/rmt0.
+tar -xvf /dev/rmt0 /etc/passwd : extracts the file /etc/passwd form tape.
+tcopy
+Copies a magnetic tape.
+tcopy /dev/rmt0 /dev/rmt1 : duplicates tape from tape device /dev/rmt0 to /dev/rmt1.
+tcopy /dev/rmt0 : shows the block size in bytes for each tape file.
+cpio
+Copies files into and out of archive storage and directories.
+find /home -print | cpio -ocvB > /dev/rmt0 : backs up /home to /dev/rmt0 using absolute path names.
+cpio -idmv </dev/rmt0 : restores all files from /dev/rmt0 while retaining previous file modification time (-m).
+cpio -i "ma*" "myfile" </dev/rfd0 : restores all files that match ma* and the file myfile from diskette.
+dd
+Converts and copies a file.
+dd if=/dev/rmt0 bs=128k count=1 | wc -c : reads a single block from /dev/rmt0 and finds out used block size.
+chdev -l rmt0 -a block_size=512 : changes the block size of /dev/rmt0 to 512 bytes.
+dd if=/dev/fd0 of=/tmp/fdcopy : copies the contents of the diskette into /tmp/fdcopy.
+tctl
+Gives subcommands to a streaming tape device. Default device is /dev/rmt0.
+tctl fsf 3 : moves forward three file marks.
+tctl -f /dev/rmt1 rewind : rewinds the rmt1 tape device.
+tctl rewoffl : rewinds the tape and takes the tape drive offline.
+
+
+=========================================================================================================================================================================>
+Q) If we lose/removed data in system how to restore from backup.
+	RootVG or OS Backup:
+	By using mksysb command we can take the rootvg backup. the rootvg backup we can take into file systems/tape drive or Nim Servers file systems.
+	EX: #mksysb -iex /backup/aix1_rvgbkp_08172016_53_04_02 		--> To take the aix1 server rootvg
+		-i - To create the image.data file
+		-e - Exclude the file systems from backup if required.
+		-X - Expand the rootvg file systems space if required.
+	image.data file: This file presented under "/" root file system. it is contains total rootvg information such as PP size, PV names, PPs, LV Names, LPs, total copies (1,2 or 3) etc.
+	/etc/exclude.rootvg: if we dont want take any file systems backup while taking mksysb backup add the file systems entries in /etc/exclude.rootvg.
+	Ex: #vi /etc/exclude.rootvg
+	^./tmp
+	:wq
+
+We are excluding/removing /tmp file system from the mksysb backup
+# mkszfile 		--> To create the image.data file.
+# lsmksysb -l -f <BKPfilelocation> 		--> To display the mksysb information such as oslevel, TL level, date & time of backup and which are file systems taken in backup.
+# lsmksysb -L -f <BKP filename> 		--> To display to package/software in backup.
+# lsmksysb -f <BKP filename> 			--> To list the all file & Dirs, with full paths on rootvg filesystems.
+
+TO TAKE ROOTVG BACKUP INTO TAPE DRIVE: 
+# lsdev -Cc tape 	--> To list/verify the tape drive
+# mksysb -ieX /dev/rmtX
+
+TO TAKE THE USERS CREATED VGS BACKUP:
+	Ex: # sapvg backup
+All user created vgs we can take by using #savevg command.
+# savevg -ief <BKP file location><vgname>
+	Ex: #savevg -ief /backup/sapvg_bkp_170820116 sapvg 		--> To take the sapvg backup into /backup file system.
+	
+RESTORATION:
+Rootvg Restore: if rootvg data lose/corrupted, if we have mksysb backup we can restore through nim server.
+	USER VGS:
+# restvg -f <backupfilelocation><pvname><pvname>
+# restvg -f /backup/sapvg_bkP_08172016 hdiskx hdiskX
+# mksysb -ieX <tapedrive>
+# mksysb -ieX /dev/rmt0 		--> To take the rootvg backup into tape drive.
+# savevg -ief /dev/rmtX sapvg	 --> To take the sapvg backup into tape drive.
+	NOTE: Actually in office Aix Admins will take only rootvg backup.
+User created VGs backup will taken by the backup team. 
+	Ex: Legato backup team, TSM Backup team, Net Backup etc.
+In my office environment we are using CV backup CV Backup Team
+# ps -ef |grep -i nsr -> To verify the legato process running or not.
+# /etc/rc.nsr -> To start the NSR services
+# /bin/shutdown -> To stop NSR services
+client server: 192.1681.1.10
+backup server: 192.168.1.20
+	SYN: #mminfo -s <bkp server> -c <client server> -t <time>
+	EX: #mminfo -s 192.168.1.20 -c 192.168.1.10 -t one week ago --> To list the file systems on 
+192.168.1.10 server, which are taken backup by the backup server (192.168.1.20).
+# recovery -> To recovery the data from legato backup.
+
+BACKUP TYPES: 
+1) Full backup
+2) Incremental backup or Daily backup
+3) Differencial backup
+
+FULL BACKUP:
+To take the total file system backup Ex: weekly once or 15 days once or monthly once.
+
+INCREMENTAL BACKUP:
+This also called daily backup, this backup will not take the tolal file systems backup, It will take the backup of newly added data/modified data only.
+
+Differencial backup: its date to date backup.
+	Ex: from Dec 05th to 15th to take backup
+# ps -ef |grep -i commvault	 --> To check the cv process.
+# simpana status  	--> To status the cv /services
+# simpana start/stop 	--> To stop/start the cv services
+
+
+
+
+
