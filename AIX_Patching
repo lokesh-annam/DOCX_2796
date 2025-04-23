@@ -1,0 +1,128 @@
+Patching Procedure of AIX     
+
+
+
+
+
+
+
+
+
+Document Version 1.0
+ 
+
+Document Control 
+
+Project Name:	State Bank of India
+Project Manager:	KalyanKumar
+
+
+Opportunity Roadmap Phase:	Beta	Document Version No:	1.0
+Quality Review Method:	Peer Review	Document Version Date:	
+Prepared By:	OS Admin Team	Preparation Date:	21 jan 2016
+Reviewed By:	Francis Fernandes	Review Date:	
+Distribution List:
+From	Date	Phone/Fax
+		
+
+To 	Action*	Due Date	Phone/Fax
+			
+			
+* Action Types: Approve, Review, Inform, File, Action Required, Attend Meeting, Other (please specify)
+
+Version History
+Ver. No.	Ver. Date	Revised By	Description	Filename
+1.0				
+				
+				
+
+
+This document describes the steps included installation of Patching procedure of AIX
+	Document Version 1.0
+
+Introduction
+In 2006, all the rules changed with respect to operating system upgrades in AIX. Even the nomenclature has changed from maintenance level (ML) to technology level (TL). Is this just a rebranding or are there substantive changes here? What about best practices? When should you deploy technology- (maintenance) level upgrades? Furthermore, what is the best way of retrieving upgrades, service packs, and fixes? Finally, how do you actually perform a TL upgrade?
+This article explains all of these concepts and discusses recent changes to the upgrade methodology. In doing so, you'll review important new concepts such as the Concluding Service Pack (CSP), which is the final service pack of a TL. You'll even walk through an actual upgrade of a system where you'll be working with systems such as the IBM® Service Update Management Assistant (SUMA) and Fix Central. SUMA helps the systems administrator automate the retrieval of AIX updates. Fix Central is the Web-based central repository for all TLs, services packs, and fixes, including hardware firmware. Finally, you'll learn the rationale in determining when you should deploy a TL upgrade
+________________________________________
+Technology level overview
+Although some systems administrators still use the term "maintenance level" when discussing their AIX version, the term is now reserved for legacy AIX systems. The new IBM methodology dictates two TL releases per year. The first TL includes hardware features, enablement, and software services. The second includes software features in the release, which means the second release is larger and more comprehensive. Finally, there is also now support for new hardware on older TLs.
+Historically, new hardware was only supported in new technology releases, which obviously required an upgrade to the new level. The way AIX now supports new hardware is broken down into two categories. The first category is support. First, AIX has actually undergone changes allowing it to recognize new hardware at boot time. Changes to support the new hardware include, at a minimum, updates of tables that are referenced at boot. These determine the processor type and how to create new boot media. The second category is referred to as exploitation, which requires AIX to undergo more pervasive changes to the operating system, such as changes to the Virtual Memory Manager (VMM) to exploit new pages sizes. This new release strategy was first implemented in 2007, starting with AIX V5.3 TL6, which was the first level to have two-year support.
+________________________________________
+Service pack overview
+What about service packs? A service pack (SP) contains groups of Program Temporary Fixes (PTF)s for highly pervasive issues. Service packs are cumulative and are generally released every four to six weeks after the release of a new TL. Service packs can include any of the following:
+Customer-reported problems that can't wait until the next TL.
+Critical problems reported by development teams.
+Limited changes to support new hardware, such as device drivers' kernels changes to reflect a new processor. These are changes that do not add new functionality. New functionality will only be added for TLs or new releases. SP release schedules are approximately every four to six weeks.
+So, what happens between service packs? Interim fixes, sometimes referred to as fix packs or temporary fixes, or stand-alone PTFs, are made available for relief until the time that the fix becomes available in a service pack. It's what IBM calls "temporary relief." They are tracked on the system with either the lslpp -L command or emgr -l command.
+Security updates, published through advisories, are made available by IBM through subscription services.
+________________________________________
+Concluding service packs
+Another important concept to understand is the Concluding Service Pack (CSP). The CSP is the final service pack for a TL. It usually contains fixes for critical problems or security issues. The new strategy also includes a longer period of support for each OS TL. Each TL will now be supported for up to a two-year period. This means that you can continue to call IBM support for up to a two-year period (from the introduction to the update) without having to move up to the latest TL. The new server update strategy also promises improved serviceability throughout the life of TL. This is done by allowing you to maintain your operating system by installing service packs and PTFs throughout the entire lifecycle of the TL.
+________________________________________
+Figure 1. Downloading updates from the smit screen
+ 
+________________________________________
+From this screen, scroll down to Download Maintenance Level or Technology Level and click Enter (see Figure 2).
+ 
+________________________________________
+At the window in Figure 3, click F4 and choose the appropriate TL level.
+ 
+________________________________________
+In this case, it is 6100-01, as shown in Figure 4.
+ 
+________________________________________
+Click Enter and let it run. When it completes, you'll see a summary, as shown in Figure 5.
+ 
+This provides you with the following summary:
+59 downloaded
+0 failed
+36 skipped
+Now try it from the command line. In this case, you're going to download TL Two for AIX V6.1. Do this by running the suma -x command (see Figure 6).
+ 
+________________________________________
+After about 30 minutes, it completes successfully (see Figure 7).
+ 
+The files get installed in /usr/sys/inst.images, which is where you would also manually put them if you were to retrieve them using different processes.
+Why is SUMA important? Perhaps most importantly, it helps to ensure that your systems have the latest patches that it needs. Current fixes are important. Secondly, it downloads the patches without intervention, which allows the systems administrator to focus on more important tasks.
+________________________________________
+Fix Central
+This section reviews Fix Central and discusses how to use it to download TL and service pack deployments. Fix Central is the central repository for all TLs and service packs for AIX. Among other things, you'll see how to log into Fix Central and retrieve service packs. Completely revamped in October of 2007, it provides fixes and updates for all your software, hardware, and operating systems. This includes the Hardware Management Console (HMC). Using Fix Central, you can download using the following options: by APAR, Fix ID, or Test. In addition, there are three download options, IBM Download Director, HTTP, and FTP.
+Download a service pack from the exact TL that you downloaded previously during the work with suma from the command line -- 6100-02. First go to Fix Central for System p®, as shown in Figure 8 (see Resources for a link to Fix Central).
+ 
+________________________________________
+From here, in the drop-down menu, choose your version. Another drop-down menu pops up, which is where you can select from one of the following: fix packs, fix recommendations, fix search, managing updates, and security advisories. Choose fix pack. Click Continue (see Figure 9).
+ 
+________________________________________
+From here, select the TL: 6100-02. At this time, you can either download the latest service pack or the entire TL. Choose the entire TL (see Figure 10).
+ 
+The options for download include Download Director, bulk FTP, or CD. In this case, use Download Director. I recommend this method because it has a friendly interface and there is also flexibility to pause downloads.
+ 
+The length of time is dependent on your Internet connection. For me, on broadband, this took roughly an hour.
+As a systems administrator, the Fix Central URL should definitely be one of your browser favorites. Fix Central helps you keep your systems up to date and is the best method of manually retrieving data for your upgrades. You really can't be an effective AIX systems administrator without knowing how to use this tool.
+________________________________________
+Upgrading a TL
+Now review the procedures to upgrade your system to the next TL.
+First log in as root: # su - root. Make sure you back up your system. If you prefer, you can also use alt_disk_install or multibios; the bottom line is that you need to have a plan B if you must go back to your prior level. You should also commit them, because they can't be rejected and they also make it easier to track and reject PTFs.
+Do a backup using the following command: # mksysb. When the backup is completed, you're set!
+________________________________________
+Installation
+Create a .toc file. This is done by running the inutoc command (see Figure 12). You run this in the directory where your filesets reside. If you don't have the .toc file, your update will not work.
+ 
+________________________________________
+When this is completed, you are ready to start the upgrade. Move to the directory where your .toc file resides. If you do this, you will not have to specify a path name during your upgrade: # smit update_all.
+Figure 13. Update software screen
+ 
+For Input device/directory for software, put in the dot (.). If you remembered to cd to the directory that has the .toc file, you don't need to specify the full path name. In this case, you did not commit the software, though as a practical matter because you can't back out of a TL upgrade, you really should say yes to limit the amount of filesets stored on your system -- a real disk hog. In this case, you first previewed the data to ensure that there would not be any problems. This is the third option on this smit menu (shown in Figure 13). The preview option does nothing except validate whether something might be missing as a prerequisite of the upgrade. This is good to do to avoid surprises. You don't want to find out something is missing during your two-hour maintenance window of the month. You can run a preview at any time without any impact to the system.
+In our case, as you can see in Figure 14, the preview is successful and there are no failures. So you are ready to move on.
+ 
+When you are ready to run the upgrade, change the preview to no. You will also have to change the default field that relates to << Accept new license agreement >>. For some reason, AIX defaults to no. Change it to yes. 
+After you click Enter, it will prompt you to make sure you want to do this. Click Enter to continue to start the process (see Figure 15).
+ 
+This can run for up to an hour, depending on the speed of your system and the type of upgrade you are performing. When the process is complete, you can scroll down to the summary section to see if you've been successful, which in this case is yes. (see Figure 16).
+Figure 16. Success
+ 
+Your final step is to reboot the box. Make sure you perform this step before bringing your applications back and going live. After I rebooted the box, I ran the oslevel command to confirm the new system level (see Listing 1).
+Listing 1. Confirming the new system level
+lpar46ml16fd_pub > # oslevel -s
+6100-02-01-0847
+What does this information signify? It tells that you are running AIX V6 TL2, service pack 1, released in 2008 in the 47th week. The forth field, 0847, indicates the year and week. Finally, it is highly recommended that you apply the latest service pack when moving to the new TL. In our case we did not have to, because the latest pack was already a part of the TL upgrade.
