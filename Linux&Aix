@@ -1,0 +1,1612 @@
+
+Where does my space gone in AIX/Linux filesystem ?
+By Iunix Mantra03:592 comments
+
+One of my friend got a situation where in she is seeing 9 GB allocated to one of the filesystems which is 100%utilized  but actual usage is 4GB  when verified with "du" command
+#df -k  /mytest
+Filesystem 1024-blocks Free %Used Iused %Iused Mounted on
+/dev/mytestlv  9216 9216 100% 48804 12% /mytest 
+She was wondering where does the other 5GB gone . 
+Reason: 
+This situation happens  when a  process is opening a file and dumping data into it and the file is removed while said process still has file open.So called process still holds that file space even file deleted.
+How to Rectify ?
+At first you need to check  what are all the  processes using  a particular filesystem using "fuser" command.
+# fuser -c /mytest
+/mytest:  2567 4006c 6548c 8657
+You need to kill the above process if you want to free up the space.
+
+Note: You need to inform the respective application owner/support team and take the application down time if this file-system is used by any-application.
+How to Kill the proceses ?
+# fuser -kc /mytest 
+This  will kill  all the processes and  space will be freed up.
+
+Check the space now 
+#df -k  /mytest
+Filesystem 1024-blocks Free %Used Iused %Iused Mounted on
+/dev/mytestlv  9216 4096 45% 48804 12% /mytest 
+
+------------------------------------------------------------------------------------------------
+
+WEBMIN- Managing Unix Systems Graphically
+By Surya11:38No comments
+What is Webmin?
+Webmin is a web-based interface for system administration for Unix. Using any modern web browser, you can setup user accounts, Apache, DNS, file sharing and much more.
+Demo:
+http://webmin-demo.virtualmin.com/   login: demo &  password: demo.
+Download Link:
+http://www.webmin.com/download.html 
+How to Install:
+Install on RedHat/CentOS/Fedora:
+
+If you are using the RPM version of Webmin, first download the file from the downloads page , or run the command :
+[root@UMLinux1 ~]# wget http://prdownloads.sourceforge.net/webadmin/webmin-1.710-1.noarch.rpm
+
+and then run the command
+
+[root@UMLinux1 ~]# rpm -U webmin-1.710-1.noarch.rpm
+The rest of the install will be done automatically to the directory /usr/libexec/webmin, the administration username set to root and the password to your current root password. You should now be able to login to Webmin at the URL http://localhost:10000/.Or if accessing it remotely, replace localhost with your system's IP address.
+
+If you want to connect from a remote server and your system has a firewall installed, see this page for instructions on how to open up port 10000.
+
+Install on Debian:
+
+If you are using the DEB version of webmin, first download the file from the downloads page , or run the command :
+[root@UMLinux1 ~]# wget http://prdownloads.sourceforge.net/webadmin/webmin_1.710_all.deb
+
+then run the command :
+
+[root@UMLinux1 ~]# dpkg --install webmin_1.710_all.deb
+The install will be done automatically to /usr/share/webmin, the administration username set to root and the password to your current root password. You should now be able to login to Webmin at the URL http://localhost:10000/. Or if accessing it remotely, replace localhost with your system's IP address.
+How to Stop& Start Webmin Services:
+In order to start the Webmin service on CentOS (Linux) you will need to issue the following command:
+[root@UMLinux1 ~]# service webmin start
+You can check to make sure that Webmin is running by issuing the following command:
+[root@UMLinux1 ~]# service webmin status
+Webmin (pid 1729) is running
+[root@UMLinux1 ~]#
+If you wish to configure your server to ensure that the Webmin service is started at boot time you can issue the following command:
+[root@UMLinux1 ~]# chkconfig --level 3 webmin on
+To verify that Webmin will start at boot, issue the following command:
+[root@UMLinux1 ~]# chkconfig --list webmin
+webmin 0:off 1:off 2:off 3:on 4:off 5:off 6:off
+[root@UMLinux1 ~]#
+In the previous listing, Webmin is listed to start in run level 3, which is the default run level that the dedicated servers boot into.
+
+
+
+------------------------------------------------------------------------------------------------
+
+Tar Files extraction Unix / Linux
+By Surya02:07No comments
+Q: How can I extract  specific file from a tar ball ?
+Tar or Tar ball is a single file  bundled with files &/ directories. First  we will discuss about general extraction of a files from tar ball.
+Unpack or extract a tar file :
+To unpack or extract a tar file, type:
+tar -xvf myfile.tar
+some times to save more space and bandwidth , we  need compress the tar balls using compression techniques like gzip or bzip2.
+
+To unzip and extract  those tar files, type as below 
+For  .tar.gz files 
+tar -xzvf myfile.tar.gz
+
+For .tar.bz2
+tar -xjvf myfile.tar.bz2
+Where,
+-x : Extract a tar ball.
+-v : Verbose output or show progress while extracting files.
+-f : Specify an archive or a tarball filename.
+-j : Decompress and extract the contents of the compressed archive created by bzip2 program (tar.bz2 extension).
+-z : Decompress and extract the contents of the compressed archive created by gzip program (tar.gz extension).
+Now here comes our main purpose ,  to extract a specific file  from a tar file.
+Extract Specific file from a tar ball:
+To extract a single file called myfile1.txt, enter:
+tar -xvf file.tar myfile1.txt
+tar -xzvf file.tar.gz myfile1.txt
+tar -xjvf file.tar.bz2 myfile1.txt
+You can also specify path such as home/um/myfile2.txt, enter:
+tar -xvf file.tar home/um/myfile2.txt
+tar -xzvf file.tar.gz home/um/myfile2.txt
+tar -xjvf file.tar.bz2 home/um/myfile2.txt
+How to Extract a Single Directory?
+To extract a single directory called /home/um, enter:
+tar -xvf file.tar home/um
+tar -xzvf file.tar.gz home/um
+tar -xjvf file.tar.bz2 home/um
+
+Sample O/P:
+home/um/
+home/um/ddl/
+home/um/ddl/default
+home/um/ddl/bin/config.conf
+home/um/ddl/daemon.conf
+home/um/ddl/config/system.sh
+
+
+------------------------------------------------------------------------------------------------
+
+How to change system hostname in Linux ?
+By Surya01:01No comments
+Recently  we got a request from one of our  visitor to post article related to hostname change in Linux operating systems. I am going to cover this  now.
+
+There are two general way to do this 
+
+1)  Temporary 
+2)  Permanent
+
+First we go and learn about how to check host name (system name) of the server.
+Use "hostname" command to list the system system name.
+[root@umser1 ~]# hostname umser1.unixmantra.com [root@umser1 ~]#
+    -s, --short              short host name
+    -a, --alias               alias names
+    -i, --ip-address      addresses for the hostname
+    -I, --all-ip-addresses all addresses for the host
+    -f, --fqdn, --long    long host name (FQDN)
+    -A, --all-fqdns        all long host names (FQDNs)
+    -d, --domain           DNS domain name
+    -y, --yp, --nis          NIS/YP domainname
+    -F, --file                  read hostname or NIS domainname from given fil
+In Cent OS  we have another command additionally 
+[root@umser1 ~]# sysctl kernel.hostname
+kernel.hostname = umser1.unixmantra.com
+[root@umser1 ~]#
+Change the hostname on a running system (Temporarily) :
+This is pretty simple  
+#hostname  new-name
+will set the hostname of the system to  new-name. This is active right away and will remain like that until the system will be rebooted (because at system boot it will set this from some particular file configurations – see bellow how to set this permanently). You will most probably need to exit the current shell in order to see the change in your shell prompt.
+How Do I Change Hostname Permanently?
+For Debian  Systems:
+Debian based systems use the file /etc/hostname to read the hostname of the system at boot time and set it up using the init script /etc/init.d/hostname.sh
+# /etc/hostname
+umser2.unixmantra.com
+So on a Debian based system we can edit the file /etc/hostname and change the name of the system and then run:
+/etc/init.d/hostname.sh start
+to make the change active. The hostname saved in this file (/etc/hostname) will be preserved on system reboot (and will be set using the same script we used hostname.sh).
+For Redhat/Fedora/Cent OS Systems:
+As you know if you need  changes to be  permanent   you need to hard-code the relevant configuration files.
+
+To make the hostname name permanent in  RH variants ,you must edit the /etc/sysconfig/network file to change  "HOSTNAME" value to your new hostname.
+#vi /etc/sysconfig/network
+
+NETWORKING=yes
+HOSTNAME="umser2.unixmantra.com"
+GATEWAY="192.168.1.1"
+GATEWAYDEV="eth0"
+FORWARD_IPV4="yes"
+Verification:
+
+Open new session and  there you go ,we can  see our  new hostname
+[root@umser2 ~]# hostname
+umser2.unixmantra.com
+[root@umser2 ~]#
+
+
+------------------------------------------------------------------------------------------------
+
+
+Manually Installing PHP in Linux
+By Surya10:46No comments
+Before installing php,  we need to install apache.The most recent version of Apache HTTP Server may be obtained from >> Apache Download.
+1) Download  & Unpack Apache HTTP server Package:
+Download and unpack Apache http server package  from the location listed above, and unpack it.
+Download Link: Apache Download
+gzip -d httpd-2_x_NN.tar.gz
+tar -xf httpd-2_x_NN.tar
+2) Download  & Unpack PHP source Package:
+Download Link: PHP Dowanlod
+gunzip php-NN.tar.gz
+tar -xf php-NN.tar
+3) Build and install Apache:
+cd httpd-2_x_NN
+./configure --enable-so
+make
+make install
+4) Start  & Start Apache:
+/usr/local/apache2/bin/apachectl start
+stop the  apache to configure php
+/usr/local/apache2/bin/apachectl stop
+5) Configure & Build  PHP Package:
+cd ../php-NN
+./configure --with-apxs2=/usr/local/apache2/bin/apxs --with-mysql
+make
+make install
+6)Setup your php.ini
+cp php.ini-development /usr/local/lib/php.ini
+You may edit your .ini file to set PHP options. If you prefer having php.ini in another location, use --with-config-file-path=/some/path in step 5.
+
+If you instead choose php.ini-production, be certain to read the list of changes within, as they affect how PHP behaves.
+7) Edit your httpd.conf to load the PHP module:
+LoadModule php5_module modules/libphp5.so
+8) Tell Apache to  parse PHP extensions:
+If you instead choose php.ini-production, be certain to read the list of changes within, as they affect how PHP behaves.
+let's have Apache parse .php files as PHP. Add to httpd.conf file.
+<FilesMatch \.php$>
+    SetHandler application/x-httpd-php
+</FilesMatch>
+Or, if we wanted to allow .php, .php2, .php3, .php4, .php5, .php6, and .phtml files to be executed as PHP, but nothing else, we'd use this:
+FilesMatch "\.ph(p[2-6]?|tml)$">
+    SetHandler application/x-httpd-php
+</FilesMatch>
+And to allow .phps files to be handled by the php source filter, and displayed as syntax-highlighted source code, use this:
+<FilesMatch "\.phps$">
+    SetHandler application/x-httpd-php-source
+</FilesMatch>
+9) Start Apache:
+/usr/local/apache2/bin/apachectl start
+OR
+service httpd restart
+That’s all.
+
+
+
+------------------------------------------------------------------------------------------------
+
+How to enable the Name Service cache Daemon (NSCD)
+By Surya10:521 comment
+Question
+How do you enable NSCD to improve the performance of the hostname, password, name and group lookup which is frequently being done by IBM Rational ClearCase?
+Cause
+By enabling the Name Service cache Daemon (NSCD) of the operating system, a significant performance improvement can be achieved when using naming services like DNS, NIS, NIS+, LDAP.
+Answer
+Benefit of name service cache daemon (NSCD) for ClearCase
+Example:
+WithoutNSCD:
+[user@host]$ time cleartool co -nc "/var/tmp/file"
+Checked out "/var/tmp/file" from version "/main/10".
+real    0m3.355s
+user    0m0.020s
+sys     0m0.018s
+With NSCD
+[user@host]$ time cleartool co -nc "/var/tmp/file"
+Checked out "/var/tmp/file" from version "/main/11".
+real    0m0.556s
+user    0m0.021s
+sys     0m0.016s
+Enabling NSCD
+Solaris:
+/etc/init.d/nscd start
+
+Linux
+service nscd start
+
+AIX:
+startsrc -s netcd
+Note: In addition to having nscd started it is mandatory to be sure this service will be started after a reboot. For instance on Red Hat and SuSE you can run:
+chkconfig nscd  on
+For more details on how to configure and or enable NSCD refer to your respective operating system vendor's manpage.
+
+Note that this service is not yet available on HP-UX platforms.
+
+
+------------------------------------------------------------------------------------------------
+
+Howto fix delay in SSH Login
+By Surya13:53No comments
+Have you ever faced  login delays  when you tried to connect to the Linux systems, if yes this is happening due to  reverse DNS look-up  query that is been made to DNS Server.
+
+We can fix this issue as mentioned below steps:
+
+1) Take /etc/ssh/sshd_config  backup
+# cp -p /etc/ssh/sshd_config /etc/ssh/sshd_config.`date '+%m-%d-%Y_%H:%M:%S'`
+2) Edit  /etc/ssh/sshd_config  on sshd  Server
+vi /etc/ssh/sshd_config
+
+  And add this DNS option to the file:
+
+  UseDNS no
+3) Now add the following line to your /etc/resolv.conf
+   options single-request-reopen 4) Restart ssh daemon
+# service sshd restart
+Sometimes adding the client's net address to the server's /etc/hosts can fix this issue  which is an alternative method. 
+
+
+
+------------------------------------------------------------------------------------------------
+
+Install SNMP Service on RHEL or CentOS
+By Surya02:331 comment
+
+Install SNMP Service on RHEL or CentOS
+
+In this article  we are going to learn  how to install and start  SNMP service in RHEL/CentOS.
+
+We need  to have  net-snmp rpm package installed on the servers , generally it would come with repository.
+
+
+1. Install net-snmp with yum:
+#yum install net-snmp
+[root@umserv]# yum install net-snmp
+Loaded plugins: dellsysid, fastestmirror
+Loading mirror speeds from cached hostfile
+-----
+-----
+Dependencies Resolved
+
+========================================================================================================================================================================
+Package    Arch         Version          Repository        Size
+========================================================================================================================================================================
+Installing:
+net-snmp     x86_64   1:5.3.2.2-22.el5_10.1    updates  708 k
+Installing for dependencies:
+ lm_sensors     x86_64  2.10.7-9.el5       base     525 k
+Updating for dependencies:
+ net-snmp-libs  i386    1:5.3.2.2-22.el5_10.1    updates  1.3 M
+ net-snmp-libs  x86_64  1:5.3.2.2-22.el5_10.1    updates  1.3 M
+
+Transaction Summary
+========================================================================================================================================================================
+Install      2 Package(s)
+Update       2 Package(s)
+Remove       0 Package(s)
+
+Total download size: 3.8 M
+Is this ok [y/N]: y
+Downloading Packages:
+(1/4): lm_sensors-2.10.7-9.el5.x86_64.rpm        | 525 kB     00:01
+(2/4): net-snmp-5.3.2.2-22.el5_10.1.x86_64.rpm   | 708 kB     00:02
+(3/4): net-snmp-libs-5.3.2.2-22.el5_10.1.i386.rpm      | 1.3 MB     00:04
+(4/4): net-snmp-libs-5.3.2.2-22.el5_10.1.x86_64.rpm    | 1.3 MB     00:03
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Total   168 kB/s | 3.8 MB     00:23
+Running rpm_check_debug
+Running Transaction Test
+
+Finished Transaction Test
+Transaction Test Succeeded
+Running Transaction
+----
+----
+Installed:
+  net-snmp.x86_64 1:5.3.2.2-22.el5_10.1
+
+Dependency Installed:
+  lm_sensors.x86_64 0:2.10.7-9.el5
+
+Dependency Updated:
+  net-snmp-libs.i386 1:5.3.2.2-22.el5_10.1 net-snmp-libs.x86_64 1:5.3.2.2-22.el5_10.1
+
+Complete!
+[root@umserv]#
+2. Simple SNMP configuration:
+mv /etc/snmp/snmpd.conf /etc/snmp/snmpd.conf.old
+Add   below configuration to /etc/snmp/snmpd.conf
+rocommunity  public  xxx.xxx.xxx.xxx
+rocommunity  public   127.0.0.1
+syslocation  "HYD, UM DataCenter"
+syscontact  surya@unixmantra.com
+
+Replace xxx.xxx.xxx.xxx with the IP address of the server that you want to allow SNMP lookups from:
+rocommunity public xxx.xxx.xxx.xxx
+3. Start the SNMP service, and set it to auto-start on reboot:
+/etc/init.d/snmpd start
+chkconfig snmpd on
+Note:If you have a firewall configured, ensure that you have UDP port 161 open to your SNMP lookup server.
+4) Validation:
+On your SNMP lookup server, you can do the following to perform a quick SNMP test to ensure that it’s working.
+snmpwalk -v 2c -c public xxx.xxx.xxx.xxx or snmpwalk -v 1 -c public -O e 127.0.0.1
+[root@umserv ~]# snmpwalk -v 1 -c public -O e 127.0.0.1
+SNMPv2-MIB::sysDescr.0 = STRING: Linux umserv 2.6.18-92.1.17.el5 #1 SMP Mon Jul 14 06:07:13 IST 2014 i686
+SNMPv2-MIB::sysObjectID.0 = OID: NET-SNMP-MIB::netSnmpAgentOIDs.10
+DISMAN-EVENT-MIB::sysUpTimeInstance = Timeticks: (16748) 0:02:47.48
+SNMPv2-MIB::sysContact.0 = STRING: surya@unixmantra.com
+SNMPv2-MIB::sysName.0 = STRING: umserv
+SNMPv2-MIB::sysLocation.0 = STRING: "HYD, UM DataCenter"
+SNMPv2-MIB::sysORLastChange.0 = Timeticks: (1) 0:00:00.01
+...
+...
+Yes, it is working
+
+
+------------------------------------------------------------------------------------------------
+
+How to Convert OpenSSH to SSH2 and vise versa
+By Surya05:581 comment
+The program SSH (Secure Shell) provides an encrypted channel for logging into another computer over a network, executing commands on a remote computer, and moving files from one computer to another. SSH provides strong host-to-host and user authentication as well as secure encrypted communications over the Internet.
+
+SSH2 is a more secure, efficient, and portable version of SSH .
+
+Connecting two servers running different type of SSH can be a danting task if you does not know how to convert the key. In this article ,we are going to learn about how to convert  keys   SSH( OpenSSH) to SSH2.
+How to Generate OpenSSH(SSH v1) key :
+umadm@umixserv1 [/home/umadm/.ssh]$ ssh-keygen
+Generating public/private rsa key pair.
+Enter file in which to save the key (/home/umadm/.ssh/id_rsa):
+Enter passphrase (empty for no passphrase):
+Enter same passphrase again:
+Your identification has been saved in /home/umadm/.ssh/id_rsa.
+Your public key has been saved in /home/umadm/.ssh/id_rsa.pub.
+The key fingerprint is:
+5b:ac:ea:c3:25:cf:2d:31:a2:aa:83:76:4b:a2:c9:eb umadm@umixserv1
+The key's randomart image is:
++--[ RSA 2048]----+
+|                 |
+|                 |
+|                 |
+|         .       |
+|        S o      |
+|. o   . .+       |
+|+o o + oo        |
+|Bo.   =.         |
+|#Eo..oo.         |
++-----------------+
+umadm@umixserv1 [/home/umadm/.ssh]$
+Here we get two encrypted keys  callled   private key( called id_rsa) and public key id_rsa.pub  undr ~$HOME/.ssh directory.
+  
+You can generate dsa key by using below command.
+#ssh-keygen -t dsa
+Convert SSH2 to  OpenSSH(SSH):
+
+The command below can be used to convert an SSH2 private key into the OpenSSH format:
+ssh-keygen -i -f path/to/private.key > path/to/new/opensshprivate.key
+The command below can be used to convert an SSH2 public key into the OpenSSH format:
+ssh-keygen -i -f path/to/publicsshkey.pub > path/to/publickey.pub
+Here  -i ==> SSH to read an SSH2 key and convert it into the OpenSSH format
+Convert OpenSSH(SSH) to SSH2:
+The  reverse  process to convert an OpenSSH key into the SSH2 format in the event that a client application requires the other format. This can be done using the following command:
+
+OpenSSH to SSH2 Private key conversion:
+ssh-keygen -e -f path/to/opensshprivate.key > path/to/ssh2privatekey/ssh2privatekey
+OpenSSH to SSH2 Public key conversion:
+ssh-keygen -e -f path/to/publickey.pub > path/to/ssh2privatekey/ssh2publickey.pub
+Here  -e ==> SSH to read an OpenSSH key file and convert it to SSH2 format
+
+Note:If you need passwordless authentication  b/w two different hosts , you need to convert the publickey as per the destination server SSH version and  append the public key to   ~/.ssh/authorized_keys or  ~/.ssh2/authorized_keys at destination server.
+
+
+
+------------------------------------------------------------------------------------------------
+
+The Linux multipath Command
+By Surya02:53No comments
+This is a very dangerous command. Document everything and backup everything when you use it.
+
+
+
+
+Use the Linux multipath(8) command to configure and manage multipathed devices.
+General syntax for the multipath(8) command:
+
+multipath [-v verbosity] [-d] [-h|-l|-ll|-f|-F] [-p failover|multibus|group_by_serial|group_by_prio|group_by_node_name] 
+General Examples
+Configure multipath devices:
+multipath
+Configure a specific multipath device:
+multipath devicename
+Replace devicename
+ Replace devicename with the device node name such as /dev/sdb (as shown by udev in the $DEVNAME variable), or in the major:minor format.Selectively suppress a multipath map, and its device-mapped partitions:
+multipath -f
+Display potential multipath devices
+Display potential multipath devices, but do not create any devices and do not update device maps (dry run):
+multipath -d
+Configure multipath devices and display multipath map information:
+multipath -v2  
+multipath -v3
+The -v2 option in multipath -v2 -d shows only local disks. Use the -v3 option to show the full path list.lliiFor example:
+multipath -v3 -d
+Display the status of all multipath devices, or a specified multipath device:
+multipath -ll 
+multipath -ll 
+Flush all unused multipath device maps 
+Flush all unused multipath device maps (unresolves the multiple paths; it does not delete the device):
+multipath -F
+multipath -F  
+Set the group policy:
+multipath -p [failover|multibus|group_by_serial|group_by_prio|group_by_node_name] 
+Group Policy Options for the multipath -p Command
+Policy Option	Description
+failover	One path per priority group. You can use only one path at a time.
+multibus	All paths in one priority group.
+group_by_serial	One priority group per detected SCSI serial number (the controller node worldwide number).
+group_by_prio	One priority group per path priority value. Paths with the same priority are in the same priority group. Priorities are determined by callout programs specified as a global, per-controller, or per-multipath option in the /etc/multipath.conf configuration file.
+group_by_node_name	One priority group per target node name. Target node names are fetched in the /sys/class/fc_transport/target*/node_name location.
+
+
+------------------------------------------------------------------------------------------------
+
+Tivoli System Automation (TSA) Overview
+By Surya12:53No comments
+Introduction
+The purpose of this guide is to introduce Tivoli® System Automation for Multiplatforms and provide a quick-start, purpose-driven approach to users that need to use the software, but have little or no past experience with it.
+
+
+This guide describes the role that TSA plays within IBM’s Smart Analytics System solution and the commands that can be used to manipulate the application. Further, some basic problem diagnosis techniques will be discussed, which may help with minor issues that could be experienced during regular use.
+When the Smart Analytics system is built with High Availability, TSA is automatically installed and configured by the ATK. Therefore, this guide will not describe how to install or configure a TSA cluster (domain) from scratch, but rather how to manipulate and work with an existing environment. To learn to define a cluster of servers, please refer to the References appendix for IBM courses that are available.
+Terminology
+It is advisable to become familiar with the following terms, since they are used throughout this guide. It will also help you become familiar with the scopes of the different components within TSA.
+Table 1. Terminology
+Term	Definition
+Peer Domain:	A cluster of servers, or nodes, for which TSA is responsible
+Resource:	Hardware or software that can be monitored or controlled. These can be fixed or floating. Floating resources can move between nodes.
+Resource group:	A virtual group or collection of resources
+Relationships:	Describe how resources work together. A start-stop relationship creates a dependency (see below) on another resource. A location relationship applies when resources should be started on the same or different nodes.
+Dependency:	A limitation on a resource that restricts operation. For example, if resource A depends on resource B, then resource B must be online for resource A to be started.
+Equivalency:	A set of fixed resources of the same resource class that provide the same functionality
+Quorum:	A cluster is said to have quorum when there it has the capability to form a majority within its nodes. The cluster can lose quorum when there is a communication failure, and sub-clusters form with an even number of nodes.
+Nominal State:	This can be online or offline. It is the desired state of a resource, and can be changed so that TSA will bring a resource online or shut it down.
+Tie Breaker:	Used to maintain quorum, even in a split-brain situation (as mentioned in the definition of quorum). A tie-breaker allows sub-clusters to determine which set of nodes will take control of the domain.
+Failover:	When a failure occurs (typically hardware), which causes resources to be moved from one machine to another machine, the resources are said to have “failed over”
+Getting Started
+The purpose of TSA in the Smart Analytics system is to manage software and hardware resources, so that in the event of a failure, they can be restarted or moved to a backup system. TSA uses background scripts to check the status of processes and ensure that everything is working ok. It also uses “heart-beating” between all the nodes in the domain to ensure that every server is reachable. Should a process fail the status check, or a node fails to respond to a heartbeat, appropriate action will be taken by TSA to bring the system back to its nominal state.
+Let’s start with the basics. In a Smart Analytics System, the TSA domain includes the DB2 Admin node, the Data nodes, and any Standby/backup nodes. The management server is not part of the domain and TSA commands will not work there. Further, all TSA commands are run as the root user.
+The first thing you want to do is check the status of the domain, and start it if required:
+    # lsrpdomain
+    Name      OpState RSCTActiveVersion MixedVersions TSPort GSPort 
+    bcudomain Online  2.5.3.3           No            12347  12348
+In this case it’s already started, but if OpState would show “Offline”, then the command to start the domain is,
+startrpdomain bcudomain
+Notice that the domain name is bcudomain, and it is required for the start command. Likewise, if you want to stop the domain, the command is,
+stoprpdomain bcudomain
+If TSA is in an unstable state, you can also forcefully shut down the domain using the -f parameter in the stoprpdomain command. However, this is typically not recommended:
+stoprpdomain -f bcudomain
+You should not stop a domain until all your resources have been properly shut down. If your system uses GPFS to manage the /db2home mount, then you need to manually unmount the GPFS filesystems before you can stop the TSA domain using the following command,
+/usr/lpp/mmfs/bin/mmunmount /db2home
+Next, you’ll want to check the status of the nodes in the domain. The following command will do this:
+        # lsrpnode
+        Name      OpState RSCTVersion 
+        beluga006 Online  2.5.3.3     
+        beluga008 Online  2.5.3.3     
+        beluga007 Online  2.5.3.3
+You can see that we have 3 nodes in this domain: beluga006, beluga007, and beluga008. This also shows their state. If they are Online, then TSA can work with them. If they are Offline, they are either turned off or TSA cannot communicate with them (and thus unavailable). Nodes don’t always appear in the order that you would expect, so be sure to scan the whole output (in this case, beluga008 shows up before beluga007).
+Resource Groups
+After you have verified that the Domain is started, and all your nodes are Online, you will want to check the status of your resources. TSA manages all resources through resource groups. You cannot start a resource individually through TSA. When you start a resource group however, it will start all resources that belong to that group.
+To check the status of your DB2 resources, use the hals command. This gives you a summary of all nodes in the peer domain, including their primary and backup locations, current location, and failover state.
++===============+===============+===============+==================+==================+===========+
+|  PARTITIONS   |    PRIMARY    |   SECONDARY   | CURRENT LOCATION | RESOURCE OPSTATE | HA STATUS |
++===============+===============+===============+==================+==================+===========+
+| 0             | dwadmp1x      | dwhap1x       | dwadmp1x         | Online           | Normal    |
+| 1,2,3,4       | dwdmp1x       | dwhap1x       | dwdmp1x          | Online           | Normal    |
+| 5,6,7,8       | dwdmp2x       | dwhap1x       | dwdmp2x          | Online           | Normal    |
+| 9,10,11,12    | dwdmp3x       | dwhap1x       | dwhap1x          | Online           | Failover  |
+| 13,14,15,16   | dwdmp4x       | dwhap1x       | dwdmp4x          | Online           | Normal    |
++===============+===============+===============+==================+==================+===========+
+In this example, we see that the admin node is dwadmp1x since it holds partition 0. There are 4 data nodes in this system, and all are in Normal state except for data node 3. We can see that data node 3 is in Failover state and its current location is dwhap1x, the backup server.
+The hals command is actually a summary of the complete output. For more detailed information about each resource, use the lssam command. The following output is an example of a cluster with the following nodes:
+Admin node:   beluga006
+Data node:    beluga007
+Standby node: beluga008
+
+# lssam | grep Nominal
+Online IBM.ResourceGroup:SA-nfsserver-rg Nominal=Online
+Online IBM.ResourceGroup:db2_bculinux_NLG_beluga006-rg Nominal=Online
+        '- Online IBM.ResourceGroup:db2_bculinux_0-rg Nominal=Online
+Online IBM.ResourceGroup:db2_bculinux_NLG_beluga007-rg Nominal=Online
+        |- Online IBM.ResourceGroup:db2_bculinux_1-rg Nominal=Online
+        |- Online IBM.ResourceGroup:db2_bculinux_2-rg Nominal=Online
+        |- Online IBM.ResourceGroup:db2_bculinux_3-rg Nominal=Online
+        '- Online IBM.ResourceGroup:db2_bculinux_4-rg Nominal=Online
+Notice that the full output was grepped to “Nominal”. This is a trick to shorten the output so that we only see the Nominal states, and soon you will see that it can get quite long otherwise.
+Let’s step through the above output:
+Online IBM.ResourceGroup:SA-nfsserver-rg Nominal=Online
+This first line tells us that we have a resource group named SA-nfsserver-rg and it is Online. The Nominal state is also Online, so it is working as expected. By the name, we can tell that this resource group manages the NFS server resources. Typically, this should always be online.
+Online IBM.ResourceGroup:db2_bculinux_NLG_beluga006-rg Nominal=Online
+        '- Online IBM.ResourceGroup:db2_bculinux_0-rg Nominal=Online
+Next we have a resource group called db2_bculinux_NLG_beluga006-rg. This is the resource group belonging to the Admin node. We know that because beluga006 is the hostname for the Admin node. Here, we have 1 DB2 partition (the coordinator partition). For every partition, we define a resource group. You’ll see why shortly. The resource group for the admin partition, partition 0, is called db2_bculinux_0-rg.
+Online IBM.ResourceGroup:db2_bculinux_NLG_beluga007-rg Nominal=Online
+        |- Online IBM.ResourceGroup:db2_bculinux_1-rg Nominal=Online
+        |- Online IBM.ResourceGroup:db2_bculinux_2-rg Nominal=Online
+        |- Online IBM.ResourceGroup:db2_bculinux_3-rg Nominal=Online
+        '- Online IBM.ResourceGroup:db2_bculinux_4-rg Nominal=Online
+Lastly, we have our data partition group, db2_bculinux_NLG_beluga007-rg. Every data partition in a Balanced Warehouse has 4 partitions, and they can be easily seen here.
+Now, let us examine the full lssam output. Try to find each of the lines from the grepped output in the full output:
+# lssam
+Online IBM.ResourceGroup:SA-nfsserver-rg Nominal=Online
+        |- Online IBM.AgFileSystem:shared_db2home
+                |- Online IBM.AgFileSystem:shared_db2home:beluga006
+                '- Offline IBM.AgFileSystem:shared_db2home:beluga008
+        |- Online IBM.AgFileSystem:varlibnfs
+                |- Online IBM.AgFileSystem:varlibnfs:beluga006
+                '- Offline IBM.AgFileSystem:varlibnfs:beluga008
+        |- Online IBM.Application:SA-nfsserver-server
+                |- Online IBM.Application:SA-nfsserver-server:beluga006
+                '- Offline IBM.Application:SA-nfsserver-server:beluga008
+        '- Online IBM.ServiceIP:SA-nfsserver-ip-1
+                |- Online IBM.ServiceIP:SA-nfsserver-ip-1:beluga006
+                '- Offline IBM.ServiceIP:SA-nfsserver-ip-1:beluga008
+Online IBM.ResourceGroup:db2_bculinux_NLG_beluga006-rg Nominal=Online
+        '- Online IBM.ResourceGroup:db2_bculinux_0-rg Nominal=Online
+                |- Online IBM.Application:db2_bculinux_0-rs
+                   |- Online IBM.Application:db2_bculinux_0-rs:beluga006
+                   '- Offline IBM.Application:db2_bculinux_0-rs:beluga008
+                |- Online IBM.Application:db2mnt-db2fs_bculinux_NODE0000-rs
+                    |- Online IBM.Application:db2mnt-db2fs_bculinux_NODE0000-rs:beluga006
+                    '- Offline IBM.Application:db2mnt-db2fs_bculinux_NODE0000-rs:beluga008
+                '- Online IBM.ServiceIP:db2ip_172_16_10_228-rs
+                    |- Online IBM.ServiceIP:db2ip_172_16_10_228-rs:beluga006
+                    '- Offline IBM.ServiceIP:db2ip_172_16_10_228-rs:beluga008
+Online IBM.ResourceGroup:db2_bculinux_NLG_beluga007-rg Nominal=Online
+        |- Online IBM.ResourceGroup:db2_bculinux_1-rg Nominal=Online
+                |- Online IBM.Application:db2_bculinux_1-rs
+                    |- Online IBM.Application:db2_bculinux_1-rs:beluga007
+                    '- Offline IBM.Application:db2_bculinux_1-rs:beluga008
+                '- Online IBM.Application:db2mnt-db2fs_bculinux_NODE0001-rs
+                    |- Online IBM.Application:db2mnt-db2fs_bculinux_NODE0001-rs:beluga007
+                    '- Offline IBM.Application:db2mnt-db2fs_bculinux_NODE0001-rs:beluga008
+        |- Online IBM.ResourceGroup:db2_bculinux_2-rg Nominal=Online
+                |- Online IBM.Application:db2_bculinux_2-rs
+                    |- Online IBM.Application:db2_bculinux_2-rs:beluga007
+                    '- Offline IBM.Application:db2_bculinux_2-rs:beluga008
+                '- Online IBM.Application:db2mnt-db2fs_bculinux_NODE0002-rs
+                    |- Online IBM.Application:db2mnt-db2fs_bculinux_NODE0002-rs:beluga007
+                    '- Offline IBM.Application:db2mnt-db2fs_bculinux_NODE0002-rs:beluga008
+        |- Online IBM.ResourceGroup:db2_bculinux_3-rg Nominal=Online
+                |- Online IBM.Application:db2_bculinux_3-rs
+                    |- Online IBM.Application:db2_bculinux_3-rs:beluga007
+                    '- Offline IBM.Application:db2_bculinux_3-rs:beluga008
+                '- Online IBM.Application:db2mnt-db2fs_bculinux_NODE0003-rs
+                    |- Online IBM.Application:db2mnt-db2fs_bculinux_NODE0003-rs:beluga007
+                    '- Offline IBM.Application:db2mnt-db2fs_bculinux_NODE0003-rs:beluga008
+        '- Online IBM.ResourceGroup:db2_bculinux_4-rg Nominal=Online
+                |- Online IBM.Application:db2_bculinux_4-rs
+                    |- Online IBM.Application:db2_bculinux_4-rs:beluga007
+                    '- Offline IBM.Application:db2_bculinux_4-rs:beluga008
+                '- Online IBM.Application:db2mnt-db2fs_bculinux_NODE0004-rs
+                    |- Online IBM.Application:db2mnt-db2fs_bculinux_NODE0004-rs:beluga007
+                    '- Offline IBM.Application:db2mnt-db2fs_bculinux_NODE0004-rs:beluga008
+Let us take a look at the NFS resource group:
+
+Online IBM.ResourceGroup:SA-nfsserver-rg Nominal=Online
+        |- Online IBM.AgFileSystem:shared_db2home
+             |- Online IBM.AgFileSystem:shared_db2home:beluga006
+             '- Offline IBM.AgFileSystem:shared_db2home:beluga008
+The first line was what we had seen before (lssam | grep Nom). Now, we can see what resources actually form the resource group. This first resource is of type AgFileSystem and represents the db2home mount. We can see that it can exist on beluga006 and beluga008, and that it is Online in beluga006 and Offline in beluga008.
+Similarly, for the admin node, we can now see the individual resources:
+Online IBM.ResourceGroup:db2_bculinux_NLG_beluga006-rg Nominal=Online
+        '- Online IBM.ResourceGroup:db2_bculinux_0-rg Nominal=Online
+                |- Online IBM.Application:db2_bculinux_0-rs
+                   |- Online IBM.Application:db2_bculinux_0-rs:beluga006
+                   '- Offline IBM.Application:db2_bculinux_0-rs:beluga008
+The first two lines were part of the previous grepped output, but now we can see an Application resource. You can see similar results for the data node and each of its 4 data partitions. The reason that each of these resources exist on two nodes (beluga006 and beluga008) is for high availability. If beluga006 were to fail, TSA will move all those resources that are currently Online there to beluga008. Then, you would see that they are Offline in beluga006, and Online in beluga008. You can see how this output is useful to determine on which nodes the resources exist.
+The lssam command also shows Equivalencies as part of the output. I will include it for the sake of completion, but we will discuss this later on:
+Online IBM.Equivalency:SA-nfsserver-nieq-1
+        |- Online IBM.NetworkInterface:bond0:beluga006
+        '- Online IBM.NetworkInterface:bond0:beluga008
+Online IBM.Equivalency:db2_FCM_network
+        |- Online IBM.NetworkInterface:bond0:beluga006
+        |- Online IBM.NetworkInterface:bond0:beluga007
+        '- Online IBM.NetworkInterface:bond0:beluga008
+Online IBM.Equivalency:db2_bculinux_0-rg_group-equ
+        |- Online IBM.PeerNode:beluga006:beluga006
+        '- Online IBM.PeerNode:beluga008:beluga008
+Online IBM.Equivalency:db2_bculinux_1-rg_group-equ
+        |- Online IBM.PeerNode:beluga007:beluga007
+        '- Online IBM.PeerNode:beluga008:beluga008
+Online IBM.Equivalency:db2_bculinux_2-rg_group-equ
+        |- Online IBM.PeerNode:beluga007:beluga007
+        '- Online IBM.PeerNode:beluga008:beluga008
+Online IBM.Equivalency:db2_bculinux_3-rg_group-equ
+        |- Online IBM.PeerNode:beluga007:beluga007
+        '- Online IBM.PeerNode:beluga008:beluga008
+Online IBM.Equivalency:db2_bculinux_4-rg_group-equ
+        |- Online IBM.PeerNode:beluga007:beluga007
+        '- Online IBM.PeerNode:beluga008:beluga008
+Online IBM.Equivalency:db2_bculinux_NLG_beluga006-equ
+        |- Online IBM.PeerNode:beluga006:beluga006
+        '- Online IBM.PeerNode:beluga008:beluga008
+Online IBM.Equivalency:db2_bculinux_NLG_beluga007-equ
+        |- Online IBM.PeerNode:beluga007:beluga007
+        '- Online IBM.PeerNode:beluga008:beluga008
+The lssam command also lets you limit the output to a particular resource group, with the –g option:
+# lssam –g SA-nfsserver-rg
+Online IBM.ResourceGroup:SA-nfsserver-rg Nominal=Online
+        |- Online IBM.AgFileSystem:shared_db2home
+                |- Online IBM.AgFileSystem:shared_db2home:beluga006
+                '- Offline IBM.AgFileSystem:shared_db2home:beluga008
+        |- Online IBM.AgFileSystem:varlibnfs
+                |- Online IBM.AgFileSystem:varlibnfs:beluga006
+                '- Offline IBM.AgFileSystem:varlibnfs:beluga008
+        |- Online IBM.Application:SA-nfsserver-server
+                |- Online IBM.Application:SA-nfsserver-server:beluga006
+                '- Offline IBM.Application:SA-nfsserver-server:beluga008
+        '- Online IBM.ServiceIP:SA-nfsserver-ip-1
+                |- Online IBM.ServiceIP:SA-nfsserver-ip-1:beluga006
+                '- Offline IBM.ServiceIP:SA-nfsserver-ip-1:beluga008
+With the Smart Analytics System, some new commands were introduced to make it easier to monitor and use TSA with DB2:
+Table 2. Useful Commands
+Command	Definition
+hals:	shows HA status summary for all db2 partitions
+hachknode	shows the status of the node in the domain and details about the private and public networks
+hastartdb2	start db2 partition resources
+hastopdb2	stop db2 partition resources
+hafailback	moves partitions back to the primary machine specified in the primary_machine argument
+Equivalency:	A set of fixed resources of the same resource class that provide the same functionality
+hafailover	moves partitions off of the primary machine specified in the primary_machine argument to it is standby
+hareset	attempt to reset pending, failed, stuck resource states
+Stopping and Starting Resources
+If you want to stop or start the DB2 service, you need to stop the respective DB2 resource groups using TSA commands. TSA will then start or stop DB2.
+The command to do this is chrg. To stop a resource group named db2_bculinux_NLG_beluga007, issue the command,
+chrg –o offline –s “Name == ‘db2_bculinux_NLG_beluga007’”
+Similarly, to start the resource group
+chrg –o online –s “Name == ‘db2_bculinux_NLG_beluga007’”
+You can also stop/start all resources at the same time:
+chrg –o online –s “1=1”
+The Smart Analytics System also has some pre-configured commands:
+hastartdb2 and hastopdb2
+These two commands, however, are specific to DB2 and if there has been customization to TSA, they may not stop/start all resources.
+If TSA has pre-configured rules/dependencies, they will ensure that resources are stopped and started in the correct order. For example, DB2 resources that depend on NFS will not start if the NFS share is Offline.
+TSA Components
+Now that you understand the basics of Tivoli System Automation, we can discuss some of the other components that it can manage.
+Service IP
+A service IP is a virtual, floating resource attached to a network device. Essentially, it is an IP address that can move from one machine to another, in the event of a failover. Service IPs play a key role in a highly available environment. Because they move from a failed machine to a standby, they allow an application to reconnect to the new machine using the same IP address – as if the original server had simply restarted.
+The following command will allow you to view what service IPs have been configured for your system.
+# lsrsrc -Ab IBM.ServiceIP
+    Resource Persistent and Dynamic Attributes for IBM.ServiceIP
+    resource 1:
+     Name              = "db2ip_10_160_20_210-rs"
+     ResourceType      = 0
+     AggregateResource = "0x2029 0xffff 0x414c690c 0x7cc2abfa 0x919b42d5 0xbf62ab75"
+     IPAddress         = "10.160.20.210"
+     NetMask           = "255.255.255.0"
+     ProtectionMode    = 1
+     NetPrefix         = 0
+     ActivePeerDomain  = "bcudomain"
+     NodeNameList      = {"t6udb3a"}
+     OpState           = 2
+     ConfigChanged     = 0
+     ChangedAttributes = {}
+    resource 2:
+     Name              = "db2ip_10_160_20_210-rs"
+     ResourceType      = 0
+     AggregateResource = "0x2029 0xffff 0x414c690c 0x7cc2abfa 0x919b42d5 0xbf62ab75"
+     IPAddress         = "10.160.20.210"
+     NetMask           = "255.255.255.0"
+     ProtectionMode    = 1
+     NetPrefix         = 0
+     ActivePeerDomain  = "bcudomain"
+     NodeNameList      = {"t6udb1a"}
+     OpState           = 1
+     ConfigChanged     = 0
+     ChangedAttributes = {}
+    resource 3:
+     Name              = "db2ip_10_160_20_210-rs"
+     ResourceType      = 1
+     AggregateResource = "0x3fff 0xffff 0x00000000 0x00000000 0x00000000 0x00000000"
+     IPAddress         = "10.160.20.210"
+     NetMask           = "255.255.255.0"
+     ProtectionMode    = 1
+     NetPrefix         = 0
+     ActivePeerDomain  = "bcudomain"
+     NodeNameList      = {"t6udb1a","t6udb3a"}
+     OpState           = 1
+     ConfigChanged     = 0
+     ChangedAttributes = {}
+The above example shows three resources with the same name, db2ip_10_160_20_210-rs. The NodeNameList parameter tells us which node(s) the resource is referring to. The first resource has Opstate set to 2, which tells us that this is where the service IP is currently pointing (it is also the primary location of the resource). The second resource has Opstate 1, which tells us that this is the backup/standby node. The third resource contains both nodes in its NodeNameList parameters, and this tells TSA that this is a floating resource between those two nodes.
+Application Resources
+TSA manages resources using scripts. Some scripts are built in (and part of TSA), such as those for controlling DB2. These scripts are responsible for starting, stopping and monitoring the application. Sometimes it can be useful to understand these scripts, or even edit them for problem diagnosis. To find out where they are located, we use the lsrsrc command, which provides us with the complete configuration of a particular resource.
+Following is an example:
+# lsrsrc -Ab IBM.Application
+resource 12:
+  Name                  = "db2_dbedw1da_8-rs" 
+  ResourceType          = 1
+  AggregateResource     = "0x3fff 0xffff 0x00000000 0x00000000 0x00000000 0x00000000"
+  StartCommand          = "/usr/sbin/rsct/sapolicies/db2/db2V97_start.ksh dbedw1da 8"
+  StopCommand           = "/usr/sbin/rsct/sapolicies/db2/db2V97_stop.ksh dbedw1da 8"
+  MonitorCommand        = "/usr/sbin/rsct/sapolicies/db2/db2V97_monitor.ksh dbedw1da 8"
+  MonitorCommandPeriod  = 60
+  MonitorCommandTimeout = 180
+  StartCommandTimeout   = 330
+  StopCommandTimeout    = 140
+  UserName              = "root"
+  RunCommandsSync       = 1
+  ProtectionMode        = 1
+  HealthCommand         = ""
+  HealthCommandPeriod   = 10
+  HealthCommandTimeout  = 5
+  InstanceName          = ""
+  InstanceLocation      = ""
+  SetHealthState        = 0
+  MovePrepareCommand    = ""
+  MoveCompleteCommand   = ""
+  MoveCancelCommand     = ""
+  CleanupList           = {}
+  CleanupCommand        = ""
+  CleanupCommandTimeout = 10
+  ProcessCommandString  = ""
+  ResetState            = 0
+  ReRegistrationPeriod  = 0
+  CleanupNodeList       = {}
+  MonitorUserName       = ""
+  ActivePeerDomain      = "bcudomain"
+  NodeNameList          = {"d8udb11a","d8udb3a"}
+  OpState               = 1
+  ConfigChanged         = 0
+  ChangedAttributes     = {}
+  HealthState           = 0
+  HealthMessage         = ""
+  MoveState             = [32768,{}]
+  RegisteredPID         = 0
+Some of the more common and useful attributes are described in Table 3.
+Table 3. Resource Attributes
+Attribute	Definition
+ResourceType:	Indicates whether the resource is allowed to run on multiple nodes, or a single node. A fixed resource is identified with a ResouceType value of 0, and a floating resource has a value of 1.
+StartCommand:	Specifies the command to be run when the resources is started
+StopCommand:	Specifies the command to be run when the resource is stopped
+MonitorCommand:	Specifies the command to be run when the resource is being monitored. This happens on a regular interval, and you will likely see this command often when you run the “ps –ef” command.
+UserName:	The userid that TSA will use to start this resource
+NodeNameList:	Indicates on which nodes the resource is allowed to run. This is an attribute of an RSCT resource.
+OpState:	Specifies the operational state of a resource or a resource group. The valid states are,
+0 - UNKNOWN
+1 - ONLINE
+2 - OFFLINE
+3 - FAILED_OFFLINE
+4 - STUCK_ONLINE
+5 - PENDING_ONLINE
+6 - PENDING_OFFLINE
+Network Resources
+Every machine typically has an Ethernet adaptor, with a configured network address. TSA is aware of this and you can see how they have been configured with the lsrsrc command. For example,
+# lsrsrc -Ab IBM.NetworkInterface
+    resource 1:
+        Name             = "en0"
+        DeviceName       = ""
+        IPAddress        = "172.22.1.217"
+        SubnetMask       = "255.255.252.0"
+        Subnet           = "172.22.0.0"
+        CommGroup        = "CG1"
+        HeartbeatActive  = 1
+        Aliases          = {}
+        DeviceSubType    = 6
+        LogicalID        = 0
+        NetworkID        = 0
+        NetworkID64      = 0
+        PortID           = 0
+        HardwareAddress  = "00:21:5e:a3:be:60"
+        DevicePathName   = ""
+        IPVersion        = 4
+        Role             = 0
+        ActivePeerDomain = "bcudomain"
+Log Files
+It is important to be aware of the log files that TSA actively writes to:
+History file – this logs the commands that were sent to TSA
+/var/ct/IBM.RecoveryRM.log2
+Error and monitor logs – these logs are simply the AIX and Linux system logs. They will show you the output of the start, stop, and monitor scripts as well as any diagnostic information coming from TSA. Although the system administrator can configure the location for these logs, they are typically located in the following locations,
+AIX: /tmp/syslog.out
+Linux: /var/log/messages
+Command Reference
+Table 4 describes the most common commands that a TSA administrator will use.
+Table 4. Common TSA Commands
+Command	Definition
+hals:	Display HA configuration summary
+hastopdb2:	Stop DB2 using TSA
+hastartdb2:	Start DB2 using TSA
+mkequ:	Makes an equivalency resource
+chequ:	Changes a resource equivalency
+lsequ:	Lists equivalencies and their attributes
+rmequ:	Removes one or more resource equivalencies
+mkrg:	Makes a resource group
+chrg:	Changes persistent attribute values of a resource group (including starting and stopping a resource group)
+lsrg:	Lists persistent attribute values of a resource group or its resource group members
+rmrg:	Removes a resource group
+mkrel:	Makes a managed relationship between resources
+chrel:	Changes one or more managed relationships between resources
+lsrel:	Lists managed relationships
+rmrel:	Removes a managed relationship between resources
+samcrl:	Sets the IBM TSA control parameters
+lssamctrl:	Lists the IBM TSA controls
+addrgmbr:	Adds one ore more resources to a resource group
+chrgmbr:	Changes the persistent attribute value(s) of a managed resource in a resource group
+rmrgmbr:	Removes one or more resources from the resource group
+lsrgreq:	Lists outstanding requests applied against resource groups or managed resources
+rgmbrreq:	Requests a managed resource to be started or stopped, or cancels the request
+rgreq:	Requests a resource group to be started, stopped, or moved, or cancels the request
+lssam:	Lists the defined resource groups and their members in a tree format
+Command Tips
+Following are some useful commands with examples.
+Show relationships/dependencies:
+lsrel | sort
+Show details for a specific relationship:
+# lsrel -A b -s "Name = 'db2_bculinux_0-rs_DependOn_db2_bculinux_qp-rel'"
+Managed Relationship 1:
+        Class:Resource:Node[Source] = IBM.Application:db2_bculinux_qp
+        Class:Resource:Node[Target] = {IBM.Application:db2_bculinux_0-rs}
+        Relationship                = DependsOn
+        Conditional                 = NoCondition
+        Name                        = db2_bculinux_0-rs_DependOn_db2_bculinux_qp-rel
+        ActivePeerDomain            = bcudomain
+        ConfigValidity              =
+Delete/remove a relationship
+rmrel -s "Name like 'db2_bculinux_%-rs_DependsOn_db2_bculinux_0-rs-rel'"
+Change a resource attribute:
+chrsrc -s "Name=='"  attribute=value
+Example:
+chrsrc -s "Name=='db2ip_10_160_10_27-rs'" IBM.ServiceIP NetMask='255.255.255.0'
+To save current SAMP policy information:
+sampolicy –s /tmp/sampolicy.current.xml
+To check if the policy in the input file is valid:
+sampolicy –c /tmp/sampolicy.current.xml
+To activate it:
+sampolicy –a /tmp/sampolicy.current.xml
+Troubleshooting
+This section describes methods that can be used to determine the cause of a particular problem or failure. Though techniques vary depending on the type of problem, the following should be a good starting point for most issues.
+Resolving FAILED OFFLINE status
+A failed offline status will prevent you from setting the nominal status to ONLINE, so these must be resolved first and changed to OFFLINE before turning it back to ONLINE. Make sure that the Nominal status is showing OFFLINE before resolving it.
+To resolve the Failed offline messages, use the resetrsrc command.
+resetrsrc -s ‘Name = "db2whse_appinstance_01.abxplatform_server1"‘ IBM.Application
+resetrsrc -s 'Name = "db2whse_appinstance_01.adminconsole_server1"' IBM.Application
+Recovery from a failed failover attempt
+Take all TSA resources offline. The lssam output should reflect “Offline” for all resources before you attempt to bring them back online. To reset NFS resources, use:
+resetrsrc -s "Name like 'SA-nfsserver-%'" IBM.Application (if necessary)
+resetrsrc -s "Name like 'SA-nfsserver-%'" IBM.ServiceIP (if necessary)
+When testing goes wrong, you are often left with resources in various states such as online, offline, and unknown. When the state of a resource is unknown, before attempting to restart it, you must issue resetrsrc for that particular resource.
+When you are restarting DB2, you must verify that all the resources are offline before attempting to bring them online again. You must also correct the db2nodes.cfg file. Make sure you have backup copies of db2nodes.cg and db2ha.sys.
+NFS mounts stop functioning
+In testing the NFS failover, we were able to move the server over successfully, but the existing NFS client mounts stopped functioning. We solved this problem by unmounting and remounting the NFS volume.
+Resolving Binding=Sacrificed
+To resolve this problem you have to look at the overall cluster and how its setup/defined. Issues that can and will cause this are types that will have a cluster-wide impact but not specifically affect one resource.
+Check for failed relationships by listing the relationships with the following command "lsrel -Ab", and then determine if one or more of the relationships relating to the failed resource group have not been satisfied.
+Check for failed equivalencies by listing them with the following command "lsequ -Ab" and then determine if one re more of the equivalencies have not been satisfied.
+Check your resource group attributes and look for anything that maybe set incorrectly, some of the commands to use are listed as follows:
+lsrg -Ab -g 
+lsrsrc -s 'Name="failed_resource"' –Ab IBM.
+lsrg -m -g 
+samdiag -g <resource_group_name>
+Check for anything specific to your configuration that all of the sacrificed resources share in common, like a mount point, a database instance, a virtual IP.
+Check hardware configuration:dmesg – check initialization errors
+date – check server synchronization
+ifconfig – to check network adapters
+netstat -I – to check network configuration
+ps -ef | grep inetd – will provide a list of the running processes, including group and PID
+Resource state is unknown
+Try resetting the resource using the resetrsrc command:
+resetrsrc -s "Name like 'db2_db2inst2_%'" IBM.Application
+resetrsrc -s "Name like 'db2_db2inst2_%'" IBM.ServiceIP
+Timeout values for resources
+For the health query interval of each resource, use:
+chrsrc -s 'Name like "db2_db2inst2%"' IBM.Application MonitorCommandPeriod=300
+For the health query timeout, use:
+chrsrc -s 'Name like "db2_db2inst2%"' IBM.Application MonitorCommandTimeout=290
+For the resource startup script timeout, use
+chrsrc -s 'Name like "db2_db2inst2%"' IBM.Application StartCommandTimeout=300
+For the Resource Stop script timeout, use:
+chrsrc -s 'Name like "db2_db2inst2%"' IBM.Application StopCommandTimeout=720
+Recycling the automation manager
+If the problem is most likely related to the automation manager, you should try recycling the automation manager (IBM.RecoveryRM) before contacting IBM support. This can be done using the following commands:
+Find out on which node the RecoveryRM master daemon is running:
+# lssrc -ls IBM.RecoveryRM | grep Master
+On the node running the master, retrieve the PID and kill the automation manager:
+# lssrc -ls IBM.RecoveryRM | grep PID
+# kill -9 
+As a result, an automation manager on another node in the domain will take over the master role, and proceeds with making automation decisions. The subsystem will restart the killed automation manager immediately.
+Resolving lssam hangs
+http://www-01.ibm.com/support/docview.wss?uid=swg21293701
+Move to another node in the same HA group and see if you can run the lssam command. If you can, go back to the original node to see if you can now do the lssam command. If this still does not work, then run the following commands:
+lssrc -ls IBM.RecoveryRM | grep -i master 
+lssrc -ls IBM.GblResRM | grep -i leader
+Make sure neither of the above command outputs return the “hanging” node and if so, then reboot just that node and see if the issue is resolved.
+AVOID the following (DON’Ts)
+Do not use rpower –a, or rpower on more than one node in the same HA group when SAMP HA is up and running.
+Do not offline HA-NFS using a sudo command while logged in as the instance owner and while in the /db2home directory. HA-NFS will get stuck online, and the RecoveryRM daemon has to be killed on the master. If RecoveryRM will not start, reboot may be required.
+Do not use ifdown to bring down a network interface. This will result in the eth (or en) device to be deleted from equivalency member and will require you to add the "eth" device (in Linux) or "en" device (in AIX) back into the network equivalency using chequ command
+Do not manipulate any BW resources that are under active SAMP control.
+Turn automation off (samctrl –M T) before manipulating these BW resources.
+Do not implement changes to the SA MP policy unless exhaustive testing of the HA test cases is completed.
+Check the following frequently (DOs)
+Ensure the /home and /db2home directories are always mounted before starting up a node.
+Check for process ids that may be blocking stop, start and monitor commands.
+Save backup copies of the db2nodes.cfg and db2ha.sys file.
+Save the backup copies of the current SAMP policy before and after every SAMP change. Compare the current SAMP policy to the backup SAMP policy every time there is an HA incident.
+Save backup copies of db2pd -ha output before and after every SAMP change. Compare the current db2pd outputs to the backup db2pd outputs every time there is an HA incident.
+Save backup copies of the samdiag outputs. 
+
+Source (https://www.ibm.com/developerworks/tivoli/library/tv-tivoli-system-automation/)
+
+
+------------------------------------------------------------------------------------------------
+
+Unix /Linux Mail Command Tutorial with Examples
+By Iunix Mantra22:164 comments
+unix-linux-mail-command-tutorial
+The mail/Mail/mailx  commands are used in unix flavoured operating systems like Linux, HPUX, AIX,Linux and many more unix based systems  are  used to send emails to the users, to read the received emails, to delete the emails etc.
+
+It would be very usefull  when you are working with shell scripts. A good application for using mail/mailx would be to send alerts, or process a file and then email it to somebody, extract data from your database/application  and email the resulting data or file, etc.
+
+
+
+The syntax of mail command is:
+mail [options] to-address [-- sendmail-options]
+
+-v : Verbose mode. Delivery details are displayed on the terminal.
+-s : Specify the subject of the mail
+-c : Send carbon copies of the mail to the list of users. This is like cc option in Microsoft outlook.
+-b : Send blind copies of the mail to the list of users. This is like bcc option in outlook.
+-f : Read the contents of the mailbox
+-e : Tests for the presence of mail in the system mailbox.
+-F : Records the message in a file named after the recipient.
+-r : Specify the from address in send mail options.
+-u : Specifies an abbreviated equivalent of doing mail -f /var/spool/mail/UserID.
+1)To start the Mail program and list the messages in your mailbox:
+# mail
+The mail command lists every messages in your system mailbox. The mail system then displays the mailbox prompt (?) to indicate waiting for input.
+
+When you see this prompt, enter any mailbox subcommand. To see a list of subcommands, type:
+?
+This entry lists the Mail subcommands.
+2) Sending  email to  a user:
+# echo "Test of Mail body" | mail -s "Mail subject" to@somedomain.com
+
+Here the echo statement is used for specifying the body of the email.
+The -s option is used for specifying the mail subject. The mail command sends the email to the user to@somedomain.com
+another way is
+# mail -s "Mail subject" to@somedomain.com
+in this example you are then expected to type in your message, followed by an "control-D" at the beginning of a line. To stop simply type dot (.) as follows:
+Hi,
+This is a test
+.
+Cc:
+if you wish to send to multiple mail users just add the mail ids side by side with spaces
+
+Lets re-write above command for multi recipients
+# echo "Test of Mail body" | mail -s "Mail subject" recipient1@somedomain.com  recipient2@somedomain.com to1@example.com
+3) Sending contents of a text file
+you can send the contets in two ways using cat/echo or using a input redirect < operator
+
+Lets say for example here we need send contents of  somefile.txt  through mail ,
+# cat  somefile.txt  | mail -s "Mail subject" "user1@example.com,user2@example.com"
+# mail -s "Mail subject" "user1@example.com,user2@example.com" < somefile.txt
+4) Mail Usage with CC & Bcc :
+ Using the cc and bcc option You can copy the emails to more number of users by using the -c & -b options. An example is shown below:
+# echo "something" | mailx -s "subject" -b bcc_user@unixmantra.com -c cc_user@some.com  -r sender@some.com recipient@example.com
+# mail -s "Mail subject" -c "cc_user@some.com" -b "bccuser@yahoo.com" "user@example.com" < somefile.txt
+5) Attaching files:
+The mail command does not provide an option for attaching files.
+
+There is a workaround for attaching files using the uuencode command. Pipe the output of uuencode command for attaching files.
+ # uuencode attachment-file attachment-file | mail -s "Mail subject" "to-user@example.com" < somefile.txt
+
+Working with Mailbox in the server
+1) To start the Mail program and list the messages in your mailbox:
+# mail
+The mail command lists every messages in your system mailbox. The mail system then displays the mailbox prompt (?) to indicate waiting for input.
+
+When you see this prompt, enter any mailbox subcommand. To see a list of subcommands, type:
+?
+
+Another way of viewing the emails is using the -f option. This is shown below:
+# mail -f /var/spool/mail/user
+Mail version 8.1 6/6/93.  Type ? for help.
+"/var/spool/mail/user": 2 messages 2 new
+>N  1 root@hostname  Tue May 17 00:00  21/1013  "Mail subject 1"
+ N  2 root@hostname  Wed May 18 00:00  21/1053  "Mail subject 2"
+&
+From the above output, you can see that, it displays the from-address, date and subject of the emails in the inbox. It also displays the ampersand (&) prompt at the end. To go back to the main prompt, type CTRL+z or CTRL+d depending on your operating system and press enter. The ampersand prompt allows you to read, reply, navigate and delete the emails.
+2. Reading an email.
+To read the Nth email, just enter the mail number at the ampersand prompt and press enter. This is shown below:
+> mail -f /var/spool/mail/user
+
+Mail version 8.1 6/6/93.  Type ? for help.
+"/var/spool/mail/user": 2 messages 2 new
+>N  1 root@hostname  Tue May 17 00:00  21/1013  "Mail subject 1"
+ N  2 root@hostname  Wed May 18 00:00  21/1053  "Mail subject 2"
+&2
+Message 2:
+From root@hostname  Wed May 18 00:00  21/1053
+---------------
+Subject: Mail subject 2
+------------
+
+This displays the second email details.
+3. Navigating through inbox emails. 
+To go to the next email, enter the + symbol. To go back to the previous email, enter the - symbol at the ampersand prompt.
+&-
+Message 1:
+From root@hostname  Tue May 17 00:00  21/1013
+---------------
+Subject: Mail subject 1
+------------
+4. Replying email. 
+Once you have read an email, you can give reply to the mail by typing "reply" and pressing enter.
+&reply
+To: root@hostname
+    root@hostname
+Subject: Re: Mail subject1
+5. Deleting emails. 
+You can delete a read email by typing the d and pressing enter. You can also specify the email numbers to d option for deleting them.
+To delete read email
+&d
+To delete emails 1 and 2
+&d 1 2
+To delete range emails from 10 to 30
+&d 10-30
+To delete all emails in the mbox (mail box)
+&d *
+
+
+
+------------------------------------------------------------------------------------------------
+
+Compiling and Installing a custom kernel
+
+Updating a kernel is not a difficult task, although you should backup your working kernel just in case. The basic steps are to build the new kernel and modules then update your boot manager configuration (GRUB or lilo). However if you make a mistake you can simply boot from your old kernel.
+
+There are a number of reason why you would want to rebuild a kernel
+Greatly improve the speed at which kernel services run by building in direct support for often-used drivers and dynamically loading less frequently needed drivers as modules
+Lower memory consumption of your kernel by removing unneeded components
+Configure support for high-end hardware, such as above 4Gb, hardware array controllers, SMP support, etc
+I have created a table displaying time against each task, this was based on a Compaq PIII 650Mhz machine (see below), I only added a couple of non-essential modules, so bear in mind it may take longer depending on the number of modules you are adding.
+
+Step Number
+Approx time
+1
+10 secs
+2
+30 secs
+3
+30 secs
+4
+10 secs
+5
+30 secs
+6
+2 mins
+7
+4 mins
+8
+12 mins
+9
+50 mins
+10
+30 secs
+11
+1 min
+Change to the working directory
+#cd /usr/src/linux-2.4
+
+Edit the Makefile and change the EXTRA VER SION definition which will uniquely identify your Kernel
+EXTRA VER SION=-PFVcustom
+
+Run the following command to ensure your source files are in a consistent and clean state
+#make mrproper
+
+Save your old configuration file, if one has already been created.
+#cp .config /var/tmp/.config.ddmmyy
+
+If you want to start from the standard configuration, use the following command, if not skip on to next step.
+#make oldconfig
+
+Customise the .config by using your favourite kernel configurator
+#make xconfig
+
+You will need to set up all your dependencies correctly.
+#make dep
+
+Now create the gzip compressed kernel image file
+#make bzImage
+
+Now build your modules
+#make modules
+
+The kernel is built all you need to do is move the kernel into place (/boot).
+#cp /usr/src/linux-2.4/arch/i386/boot/bzImage   /boot/vmlinux-2.4.20PFVcustom
+
+Finally you need to install your newly made modules
+#make modules_install
+
+
+Post-build Procedures
+We now need to build support for an initial RAM disk and to copy the remaining files to the /boot directory. You need only to do this if you are using the GRUB boot manager.
+
+Make a initial RAM disk
+#mkinitrd /boot/initrd-2.4.20-PFVcustom.img 2.4.20-PFVcustom
+
+Copy the kernel’s symbol table to the /boot partition
+#cp /usr/src/linux-2.4/System.map /boot/System.map-2.4.20-PFVcustom
+
+Backup a copy of the .config file onto the /boot partition
+#cp /usr/src/linux-2.4/.config /boot/.config-2.4.20-PFVcustom
+
+Updating boot manager
+
+We can now update the boot manager to include your new kernel as an option. So you will be adding a stanza to either /etc/grub.conf or /etc/lilo.conf. This allows you to choose which kernel you wish to boot from, if your new kernel does not work you can simply boot from your old working kernel.
+
+Updating GRUB you add the following to /etc/grub.conf
+
+ 	Title Red Hat Linux (2.4.20-PFVcustom)
+root (hd0,0)
+kernel /vmlinuz-2.4.20-PFVcustom ro root=LABEL=/
+initrd /initrd-2.4.20-PFVcustom.img
+Since you do not need to load /etc/grub.conf into the MBR, no further action is required.
+
+Updating lilo you add the following to /etc/lilo.conf
+
+ 	image=/boot/vmlinuz-2.4.20-PFVcustom
+label=newlinux
+read-only
+root=/dev/hda1            (Note this should point to your /boot partition)
+Save the file then run /sbin/lilo –v , you will get the output that confirms the MBR has been overwritten.
+
+When you reboot either enter the default label linux or the new label newlinux
+
+Rescue Diskette
+
+Now that you have created, installed and tested your new kernel it might be wise to create a new boot/rescue diskette.
+
+Create the boot/rescue diskette
+# /sbin/mkbootdisk 2.4.20-PFVcustom
+
+
+------------------------------------------------------------------------------------------------
+
+PXE Installation
+
+Red Hat allows you to install the OS over the network using NFS, FTP or HTTP. If the hardware supports PXE (Pre-eXecution Environment) the NIC card will send out a broadcast request for DHCP information. The DHCP server provides the client with a IP address and other network infomation such as the TFTP server address (which provides the files necessary to start the installation) and the location of the files on the TFTP server. This is possible because of PXELINUX, which is part of the syslinux package.
+
+In order to setup a PXE installation the following must be carried out:
+
+Install the necessary packages
+Configure the network (NFS, FTP, HTTP) server to export the installation tree (redhat packages, etc)
+Configure the DHCP server
+Configure the files on the tftp server necessary for PXE booting
+Configure which hosts are allowed to boot from the PXE configuration
+Configure the Kickstart file
+Boot and start the installation
+Software Packages (required)
+
+The following software packages are required
+
+tftp-server-*
+tftp-client-* (for testing)
+dhcp-*
+xinetd-*
+system-config-netboot-* (supplies the prelinux.0 file)
+Installation Tree
+
+In my examples below i have used the directory /export/kickstart but this could be anything you like.
+
+Basically create the directory and share the directory to the world, then copy the complete fedora/RHEL dvd or cdroms to this directory, once copied you should have something simular to below
+
+total 52
+drwxr-xr-x 10 root root  4096 Oct  6 13:38 .
+drwxr-xr-x  3 root root  4096 Oct  6 09:45 ..
+drwxrwsr-x  4 root root  4096 Mar 15  2006 Fedora
+drwxrwsr-x  3 root root  4096 Mar 15  2006 figs
+drwxrwsr-x  4 root root  4096 Mar 15  2006 images
+drwxrwsr-x  2 root root  4096 Mar 15  2006 isolinux
+drwxr-xr-x  2 root root  4096 Oct  6 14:00 ks            (this is where my kickstart files are held)
+drwx------  2 root root 16384 Oct  6 09:47 lost+found
+drwxrwsr-x  2 root root  4096 Mar 15  2006 repodata
+drwxrwsr-x  2 root root  4096 Mar 15  2006 stylesheet-images
+DHCP Installation
+
+Once the DHCP package has been installed, a basic configuration file needs to be setup in /etc/dhcpd.conf, again this configuration file can be has advanced as you want it to be.
+
+#
+# DHCP Server Configuration file.
+#   see /usr/share/doc/dhcp*/dhcpd.conf.sample  
+ddns-update-style ad-hoc;
+
+deny unknown-clients;
+not authoritative;
+
+option domain-name              "example.com";
+option domain-name-servers      ???.???.???.???, ???.???.???.???;
+option subnet-mask              255.255.255.0;
+
+allow bootp;
+allow booting;
+
+option ip-forwarding    false;  # No IP forwarding
+option mask-supplier    false;  # Don't respond to ICMP Mask req
+
+subnet 192.168.0.0 netmask 255.255.255.0 {
+  option routers        192.168.0.1;
+}
+
+group {
+  next-server 192.168.0.50;          # name of your TFTP server
+  filename "linux-install/pxelinux.0";        # name of the bootloader program
+
+  host fedora5 {
+        hardware ethernet 00:0C:29:D5:B8:A0;
+        fixed-address 192.168.0.40;
+  }
+}
+The above file will setup the host fedora5 (note the specific MAC address associated to the host fedora5) and boot from the next-server (tftp server) using the pxelinux.0 boot file, which in turn will look for the pxe configuration boot file.
+
+PXE Boot Configuration Files
+
+The PXE boot configuration basically is setting up the /tftpboot directory to allow clients to download the PXE boot configuration script and allow access to the initial ram disk (initrd.msg) and the linux kernel (vmlinuz).
+
+The tftpboot directory will contain the following directories and files
+
+/tftpboot/linux-install/prelinux.0	This file is the PXE boot file and will be run immediately after the the client has connected to the tftp server.
+/tftpboot/linux-install/msgs	This directory contains the boot messages/menus displayed when the client boots
+/tftpboot/linux-install/pxelinux.cfg	This directory contains the PXE boot configuration scripts, normally named C0A80023 (ip address of host in HEX)
+/tftpboot/linux-install/RHEL4	This directory is optional and is created when using the system-config-netboot or pxeos commands. It is used to hold kickstart scripts, linux kernels and ram disks for specific installations.
+Two commands are used to configure the tftpboot area pxeos and pxeboot
+
+Using the command below will create a directory called RHEL4 and copy the necessary linux kernel and ram disk files (normally located in images/pxeboot directory of the installation tree), we are also stating that we will use NFS to install the OS onto clients
+
+# pxeos -a -i "<description>" -p NFS -D 0 -S <tftp IP addr> -K nfs:<kickstartserver>:/export/kickstart -L /export/kickstart RHEL4
+
+-a	Specifies that an OS instance is being added to the PXE configuration
+-i	Description of the OS instance
+-p	Specify which protocol to use for the o/s installation (NFS, FTP, HTTP)
+-D	Specify if client is diskless (0=network, 1=diskless)
+-s	Provides the name of the NFS, FTP or HTTP server
+-L	Provides the location of the installation tree (o/s rpms, etc)
+-k	provide the specific kernel version of the server installation tree for booting
+-K	provide the location of the kickstart file
+os-identifier	OS identifier to keep different build seperate
+The above command would have copied the linux kernel (vmlinuz) and ram disk (initrd.msg) to the /tftpboot/linux-install/RHEL4 directory and also created a blank kickstart configuration file( i will be using my own kickstart file discussed later). Also the command would have created a pxe boot default file in the /tftpboot/linux-install/pxelinux.cfg directory as below:
+
+default local
+timeout 100
+prompt 1
+display msgs/boot.msg
+F1 msgs/boot.msg
+F2 msgs/general.msg
+F3 msgs/expert.msg
+F4 msgs/param.msg
+F5 msgs/rescue.msg
+F7 msgs/snake.msg
+
+
+label 0
+localboot 1
+
+
+label 1
+  kernel RHEL5/vmlinuz
+  append initrd=RHEL5/initrd.img ramdisk_size=5939 ks=nfs:192.168.0.50:/export/kickstart/ks/default.ks
+To setup specific pxe boot configuration files we use a command called pxeboot, this will override the above default boot configuration file
+
+pxeboot -a -K <kickstart server> -O OS identifier <hostname>
+
+-a	add a specific host
+-K	location of kickstart file
+-O	OS identifier
+hostname	hostname
+The above command will create a file called C0A80028 (IP address in HEX) located in /tftp/linux-install/pxelinux.cfg, which is the specific boot configuration file for that host.
+
+default RHEL5
+
+label RHEL5
+          kernel RHEL5/vmlinuz
+          append initrd=RHEL5/initrd.img  ramdisk_size=5939 ks=nfs:192.168.0.50:/export/kickstart/ks/default.ks 
+After the client has obtained it's IP address via DHCP it looks for the following configuration files, as you can see the C0A80028 file is called which if you remember was created above.
+
+
+
+Kickstart Configuration file
+
+There are many options to a kickstart configuration file, i have supplied a basic one below which was obtain from a website on the internet, adapt to your own tastes.
+
+install         # rather than upgrade
+nfs --server=192.168.0.50 --dir=/export/kickstart  # Location of the install media, http, nfs etc
+lang en_US.UTF-8
+langsupport --default en_US.UTF-8
+keyboard uk
+mouse generic3usb --device input/mice
+network --device=eth0 --bootproto=static --ip=192.168.0.40 --netmask=255.255.255.0 --gateway=???.???.???.??? --nameserver=???.???.???.??? -
+-hostname fedoraks # we could specify static IP info too instead
+rootpw password    # noencrypted password
+firewall --disabled
+selinux --disabled
+authconfig --enableshadow --enablemd5
+timezone Europe/London
+bootloader --location=mbr --append="noexec=off hda=noide"
+              # Any boot time options you wan to add
+              # I specified noide here as I was booting
+              # from SAN in this case.
+skipx
+              # do not configure X Windows
+zerombr yes
+              #Clear the Master Boot Record
+clearpart --all --initlabel
+              #Partition clearing information
+part /boot --fstype ext3 --size=150 --ondisk=hda
+part pv.01 --size=1 --grow --ondisk=hda
+part pv.02 --size=1 --grow --ondisk=hda
+volgroup rootvg pv.01
+volgroup satvg pv.02
+logvol /    --vgname=rootvg --size=6000 --name=rootvol
+logvol swap --vgname=rootvg --size=2000 --name=swapvol
+              # In the above partition layout (with LVM) I have
+              # used two disks, sda and sdb for different volumes.
+              # You don't need to use LVM etc. HDA for IDE etc.
+auth  --useshadow  --enablemd5
+              #System authorization information
+%packages --resolvedeps
+              # This is the actual package install section. The
+              # resolvedeps option allows you to make mistakes and
+              # have anaconda sort it out for you, i.e. resolving
+              # package dependencies.
+@ Base
+@ Development Tools
+@ Legacy Software Development
+              # base channels
+screen
+newt-perl
+perl-DateManip
+PyXML
+ntp
+              # individual packages to add
+-vim
+-pico
+-emacs
+              # individual packages to add
+%post
+              # And so begins the post-install section.
+              # this is currently in a chroot to / on the
+              # new file system.
+              # Various variables I like to set first to use later
+(
+              # I run everything in this, so I can log it
+/bin/echo "Welcome to $HOSTNAME Server " > /etc/motd 
+/bin/echo "Built from kickstart version $VER " >> /etc/motd
+/bin/echo " " >> /etc/motd
+              # One way of adding to files
+cat >> /etc/sysctl.conf << EOF
+fs.aio-max-size = 1048576
+fs.file-max = 327680
+net.core.rmem_max = 262144
+net.core.wmem_max = 262144
+net.core.rmem_default = 262144
+net.core.wmem_default = 262144
+net.ipv4.ip_local_port_range = 1024 65000
+net.ipv4.ip_forward = 0
+kernel.shmmax = 2147483648
+kernel.shmmni = 4096
+kernel.sem = 250 32000 100 128
+EOF
+              # Another way of inputing to files
+              # Here doing some system settings
+useradd -c "Some lone user" -d /home/luser luser
+echo luserpass | passwd --stdin luser
+              # Add a user if you like
+# Setup hosts file
+cat > /etc/hosts << EOF
+127.0.0.1       localhost.localdomain           localhost
+192.168.0.1     install-server.some.domain      install-server
+192.168.0.2     another.machine.some.domain     another
+EOF
+              # Edit the hosts file if you like
+wget $SERVER/iptables.$lab -O /etc/sysconfig/iptables
+              # Here using the server variable we set at the
+              # top of the post-install section to pull some
+              # custom files we stored, in this case a firewall.
+              # In this case using a variable which could have been
+              # pulled from /proc/cmdline to get a specific one for
+              # each lab.
+/sbin/chkconfig ip6tables off
+/sbin/chkconfig isdn off
+/sbin/chkconfig sendmail off
+/sbin/chkconfig ntpd on
+              # Turn some services on and off
+) > /tmp/kickstart-install.log 2>&1
+              # The aforementioned log.
+Boot and Start the Installation
+Just boot the server via the network (normally option F12) and if all goes well your client should install from the kickstart server, the basic steps are as follows
+
+Client BIOS (DHCP broadcast)<----------------------------------------> DHCP Server (Network info, tftp server and PXE file name)
+Client BIOS (TFTP request for pxelinux.0)<---------------------------> TFTP/PXE Server (supplies the pxelinux.0 file)
+Running PXE (pxe request for kernel and Kickstart install)<----------> TFTP/PXE Server (C0A80028 or default file supplies info)
+Running Kernel (NFS KICKSTART) <-------------------------------------> NFS Server (supplies the kickstart config file)
+Running Anaconda (NFS request for rpms)<-----------------------------> NFS Server (supply RPMS)
+Running Anaconda (NFS request post installtion) <--------------------> NFS Server (runs post install scripts)
+Running Anaconda (reboot) 
+
+------------------------------------------------------------------------------------------------
+REDHAT bonding
+
+These are my bonding files off a Redhat AS 4 server. If you change /etc/modprobe.conf be sure to run a mkinitrd and reboot.
+
+I'm showing "bonding" as the kernel module that's loaded on Redhat AS 4.0, not "bond0"
+
+/etc/sysconfig/network-scripts/ifcfg-bond0
+
+DEVICE=bond0
+IPADDR=???.???.???.???
+NETMASK=255.255.255.0
+GATEWAY=???.???.???.???
+ONBOOT=yes
+BOOTPROTO=none
+TYPE=Ethernet
+
+/etc/sysconfig/network-scripts/ifcfg-eth0
+
+DEVICE=eth0
+BOOTPROTO=none
+ONBOOT=yes
+MASTER=bond0
+SLAVE=yes
+TYPE=Ethernet
+
+/etc/sysconfig/network-scripts/ifcfg-eth1
+
+DEVICE=eth1
+BOOTPROTO=none
+ONBOOT=yes
+MASTER=bond0
+SLAVE=yes
+TYPE=Ethernet
+
+/etc/modprobe.conf
+
+alias eth0 tg3
+alias eth1 tg3
+alias bond0 bonding
+options bond0 miimon=100
+install bond0 /sbin/modprobe -o bonding0 --ignore-install bonding
+
+
+
+------------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------------
+
+
+
+
+------------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------------
+
+
+
+
+------------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------------
+
+
+
+
+------------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------------
+
+
+
+
+------------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------------
+
+
+
+
+------------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------------
+
+
+
+
+------------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------------
