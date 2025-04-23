@@ -1,0 +1,55 @@
+oslevel -s
+errpt | more 
+lspv | grep rootvg
+bootinfo -b ==========last boot disk 
+lsvg -p rootvg ===========to check active disk
+unmirrorvg rootvg hdisk# ======to unmirror 
+lspv -l hdisk# 
+migratepv hdisk# hdisk##
+lsvg -l rootvg
+reducevg rootvg hdisk#
+lspv | grep -w hdisk#
+bosboot -a
+nohup alt_disk_copy -d hdisk# & ===========copy old disk
+======================================================
+alt_rootvg_op -X old_rootvg =============use only if disk is not in mirror so no need to unmirror directly we can make it none.
+======================================================
+
+
+alt_rootvg_op -W -d hdisk# ======= wakeup disk
+lspv | grep rootvg
+
+chroot /alt_inst /usr/bin/oslevel -s
+for i in `cat /tmp/emgr.txt`;do chroot /alt_inst /usr/sbin/emgr -r -L $i ;done
+chroot /alt_inst /usr/sbin/emgr -l
+chroot /alt_inst /usr/sbin/installp -c all
+
+
+nohup alt_rootvg_op -C -b update_all -l /mksysb_backup/prabha/7200-05-04/installp/ppc/ &
+
+cd /mksysb_backup/prabha/7200-05-04
+cp -pr emgr /alt_inst/tmp/
+====================Ifixes need to install=============
+chroot /alt_inst /usr/bin/oslevel -s
+chroot /alt_inst /usr/sbin/emgr -e /alt_inst/tmp/emgr/ppc/IJ42163m4a.221213.epkg.Z
+chroot /alt_inst /usr/sbin/emgr -e /alt_inst/tmp/emgr/ppc/IJ44425m4a.221220.epkg.Z
+chroot /alt_inst /usr/sbin/emgr -e /alt_inst/tmp/emgr/ppc/IJ44559m4a.221214.epkg.Z
+chroot /alt_inst /usr/sbin/emgr -e /alt_inst/tmp/emgr/ppc/IJ42677s4a.221227.epkg.Z
+chroot /alt_inst /usr/sbin/emgr -e /alt_inst/tmp/emgr/ppc/IJ43877s4a.221017.epkg.Z
+chroot /alt_inst /usr/sbin/emgr -e /alt_inst/tmp/emgr/ppc/IJ41975s4a.221017.epkg.Z
+chroot /alt_inst /usr/sbin/emgr -e /alt_inst/tmp/emgr/ppc/IJ42159s4a.221017.epkg.Z
+chroot /alt_inst /usr/sbin/emgr -e /alt_inst/tmp/emgr/ppc/IJ41974s4a.221017.epkg.Z
+chroot /alt_inst /usr/sbin/emgr -e /alt_inst/tmp/emgr/ppc/IJ43876s4a.221017.epkg.Z
+chroot /alt_inst /usr/sbin/emgr -e /alt_inst/tmp/emgr/ppc/IJ43869m4b.230216.epkg.Z
+chroot /alt_inst /usr/sbin/emgr -l
+chroot /alt_inst /usr/bin/oslevel -s
+
+alt_rootvg_op -St
+
+lspv | grep rootvg
+
+bootlist -m normal hdisk# hdisk#
+
+bootlist -om normal
+
+
