@@ -1,0 +1,157 @@
+ctrl+windows+C to change display color of desktop
+022-27536108 ---> soc
+8388849/ABC!@#xyz890
+logger -p daemon.error test
+/data/BRANCHES/98888/AccountStatement/Pending --> (first Pending then it will insert to DB and then to MT940_Processed (Processed files)
+MT940----/data/BRANCHES/98888/data/BRANCHES/98888/AccountStatement/MT940/MT940_Processed (Processed files)
+
+
+http://proxysbg.sbi.co.in/proxysbg.pac -- new
+
+https://proxy.sbi.co.in/proxysbi.pac
+
+
+systemctl --type=service
+syslog in solaris ---> check syslogd -d; vi /etc/syslog.conf --:set invlist
+rsync -avz -e "ssh -p 27041" /devops/* root@10.189.68.159:/devops-nexus-PROD
+10.209.106.14/15 -->sftp ---DR  
+10.189.151.14/15 -->sftp ---PR
+osadinb/osadmin -- 0$@Dmin123
+hp logger 10.189.143.62 root/
+raguraja90 lenovoibm123
+setter -m term linux -fore red ---> to change color
+tcpdump -w remit.pcap -i en1 host 10.191.171.90 and dst port 514 -- packet capture
+tcpdump -i en1 -w /tmp/yono1.pcap host 10.209.114.19
+tcpdump -vv dst 10.189.205.145 and dst port 514
+tcpdump -i  en1 -v dst 10.191.144.171
+tcpdump -v dst 10.209.82.30 and dst port 514
+tcpdump -w /tmp/upi.pcap -v dst 10.209.82.30
+tcpdump -w /tmp/upi.pcap host 10.209.82.30
+
+
+perl -le "print scalar(localtime(1523368288))" ---> last update password time /etc/security/passwd
+chage -M 45 -d $(date +%F) addmitam
+/usr/sbin/semanage port -a -t ssh_port_t -p tcp 27041 -->enable port in linux 
+route add -net 10.248.77.160/27 10.248.74.129
+route delete -net 10.0.0.0
+chdev -l inet0 -a route=net,-netmask,255.255.255.0,-static,10.189.145.111,10.189.133.1
+route delete 10.189.145.111 10.189.133.1
+
+chage -M 45 -d $(date +%F) schedule
+
+mount -V nfs -o intr,hard,llock,rsize=65536,wsize=65536,vers=4,proto=tcp,rw 10.209.121.151:/dr_housekeeping_BYONO /yono-housekeeping/logs
+
+chsec -f /etc/security/passwd -s addmitam -a lastupdate=`perl -e 'print time'`
+/usr/sbin/semanage port -a -t ssh_port_t -p tcp 27041
+mount /dev/sr0  /mnt
+mount /dev/cdrom /mnt/
+mount -t iso9660 /dev/scd0 /media/cdrom
+10.189.125.134
+10.189.153.102 - mobility DB
+backupios -nomedialib -file /home/padmin/$(hostname).mksysb -mksysb 
+mkcd -L -S -I /mksysb_backup(directory where iso image need to be created) -m /mksysb_backup/Merchant/App_mksysb/sbiimerprda21_07Jul2018.mksysb(path of iso)
+zip -r folername.zip * (inside folder to zip all files into single zip file)
+alt_disk_mksysb -m (location of mksysb image) -d hdisk$ (target Disk)
+
+Plump IP's Add) chdev -l en1 -a alias4=10.209.119.123,255.255.255.0 --- (Delete) chdev -l enX -a delalias4=<IP_Address_of_Alias>,<Subnet_mask> 
+Routines in wac server path: /opt/sbi/wac/conf/
+ touch -t 01211315 delete.txt (mmddhhmm filename)
+
+##Retail, Corporate, Merchant, SBCollect- GST Files Transfer from INB to GST## Daily need to send mail after 11:45 AM once the script is completed
+
+cat /scripts/GSTlogs/RETAIL_GST_SFTP.log | grep "25062019"
+cat /scripts/GSTlogs/RETAIL_GST_SFTP.log | grep "25062019" |grep 100%
+
+cat /scripts/GSTlogs/CORPORATE_GST_SFTP.log | grep "25062019"
+cat /scripts/GSTlogs/CORPORATE_GST_SFTP.log | grep "25062019" | grep 100%
+
+cat /scripts/GSTlogs/MERCHANT_GST_SFTP.log | grep "25062019"
+cat /scripts/GSTlogs/MERCHANT_GST_SFTP.log | grep "25062019" | grep 100%
+
+
+cat /scripts/GSTlogs/COLLECT_GST_SFTP.log | grep "25062019"
+cat /scripts/GSTlogs/COLLECT_GST_SFTP.log | grep "25062019" |grep 100%
+
+cat /scripts/GSTlogs/MERCHANT_GST_SFTP_IRCTC.log
+
+
+nidhicafe12@gmail.com
+
+cat /scripts/GSTlogs/COLLECT_GST_SFTP.log | grep "022022019"cat /scripts/GSTlogs/COLLECT_GST_SFTP.log | grep "022022019"
+
+Meity server
+HOST="10.189.45.140"
+USER="meity_data"
+PWD="Inb@Mob@35" 
+Our source 
+Pr:-10.189.153.134 su - oracle and check the crontab
+DR:-10.209.94.6
+
+
+SB ANYWARE and SB Freedom GST Files
+10.209.91.6 / 10.189.146.6
+
+/data/DWPupload_logfiles --- 10.189.152.6/10.209.98.6 (trikcle user) //ODT files using crontab -l trickle 
+
+/opt/batchlogs/wac/Mvwac.sh in 10.189.126.24 
+
+Schedulers for Retail -- 126.25 & Corporate 128.14
+
+sandeepkbhalerao444/G2me0ver4444 -- redhat creditinals
+
+source file bvadmin1/bvadmin989 10.189.126.6
+
+for i in `find . -name "*merchant*101018*"`; do ls -ltr $i >> /tmp/7517820595.txt;bzcat $i | grep -i "7517820595" >> /tmp/7517820595.log;done &
+
+for i in `find . -type f -name "*branchretail*240919*"`; do ls -ltr $i>>/tmp/CPK3005742.txt;bzcat $i |grep -i 'CPK3005742'; done &(inside particular machine id ex: /sysmonlogs/ndlogs/Apr_2018/sbiicordra6/)
+for i in `find . -type f -name "*retail*.log*120819*"`; do echo $i; bzcat $i |grep "SBIPI00563045009020000101 "; done
+for i in `ls -lrt|grep  "Oct"|awk '{print $9}'`; do echo $i; mv $i /log_archive_2019/Retail_98888/; done &
+for i in `ls -lrt|grep  "Mar 31"|awk '{print $9}'`; do echo $i; mv $i /log_archive_2019/Retail_98888/; done &
+
+for i in `ls -lrt |awk '{ if ($8 == "2018") print $9 }'`; do echo $i; mv $i /log_archive_2019/data/billdesk_recon/; done &
+for i in `ls -lrt |grep -v "dr"|awk '{ if ($8 == "Sep") print $9 }'`; do echo $i; mv $i /log_archive_2019/data/BRANCHES/98888/AccountStatement/Retail/Archived_Incoming1/; done &
+ 
+ls -lrt |awk '{ if ($8 == "2018")'
+
+netstat -Aan | grep "81"
+kdb
+sockinfo socket tcpcb
+hcal pid
+ps -ef | grep pid
+
+sftp -oMACs=hmac-sha2-256 -P2201 SBCOLLECT_MSMB_5697646@sfg.onlinesbi.com 
+Sbi@12345
+cd /SBI_UPI/SBCOLLECT_MSMB_5697646/Download
+Devops@989
+
+sftp -P 2022 mercuser@gstsftp.sbi.co.in
+U5er@G$t
+
+bash
+clear
+cd /sysmonlogs/Osteam/FSS/Key/KEY
+cp -pr 80701926 80701924 80701928 /opt/sbi/FSS/
+cd /opt/sbi/FSS/
+ls -ld 80701926 80701924 80701928
+
+
+chuser minage=0 histsize=0 mqm
+echo "mqm:Jun@2019"|chpasswd
+pwdadm -c mqm
+chsec -f /etc/security/passwd -s addmitam -a lastupdate=`perl -e 'print time'`
+chuser minage=1 histsize=5 mqm
+
+
+svcs -a | grep ds_agent
+pkg install -g file:///export/home/ashok/antivirus_patch/Agent-Core-Solaris_5.11-10.0.0-3437.sparc.p5p pkg:/security/ds-agent
+
+
+for i in `find . -type f -name "*corp*.log*010320*"`; do echo $i; bzcat $i |grep "ORA-" >> /tmp/corp01mar2020.log; done &
+
+
+
+#####Cipher & MAC Entry as per Devdutta for June 2017 VA#######
+Ciphers aes128-ctr,aes192-ctr,aes256-ctr
+MACs hmac-sha1,umac-64@openssh.com,hmac-ripemd160
+
+
