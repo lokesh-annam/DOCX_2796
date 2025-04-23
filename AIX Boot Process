@@ -1,0 +1,75 @@
+AIX Boot Process
+POWER ON
+POST (Power on Self Test) / BIST (Built-in Self Test for AIX)
+ROS Initialization (Checks Mother Board using OCS BUMP)
+Hardware ROS				Software ROS
+	         		    3 types:	
+1.	Primary Devices: processor, mother board, RAM
+2.	Secondary Devices: HD, CD, Floppy, Tape, magnetic tape etc.
+3.	Base Devices: Keyboard, Mouse
+
+-	Checks User Bootlist
+-	Locates boot strap code to find bootable devices in User boot list
+-	Bootlist is of 2 types:
+o	Bootlist in Normal Boot
+o	Bootlist in Service Mode
+-	Bootlist in Normal Boot & Service mode each is of 2 types:
+o	Default Bootlist in ROS
+o	User Bootlist in NVRAM
+
+
+User BootList: 3 Scenarios
+1.	Available in NVRAM and is valid: loads Boot device from the user Bootlist found
+2.	Available in NVRAM AND IS INVALID: Checks in Default Bootlist in ROS and loads the boot device
+3.	Unavailable: keep checking the adapters and devices on BUS till valid bootlist is found to load the boot devices.
+Once a Valid boot device is found
+PSN (Program Sector Number) is checked
+PSN gets loaded in IPL (Initial Program Load)
+IPL contains information about the boot image
+Boot Image is made up of:
+-	Kernel
+-	RAM FS
+-	Device Information (ODM)
+-	RC Boot (it’s a directory)
+Control goes over to the Kernel
+AIX Kernel gets initiated and RAM FS is created
+Kernel will start the INIT process with Process ID = 1
+INIT starts RC.Boot1 (Boot Phase 1)
+1.	Copies ODM information from BLV into RAM FS (Command: # restbase)
+2.	Starts sys, bus, SCSI, LVM, RVG configuration methods and updates data present in ODM in RAM FS (Command: # cfgmgr -f). cfgmgr command will check for all plug and play devices.
+3.	Determines the last boot device (Command: # bootinfo -b)
+Now the system is ready for installation, maintenance or diagnostic
+INIT starts RC.Boot2 (Boot Phase 2)
+1.	Activates the Root VG information available in ODM in RAM FS (Command: # ipl_varyon)
+2.	Mounts HD FS (Hard disk FS) in RAM FS. All 10 partitions gets loaded
+3.	Copies ODM from RAM FS into HD FS and scans the file system (Command: # fsck -f)
+4.	Delete RAM FS
+Up to this no console is available; boot progress is checked through LED display. All boot information is written in log file, can be checked by running the following command: 
+# alog –t boot -o
+INIT will execute the processes defined in /etc/inittab
+One of the processes is RC.Boot3 (Boot Phase 3)
+1.	Checks stale partitions in VG and mounts temp in HD FS (Command: # syncvg)
+2.	Synchronize VG information available in ODM (Command: # savebase)
+3.	Initialize the console (Command: # cfgcon)
+Kernel will start all the Background daemon services present in /etc/inittab
+LED display is OFF
+Login Display will appear
+End of Boot process, Root FS is mounted
+Init reads /etc/inittab
+If default entry does not exists, init will ask user to enter the Run level from system console
+If /etc/inittab does not exists, system will go into maintenance mode
+Init re-reads /etc/inittab every 60 seconds
+
+Points To Remember:
+1.	ODM: Object Database Manager: is a database that has complete device configuration and informational data of the entire OS.
+Information stored in ODM is:
+Network Configuration
+LVM Configuration
+PV VG LV Configuration
+Device Information
+Smit menus, screens and commands
+Hardware information
+2.	OCS BUMP stands doe On Chip Sequencer and Built in Micro processor
+P.S: All information available here is gained and compiled from various RED HAT IBM Books & PDFs.
+This is an effort to make understanding of AIX Booting Process simpler and user friendly.
+All thoughts and reflections are welcomed.
