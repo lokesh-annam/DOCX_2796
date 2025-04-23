@@ -1,0 +1,175 @@
+====================================================================================================
+2.1.1. Password Policy
+====================================================================================================
+- can be applied for noraml users
+- might impact application if applied for application users like wasadmin, oracle etc. Should be verified my application support. 
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+lssec  -f /etc/security/user -s default -a mindiff -a minage -a maxage -a minlen -a minalpha -a histexpire -a histsize -a maxexpired -a minspecialchar;
+chsec  -f /etc/security/user -s default -a mindiff=4 -a minage=1 -a maxage=13 -a minlen=8 -a minalpha=2 -a histexpire=13 -a histsize=20 -a maxexpired=2 -a minspecialchar=1
+
+====================================================================================================
+2.2.1. Login Policy
+- can be applied 
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+lsuser -a login rlogin daemon;lsuser -a login rlogin bin;lsuser -a login rlogin sys;lsuser -a login rlogin adm;lsuser -a login rlogin nobody;lsuser -a login rlogin uucp;lsuser -a login rlogin lpd
+chuser login=false rlogin=false daemon;chuser login=false rlogin=false bin;chuser login=false rlogin=false sys;chuser login=false rlogin=false adm; chuser login=false rlogin=false nobody;chuser login=false rlogin=false uucp;chuser login=false rlogin=false lpd
+
+====================================================================================================
+2.3.1. System Services Management
+-sendmail service is running on production servers
+-exec might impact automated application scripts etc.Should be verified my application support.
+-shell might impact automated application scripts etc.Should be verified my application support.
+-ftp might impact remote file copy Should be verified .
+-tftp might impact remote file copy Should be verified .
+** AS PER KUNTAL SUGGESTION & SETUP DEPENDANCY BELOW SERVICES NEEDS TO EXCLUDE FROM SCD**
+sprayd 	It will require in future for NFS use
+rquotad	It will require in future for NFS use
+tftp	It will require for NIM
+instsrv	It will require for NIM
+exec 	Kuntal
+shell	Kuntal
+dt		It is require for Common Desktop Environment. e.g. WAS/IHS installation
+dtspc		It is require for Common Desktop Environment. e.g. WAS/IHS installation
+rcnfs		It will require for future NFS server use.
+pcnfsd		It will require for future NFS server use.
+sendmail		It will require for sending mail.
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENTATIONS STEPS WILL MOFIFY 3 FILES AS BELOW:
+cat /etc/inittab | egrep -i "qdaemon|lpd|piobe|dt|rcnfs";cp /etc/inittab /etc/inittab_SCD_7.1
+rmitab qdaemon;rmitab lpd;rmitab piobe;telinit q;cat /etc/inittab | egrep -i "qdaemon|lpd|piobe|dt|rcnfs"
+----------------------------------------------------------------------------
+cat /etc/rc.tcpip | egrep -i "sendmail|snmpd|dhcpcd|dhcprd|dhcpsd|autoconf|gated|mrouted|named|routed|rwhod|timed|dpid|hostmibd|snmpmibd|aixmibd|ndpd-host|ndpd-router" 
+cp /etc/rc.tcpip /etc/rc.tcpip_SCD_7.1
+chrctcp -d snmpd;chrctcp -d dhcpcd;chrctcp -d dhcprd;chrctcp -d dhcpsd;chrctcp -d autoconf6;chrctcp -d gated;chrctcp -d mrouted;chrctcp -d named;chrctcp -d routed
+chrctcp -d rwhod;chrctcp -d timed;chrctcp -a xntpd;chrctcp -d dpid2;chrctcp -d hostmibd;chrctcp -d snmpmibd;chrctcp -d aixmibd;chrctcp -d ndpd-host;chrctcp -d ndpd-router
+----------------------------------------------------------------------------
+cp /etc/inetd.conf /etc/inetd.conf_SCD_7.1
+cat /etc/inetd.conf | egrep -i "telnet|exec|daytime|shell|cmsd|ttdbserver|uucp|time|login|talk|ntalk|ftp|chargen|discard|dtspc|echo|pcnfsd|rstatd|rusersd|rwalld|sprayd|klogin|kshell|rquotad|tftp|imap|pop3|finger|instsrv"
+chsubserver -r inetd -C /etc/inetd.conf -d -v 'telnet' -p 'tcp6';chsubserver -r inetd -C /etc/inetd.conf -d -v 'daytime' -p 'tcp' ;chsubserver -r inetd -C /etc/inetd.conf -d -v 'daytime' -p 'udp'
+chsubserver -r inetd -C /etc/inetd.conf -d -v 'cmsd' -p 'sunrpc_udp';chsubserver -r inetd -C /etc/inetd.conf -d -v 'ttdbserver' -p 'sunrpc_tcp';chsubserver -r inetd -C /etc/inetd.conf -d -v 'uucp' -p 'tcp'
+chsubserver -r inetd -C /etc/inetd.conf -d -v 'time' -p 'udp' ;chsubserver -r inetd -C /etc/inetd.conf -d -v 'time' -p 'tcp';chsubserver -r inetd -C /etc/inetd.conf -d -v 'login' -p 'tcp'
+chsubserver -r inetd -C /etc/inetd.conf -d -v 'talk' -p 'udp';chsubserver -r inetd -C /etc/inetd.conf -d -v 'ntalk' -p 'udp';chsubserver -r inetd -C /etc/inetd.conf -d -v 'ftp' -p 'tcp6'
+chsubserver -r inetd -C /etc/inetd.conf -d -v 'chargen' -p 'tcp' ;chsubserver -r inetd -C /etc/inetd.conf -d -v 'chargen' -p 'udp';chsubserver -r inetd -C /etc/inetd.conf -d -v 'discard' -p 'tcp' ;chsubserver -r inetd -C /etc/inetd.conf -d -v 'discard' -p 'udp'
+chsubserver -r inetd -C /etc/inetd.conf -d -v 'echo' -p 'tcp' ;chsubserver -r inetd -C /etc/inetd.conf -d -v 'echo' -p 'udp';chsubserver -r inetd -C /etc/inetd.conf -d -v 'rstatd' -p 'udp'
+chsubserver -r inetd -C /etc/inetd.conf -d -v 'rusersd' -p 'udp';chsubserver -r inetd -C /etc/inetd.conf -d -v 'rwalld' -p 'udp';chsubserver -r inetd -C /etc/inetd.conf -d -v 'klogin' -p 'tcp'
+chsubserver -r inetd -C /etc/inetd.conf -d -v 'kshell' -p 'tcp';chsubserver -r inetd -C /etc/inetd.conf -d -v 'imap2' -p 'tcp';chsubserver -r inetd -C /etc/inetd.conf -d -v 'pop3' -p 'tcp';chsubserver -r inetd -C /etc/inetd.conf -d -v 'finger' -p 'tcp'
+cat /etc/inetd.conf | egrep -i "telnet|exec|daytime|shell|cmsd|ttdbserver|uucp|time|login|talk|ntalk|ftp|chargen|discard|dtspc|echo|pcnfsd|rstatd|rusersd|rwalld|sprayd|klogin|kshell|rquotad|tftp|imap|pop3|finger|instsrv"
+----------------------------------------------------------------------------
+ls -lrt /etc/inetd.conf;chmod u=rw,go=r /etc/inetd.conf ;chown root:system /etc/inetd.conf;ls -lrt /etc/inetd.conf
+
+
+====================================================================================================
+2.4.1. Disabling Remote Services 
+File  /usr/sbin/tftpd have been excluded as it will requre for NIS server commmunication:
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+ls -lrt /usr/bin/rcp ;ls -lrt  /usr/bin/rlogin ;ls -lrt  /usr/bin/rsh;ls -lrt  /usr/sbin/rlogind; ls -lrt  /usr/sbin/rshd 
+
+chmod ugo= /usr/bin/rcp ;chmod ugo= /usr/bin/rlogin ;chmod ugo= /usr/bin/rsh;chmod ugo= /usr/sbin/rlogind; chmod ugo= /usr/sbin/rshd ;ls -lrt /usr/bin/rcp ;ls -lrt  /usr/bin/rlogin ;ls -lrt  /usr/bin/rsh;ls -lrt  /usr/sbin/rlogind; ls -lrt  /usr/sbin/rshd;chmod ugo= /usr/sbin/tftpd;ls -lrt  /usr/sbin/tftpd ;
+
+
+====================================================================================================
+2.5.1. Automated Authentication
+
+DO NOT DELETE /.rhosts FILE AS IT IS REQUIRE FOR NIM COMMUNICATION
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+find / -name ".rhosts" -exec ls {} \;find / -name ".netrc" -exec ls{} \;
+find / -name ".netrc" -exec rm {} \; find / -name ".rhosts" \;cat /.rhosts
+sed '/^\s*$/d; s/^\(\s*[^#].*\)/#\1/' /etc/hosts.equiv > /etc/hosts.equiv.work; mv /etc/hosts.equiv.work /etc/hosts.equiv;cat /etc/hosts.equiv | grep -v "#";ls -lrt /etc/hosts.equiv;chown root:system /etc/hosts.equiv; chmod 644 /etc/hosts.equiv;ls -lrt /etc/hosts.equiv
+
+====================================================================================================
+2.6.1. TCP/IP Hardening
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+/usr/sbin/no -o ipsrcrouteforward; /usr/sbin/no -o ipignoreredirects; /usr/sbin/no -o clean_partial_conns; /usr/sbin/no -o ipsrcroutesend;/usr/sbin/no -o ipforwarding;/usr/sbin/no -o ipsendredirects;/usr/sbin/no -o ip6srcrouteforward;/usr/sbin/no -o directed_broadcast;/usr/sbin/no -o tcp_pmtu_discover;/usr/sbin/no -o bcastping;/usr/sbin/no -o icmpaddressmask ;/usr/sbin/no -o udp_pmtu_discover;/usr/sbin/no -o ipsrcrouterecv;/usr/sbin/no -o nonlocsrcroute;/usr/sbin/no -o tcp_tcpsecure;/usr/sbin/no -o sockthresh;/usr/sbin/no -o rfc1323;/usr/sbin/no -o tcp_sendspace;/usr/sbin/no -o tcp_recvspace;/usr/sbin/no -o tcp_mssdflt;/usr/sbin/nfso -p -o nfs_use_reserved_ports
+
+/usr/sbin/no -p -o ipsrcrouteforward=0; /usr/sbin/no -p -o ipignoreredirects=1; /usr/sbin/no -p -o clean_partial_conns=1; /usr/sbin/no -p -o ipsrcroutesend=0;/usr/sbin/no -p -o ipforwarding=0;/usr/sbin/no -p -o ipsendredirects=0;/usr/sbin/no -p -o ip6srcrouteforward=0;/usr/sbin/no -p -o directed_broadcast=0;/usr/sbin/no -p -o tcp_pmtu_discover=0;/usr/sbin/no -p -o bcastping=0;/usr/sbin/no -p -o icmpaddressmask=0 ;/usr/sbin/no -p -o udp_pmtu_discover=0;/usr/sbin/no -p -o ipsrcrouterecv=0;/usr/sbin/no -p -o nonlocsrcroute=0;/usr/sbin/no -p -o tcp_tcpsecure=7;/usr/sbin/no -p -o sockthresh=60;/usr/sbin/no -p -o rfc1323=1;/usr/sbin/no -p -o tcp_sendspace=262144;/usr/sbin/no -p -o tcp_recvspace=262144;
+/usr/sbin/no -p -o tcp_mssdflt=1448;/usr/sbin/no -p -o nfs_use_reserved_ports=1;/usr/sbin/nfso -p -o nfs_use_reserved_ports=1
+
+====================================================================================================
+2.7.1. Miscellaneous Enhancements
+ensure root and the application users are added.
+/etc/ftpusers : might impact remote file copy Should be verified .
+crontab permissions : ensure root and the application users have proper permission to run crontab jobs
+disabling core dumps : core dumps might be needed for debugging. 
+AIX Auditing : enable if policy requires
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+2.7.1.1	crontab access
+ls -lrt /var/adm/cron/cron.allow;ls -lrt /var/adm/cron/cron.deny;echo "adm" > /var/adm/cron/cron.allow;echo "root" >> /var/adm/cron/cron.allow;ls -lrt /var/adm/cron/cron.allow ;ls -lrt /var/adm/cron/cron.deny;cat /var/adm/cron/cron.allow;rm  /var/adm/cron/cron.deny
+----------------------------------------------------------------------------
+2.7.1.2	at access
+ls -lrt /var/adm/cron/at.allow;ls -lrt /var/adm/cron/at.deny;echo "root" > /var/adm/cron/at.allow;cat /var/adm/cron/at.allow;rm /var/adm/cron/at.deny;ls -lrt /var/adm/cron/at.allow;ls -lrt /var/adm/cron/at.deny
+----------------------------------------------------------------------------
+2.7.1.3	/etc/ftpusers
+clear;touch /etc/ftpusers;ls -lrt /etc/ftpusers;chmod 644 /etc/ftpusers;echo "root" > /etc/ftpusers;ls -lrt /etc/ftpusers;cat /etc/ftpusers
+----------------------------------------------------------------------------
+2.7.1.4	login herald
+
+cp /etc/security/login.cfg /etc/security/login.cfg_ORIG;cp /etc/motd /etc/motd_ORIG;
+chsec -f /etc/security/login.cfg -s default -a herald="Unauthorized use of\ this system is prohibited.\nlogin:";
+chmod u=rw,go=r /etc/motd;chmod u=rw,go=r /etc/motd;chown bin:bin /etc/motd
+grep " herald" /etc/security/login.cfg;echo ;echo;cat /etc/motd
+
+/etc/motd file shoud contents below banner:
+**************************************************************************
+*       This system is a restricted access system. All the activity        *
+*       on this system is subject to monitoring. If information                *
+*       collected reveals possible criminal activity or activity that          *
+*       exceeds privileges, evidences of such activity may be provided*
+*       relevant authorities for further action.By continuing past             *
+*       this point, you consent to this monitoring.                     	              *
+*                                                                       		              *  
+**************************************************************************
+For SSH:
+Add Below parameter to /etc/ssh/sshd_config file:	
+grep ssh_banner /etc/ssh/sshd_config
+add below line in /etc/ssh/sshd_config ,if its not there :
+Banner /etc/ssh/ssh_banner
+
+printf "Unauthorized use of this system is prohibited.\n" > /etc/ssh/ssh_banner
+lssrc -s sshd;stopsrc -s sshd;startsrc -s sshd; lssrc -s sshd
+----------------------------------------------------------------------------
+2.7.1.5	guest account removal
+rmuser -p guest; rm -r /home/guest
+----------------------------------------------------------------------------
+2.7.1.6	crontab permissions
+
+To remove group writable access:
+chown root /var/adm/cron/cron.allow;
+chmod og-w /var/adm/cron/at.allow file
+----------------------------------------------------------------------------
+2.7.1.7	default umask
+cp /etc/security/user /etc/security/user_Before_SCD_7.1;grep -i mask /etc/security/user;chsec -f /etc/security/user -s default -a umask=027;grep -i mask /etc/security/user
+----------------------------------------------------------------------------
+2.7.1.8	disabling core dumps
+clear;cp /etc/security/limits /etc/security/limits_Before_SCD_7.1;grep -i core /etc/security/limits |grep -v "*";chsec -f /etc/security/limits -s default -a core=0 -a core_hard=0;chdev -l sys0 -a fullcore=false;grep -i core /etc/security/limits|grep -v "*"
+----------------------------------------------------------------------------
+2.7.1.9	AIX Auditing
+SKIPP
+----------------------------------------------------------------------------
+2.7.1.10	Configuring syslog - local logging
+
+cat /etc/syslog.conf| grep -v "#";ls -lrt /var/adm/authlog;ls -lrt /var/adm/syslog
+
+touch /var/adm/authlog;chown root:system /var/adm/authlog;chmod u=rw,go= /var/adm/authlog;ls -lrt /var/adm/authlog
+
+touch /var/adm/syslog;chmod u=rw,g=r,o= /var/adm/syslog;ls -lr /var/adm/syslog
+
+cp /etc/syslog.conf /etc/syslog.conf_ORIG
+Add Below two lines at bottom:	
+auth.info       /var/adm/authlog rotate time 1w files 4\n
+*.info;auth.none        /var/adm/syslog rotate time 1w files 4\n
+
+refresh –s syslogd
+----------------------------------------------------------------------------
+
+
+
+
+
+ 
