@@ -1,0 +1,1272 @@
+System installation and maintenance management
+alt_disk_install
+Installs an alternate disk with a mksysb install image or clones the currently running system to an alternate disk.
+Note: install bos.alt_disk_install fileset to use alt_disk_install.
+alt_disk_install -C hdisk2 : Clones the current rootvg to hdisk2.
+alt_disk_install -C -b update_all -l /dev/cd0 hdisk4 : Creates clone of the current rootvg on hdisk4, installs a ML on the clone and changes the bootlist to hdisk4.
+alt_disk_install -X old_rootvg : Removes the original rootvg from the ODM, after booting from the new alternate disk (you can still reboot from old_rootvg).
+nimadm
+Performs Alternate Disk Migration (to a new version or release) of AIX using NIM resources.
+nimadm -c aix1 -s spot2 -l lpp2 -d "hdisk1 hdisk2" -Y : migrates totarget NIM client aix1, using NIM SPOT resource spot2, the NIM lpp_source lpp2, and hdisk1 and hdisk2 target disks, and agreeing to all required software license agreements for the software being installed (-Y).
+nim -o alt_disk_install -a source=rootvg -a disk='hdisk2' -a phase=12 holland : clones a rootvg on client holland to hdisk1, but only run phase1 and phase2 (leaving the /alt_inst file systems mounted).
+ 
+Problem determination
+sysdumpdev
+Changes the primary or secondary dump device designation in a running system. The default primary dump device is LV /dev/hd6 and the default secondary dump device is /dev/sysdumpnull. A dedicated primary dump device LV /dev/lg_dumplv is created (if sufficient disk space is available) in systems with at least 4 Gigabytes of real memory.
+sysdumpdev -l : displays current dump device settings.
+sysdumpdev -P -p /dev/hd7 : changes the primary dump device permanently from the default to LV /dev/hd7.
+sysdumpdev -e : estimates the dump size (in bytes) for the current running system.
+sysdumpdev -L : displays statistical information about the last dump.
+chdev -l sys0 -a autostart=true : automatically reboot after a crash (default is false).
+dumpcheck
+Checks the disk resources used by the system dump and logs in the system error log. Run default by cron at 3:00 pm local time each day.
+/usr/lib/ras/dumpcheck -p : requests a dumpcheck. The result is printed to stdout (-p).
+/usr/lib/ras/dumpcheck -r : discontinues running dumpcheck (removes the crontab entry).
+kdb
+Displays system images for examining a dump.
+kdb /var/adm/ras/vmcore.0 /unix : starts kdb using the uncompressed dump file /var/adm/ras/vmcore.0 and kernel file /unix.
+snap
+Gathers system configuration information and compresses the information into a pax file.
+snap -a -o /dev/rmt0 : gathers all system configuration information (needs approximately 8 MB space in directory /tmp/ibmsupt) and creates a compressed pax image (snap.pax.Z) of directory /tmp/ibmsupt.
+snapcore
+Gathers the core file, program, and libraries used by a program to directory /tmp/snapcore (default) and compresses the information into a pax image. The collected information allows debugging and resolving problems within an application.
+snapcore -d /tmp/snapcore2 core.xx : gathers all needed information for core dump file core.xx and writes it to directory /tmp/snapcore2/snapcore_32811.pax.Z, where 32811 is the process id ($pid) of the snapcore command.
+uncompress -c snapcore_32811.pax.Z | pax : displays the contents of the pax archive.
+check_core	Used by snapcore to gather all information about a core dump. The bos.rte.serv_aid fileset must be installed.
+/usr/lib/ras/check_core core.xx : displays a list containing the program that caused core dump core.xx and the used libraries.
+shconf
+Manages the system hang detection parameters for the system hang daemon shdaemon.
+shconf -d : displays if priority problem detection and lost I/O detection are enabled or not.
+shconf -E -l prio -H : displays the current shdaemon settings.
+ 
+System initialization and boot management
+The numeric 1 key (F1 on graphical display), when pressed during POST (double beep), starts the SMS interface.
+The numeric 5 key (F5 on graphical display), when pressed during POST, initiates a system boot in service mode using the default service mode boot list. Sequence: 1. diskette (if installed), 2. CD-ROM (if installed), 3. hard disk, 4. tape drive (if installed), 5. network (a. Token ring, b. Ethernet).
+The numeric 6 key (F6 on graphical display) works like the numeric 5 key, but uses the customized service mode bootlist. This is the preferred method of loading AIX diagnostics from the boot hard disk.
+ipl_varyon *	Used to vary on the root volume group during system boot processing.
+ipl_varyon -i : Inquiry mode - skips ipl device processing. Checks which disks are already bootable.
+bosboot
+Creates boot image. It does not update the bootlist in the NVRAM.
+bosboot -a -d /dev/hdisk0 : Re-create boot image on hdisk0.
+bosboot -a -d /dev/ipldevice -D : creates a boot image with the KDB debugger enabled.
+mklv
+Creates a logical volume.
+mklv -y hd5 -t boot rootvg 1 : re-create boot LV (BLV) hd5.
+lslv
+Displays information about a logical volume.
+lslv -l hd5 : determines the boot disk.
+mkboot
+Creates the boot image, the boot record, and the service record.
+mkboot -c -d /dev/hdisk0 : clears the boot record of PV hdisk0.
+chpv
+Changes the characteristics of a physical volume in a volume group.
+chpv -c hdisk1 : clears the boot record of PV hdisk1.
+bootinfo	Determines and displays various boot information, including boot device type and boot device name (NOT supported in AIX 4.2 or later).
+bootinfo -b : returns the last boot device.
+bootinfo -B hdisk0 : returns 1 if disk is bootable, 0 if not.
+bootlist
+Displays or alters the list or ordering of boot devices available to the system.
+Normal boot list: possible boot devices for normal mode.
+Service boot list: possible boot devices for service mode.
+Previous boot device: last device from which the system booted.
+Support of these boot lists is model dependent.
+bootlist -m normal -o : displays the normal boot list.
+bootlist -m service -o : displays the service boot list (if available).
+bootlist -m normal cd0 hdisk0 hdisk1 : makes changes to the normal boot list.
+bootlist -m prevboot : invalidates the last device from which the system booted.
+halt or fasthalt
+Writes data to disk (sync) and then stops the system. The system does not restart. Do not use this command if other users are logged into the system.
+reboot or
+fastboot
+Restarts the system. Can be used if no other users are logged into the system.
+shutdown
+Halts the operating system. Checks the existence of the executable /etc/rc.shutdown file (added by the administrator) that specifies all the applications and other user processes to close down.
+By default the shutdown command powers down the system (if supported and issued).
+shutdown -Fr : fast system shutdown and restart.
+shutdown -m +1 : brings the system down to maintenance (single user) mode after waiting one minute.
+shutdown -l : logs the output during the shutdown to /etc/shutdown.log.
+last
+Displays information about previous logins using the /var/adm/wtmp file.
+last reboot : displays the time between reboots.
+last shutdown : lists last shutdowns of the system.
+uptime
+Shows how long the system has been up.
+uptime : displays the current time, the length of time the system has been up, the number of users online, and the load average.
+sync
+Updates the i-node table and writes buffered files to the hard disk.
+sync;sync;sync;reboot : writes everything from the buffer to the hard disk and reboots the system.
+lsfont
+Lists the fonts available for use by the display.
+chfont
+Changes the default font selected at boot time.
+mkfont
+Adds the font code associated with a display to the system.
+mkfontdir
+Creates a fonts.dir file from a directory of font files.
+chlang
+Sets LANG environment variable in the /etc/environment file for next login.
+
+chtz
+Changes the system time zone information in the /etc/environment file.
+
+chhwkbd
+Changes the low-function terminal (LFT) keyboard attributes stored in the Object Data Manager (ODM) database.
+lskbd
+Lists the keyboard maps currently available to the low-function terminal (LFT) subsystem.
+chkbd
+Changes the default keyboard map used by the low-function terminal (LFT) at system startup.
+chkey
+Changes your encryption key.
+lslicense
+Displays the number of fixed licenses and the status of floating licensing. There are two types of user licensing, fixed and floating. Fixed licensing is always enabled. Floating licensing can be enabled or disabled.
+lslicense -A : displays the number of available fixed licences on the system.
+chlicense
+Changes the number of fixed licenses and the status of the floating licensing (updates login.cfg).
+chlicense -I -u 50I -u 50 : changes the fixed license number immediately to 50 (without rebooting).
+chlicense -f on : enables the floating licensing.
+lsitab
+Lists records in the /etc/inittab file.
+
+chitab
+Changes records in the /etc/inittab file.
+
+mkitab
+Adds records to the /etc/inittab file.
+
+rmitab
+Removes records from the /etc/inittab file.
+
+telinit
+or
+init
+Initializes and controls processes.
+0-9 Tells the init process to put the system in one of the run levels 0-9. S,s,M,m Tells the init process to enter the maintenance mode. a,b,c Tells the init process to examine only those records in the /etc/inittab file with a, b, or c in the run-level field. Q,q Tells the init process to re-examine the entire /etc/inittab file. N Sends a signal that stops processes from being respawned.
+telinit q : requests the init command to re-examine the /etc/inittab file.
+who
+Identifies the users currently logged in.
+who -r : displays the runlevel.
+who /var/adm/wtmp : displays a history of logins, logouts, system startups, and system shutdowns.
+restbase
+Restores customized information from the boot image. Attention: The command is executed only during system boot phase 1. Do not execute it in a run-time environment.
+savebase
+Saves base customized device data in the ODM onto the boot device.
+savebase -d /dev/hdisk0 : save the ODM to the boot logical volume.
+ 
+Hardware installation and configuration management
+Available hardware platforms: MCA-based uni-processor models (rs6k), MCA-based symmetric multiprocessor models (rs6ksmp), ISA-bus models (rspc), PCI-bus models (CHRP). AIX V5.2 is not supported on MCA and PReP architecture hardware. The "AIX Statement of Direction" gives a complete list of unsupported models.
+
+lscfg
+
+lscfg -vp  : Displays the system model, machine serial, processor type, number of processors, processor clock speed, cpu type, total memory size, network information, filesystem information, paging space information, and devices information.
+lscfg | grep proc | wc -l : lists the # of processors.
+snap
+Gathers system configuration information.
+snap -a : gathers system configuration information. The output is written to the /tmp/ibmsupt directory.
+uname
+Displays the name of the current operating system.
+uname -a : displays the machine ID and version banner.
+uname -x : displays the operating system in use, the host name, the machine ID number of the hardware, the release number of the operating system, the operating system version and the system model name.
+mach
+Displays the processor architecture of the machine.
+getconf
+Displays system configuration variable values.
+getconf HARDWARE_BITMODE : displays hardware bit mode (64 or 32 bit).
+getconf KERNEL_BITMODE : displays kernel bit mode (64 or 32 bit).
+getconf DISK_SIZE /dev/hdisk2 : displays disk size in MB.
+getconf REAL_MEMORY : displays real memory size in MB.
+cfg2html
+A system configuration to HTML converter (Open Source)
+file
+Determines the file type.
+file prog : displays user process bit mode of program prog. Returns:
+executable (RISC System/6000) or object module not stripped (32 bit program),
+or 64-bit XCOFF executable or object module not stripped (64 bit program).
+file /unix : the returned link shows which kernel is running: unix_up = 32-bit uniprocessor kernel, unix_mp = 32-bit multiprocesssor kernel, unix_64 = 64-bit multiprocessor kernel.
+cfgmgr
+Configures devices by running the programs in /etc/methods directory and optionally installs device software.
+cfgmgr : runs the Phase 2 configuration rules (second boot phase for normal boot) (same as using the -s flag).
+cfgmgr -v : makes devices available that where not powered on when the system started.
+cfgmgr -l scsi1 : configures detected devices attached to the scsi1 adapter.
+cfgmgr -i /usr/sys/inst.images : installs device software (using the directory /usr/sys/inst.images) automatically during configuration.
+chcons
+Redirects the system console to device or file, effective next startup.
+chcons -a login=enable /dev/tty0 : changes the system console to device /dev/tty0. Use /dev/lft0 for the default LFT display.
+chcons /tmp/console.out : redirects the system console to file /tmp/console.out.
+lsdisp
+Lists the displays and the default display currently available on the system.
+chdisp
+Changes the display used by the LFT subsystem.
+chdisp -p gda1 : changes the default display permanently to gda1.
+lsattr
+Displays attribute characteristics and possible values of attributes for devices in the system.
+lsattr -EHl sys0l sys0 : displays system attributes (realmem ...)
+lsattr -EHl proc0 : displays the state, type and frequency of processor proc0.
+lsattr -El rmt0 : lists the current attribute values for the tape device rmt0.
+lsattr -El tty0 -a speed : lists the current value of the speed attribute for serial port tty0.
+lsdev
+Displays devices in the system and their characteristics.
+Examples:
+lsdev -P -H : lists the Predefined (supported) Devices (in the PdDv object class).
+lsdev -C -H : lists the Customized (configured/defined) Devices (in the CuDv object class).
+lsdev -C -c disk : lists all the PVs (class disk) in the system along with the status and location code.
+listdgrp
+Displays devices in a device class.
+listdgrp disk : list the devices in the disk class.
+getdev
+Lists devices that match the specified criteria.
+getdev type=proc_rspc : lists all devices of type proc_rspc.
+getdgrp
+Lists device classes that match the specified criteria.
+getdgrp : display all device classes.
+chdev
+Changes a device's characteristics.
+chdev -l hdisk2 -a pv=yes : assigns a PVID to hdisk2.
+mkdev
+Adds a device to the system.
+mkdev -l hdisk2 : make the already defined disk device hdisk2 available to use.
+mkdev -l hdisk1 -a pv=yes : makes an available disk a PV (assigning a PVID), if it does not already have one.
+mkdev -c tty -t tty -s rs232 -p sa0 -w s1 -a login=enable -a term=ibm3151 : adds an ibm3151 RS232
+terminal using adapter sa0 port s1 with login enabled.
+rmdev
+Removes a device from the system.
+rmdev -l tty0 -d : removes the tty0 device definition from the CuDv object class (ODM).
+rmdev -l hdisk1 : unconfigures PV hdisk1 and changes its state from available to defined (definition is not removed from the CuDv object class (ODM).
+ 
+Physical Volume Management
+See also lsdev, chdev, mkdev and rmdev.
+lspv
+Displays information about a physical volume (PV) within a volume group.
+lspv : lists the name, PVID and VG for each configured PV.
+lspv hdisk2 : lists the characteristics of PV hdisk2.
+lspv -M hdisk3 : lists the mapping and stale PPs for hdisk3.
+lspv -l hdisk0 : lists LV allocation within PV hdisk0.
+lspv -p hdisk1 : lists PP intra-allocation by PV region and PP state (free, used, stale, vgda) on hdisk1.
+lquerypv *	Queries the attributes of a physical volume.
+chpv
+Changes the characteristics of a physical volume in a volume group.
+chpv -a n hdisk1 : turn off the allocation permission of free PPs for PV hdisk1.
+chpv -a y hdisk1 : turn the allocation permission for hdisk1 back on.
+chpv -v r hdisk3 : set the state of PV hdisk3 to unavailable (use when PV is to be removed from the system or is lost due to failure).
+chpv -v a hdisk4 : make PV hdisk4 available to the system (from state removed to active).
+chpv -h y hdisk2 : marks hdisk2 (with no allocated LPs) as a hot spare disk in a VG with mirrored LVs.
+migratepv
+Moves allocated PP's from one PV to one or more other PP's in the same VG.
+The command is not allowed if the VG is varied on in concurrent mode.
+migratepv hdisk1 hdisk3 hdisk5 : moves all PPs from hdisk1 to hdisk3 and hdisk5.
+migratepv -l lv02 hdisk2 hdisk4 : moves all PPs in LV lv02 from hdisk2 to hdisk4.
+ 
+File System Management
+AIX supported file system types:
+standard Journaled File System (JFS)	max. file size 2 GB, max. file system size 1 TB
+large file enabled JFS	max. file size 64 GB, max. file system size 1 TB
+Enhanced Journaled File System (JFS2)	max. file size tested 1 TB (AIX currently supports up to 16 TB using the 64-bit kernel, 1 TB using the 32-bit kernel), max. file system size tested 1 TB,  architectural max. file system size 4 PB.
+The JFS2 outline log can be up to 1 GB (32-bit kernel) and up to 64 GB (64-bit kernel).The JFS2 inline log size can be from 256 KB up to 16 GB.
+General Parallel File System (GPFS)	Provides a cluster-wide file system allowing users shared access to files spanning multiple disk drives.
+RAM File System	Up to 8 RAM disks can be created (2 GB size limitation is removed in AIX V5.2). Size cannot be changed afterwards.
+Network File System (NFS)	NFS allows programs on one system to access files on another system transparently by mounting the remote directory.
+CD-ROM File System (CDRFS)	A read-only local file system implementation under the logical file system (LFS) layer. Supported are ISO 9660:1988(E) standard, the High Sierra Group Specification, the Rock Ridge Group Protocol, the CD-ROM eXtended Architecture File Format (in Mode 2 Form 1 sector format only). CDs are automatically mounted by default.
+DVD-ROM File System (UDFS)	A read-only file system stored on DVD-ROM media. UDFS format versions 1.50, 2.00, and 2.01 are supported.
+DVDs are automatically mounted by default.
+Cache File System (CacheFS)	CacheFS is used to enhance read performance of remote file systems (NFS) or slow devices such as CD-ROM. CacheFS handles files larger than 2 GB.
+Default AIX file systems:
+fs	lv	description
+/	hd4  	The / (root) file system contains files and directories critical for system operation.
+/usr	hd2	Files that can be shared by machines of the same hardware architecture are located in the /usr file system. 
+Architecture-independent, shareable text files, such as manual pages, are located in the /usr/share directory.
+/var	hd9var 	Variable per-client files, such as spool and mail files, are located in the /var file system.
+/home  	hd1	The /home file system is the mount point for user home directories.
+/tmp	hd3	The /tmp file system contains system-generated temporary files.
+/opt	hd10opt 	The /opt file system is reserved for the installation of add-on application software packages.
+/proc	-	The /proc pseudo file system provides access to the state of each active process and thread in the system by mappping processes and kernel data structures to corresponding files.
+
+df
+Reports information about space on file systems.
+df -m /usr : displays information about file system /usr in MB (-m) blocks (use -g for GB).
+quot
+Summarizes file system ownership.
+quot -f /home : displays the number of files and bytes owned by each user in the /home file system.
+du
+Summarizes disk usage.
+du -sg /home : displays the total disk usage in GB (-g) for all files in directory tree /home.
+find
+Recursively searches the directory tree with a matching expression.
+find . -type f -exec grep "unix" {} \; -print : looks for string "unix" and prints the names of the files in which it is found.
+fileplace
+Displays the placement of file blocks within logical or physical volumes.
+fileplace -v data3 : displays the placement of a file in its LV, including statistics on how widely the file is spread across the volume and the degree of fragmentation in the volume (-v).
+lsfs
+Displays the characteristics of file systems. Uses /etc/filesystems (system file with stanzas of the known file systems and their characteristics).
+lsfs : shows all file systems in the /etc/filesystems file.
+lsfs -q /usr : shows the LV size, file system size, the fragment size, the compression algorithm and the number of bytes per i-node (nbpi) of the /usr file system.
+lsfs -v jfs2 : shows all file systems of vfs type jfs2.
+crfs
+Adds a file system. The smallest file system is equal to one PP.
+crfs -v jfs -g datavg -a size=32M -m /user : creates a JFS of 32 MB with /user as the mount point in VG datavg.
+crfs -v jfs2 -g rootvg -a size=128M -m /data -A yes -p rw -a agblksize=2048 : creates a JFS2 of 128 MB with /data as the mount point, automatically mounted at system restart (-A), with 4K as the smallest file system block size that can be allocated to a file.
+mkfs
+Makes a new file system on a specified existing device (LV).
+mkfs -s 64M /data /dev/lvdata : creates an empty 64 MB file system on LV lvdata. 
+mkfs -o name=/user /dev/lvuser : creates an empty file system on the /dev/lvuser device, with mount point /user. The new file system occupies the entire device and has the default fragment size (4096 bytes) and the default nbpi ratio (4096).
+chfs
+Changes attributes of a file system.
+chfs -a size=+16M /data : increases the size of the /data file system by 16 MB.
+chfs -a size=64M /data : changes the size of the /data file system to 64 MB (provided it was previously no larger than this).
+chfs -A yes /data : sets the mount=true attribute in /etc/filesystems for file system with mount point /data.
+rmfs
+Removes a file system.
+rmfs -r /data : removes file system /data, it's mount point (-r) and it's LV.
+reduce fs	Official procedure 1:
+1. Make a backup of the file system.
+2. Remove the file system.
+3. Create a new file system using the same name and reduced size.
+4. Restore the backup of the file system into the new file system.
+Official procedure 2:
+1. Make a mksysb (VG rootvg) or savevg (other VGs).
+2. Restore the VG using the shrink file systems option.
+mount
+Makes a file system available for use.
+mount : lists the mounted file systems.
+mount all or mount -a : mounts all file systems in /etc/filesystems marked by the mount=true attribute (file systems marked by the mount=automatic attribute are not mounted - they are mounted by the boot process).
+mount /dev/lvdata : mounts the file system (in LV lvdata) using the default mount point from /etc/filesystems.
+mount -v cdrfs -o ro /dev/cd0 /mnt : mounts the CDROM on /mnt.
+umount
+or
+unmount
+Unmounts a previously mounted file system, directory, or file.
+umount all : unmounts all file systems in /etc/filesystems marked by the mount=true attribute (file systems marked by the mount=automatic attribute are not unmounted).
+umount -f /mnt : forces the unmount of the /mnt NFS file system.
+cdmount
+Makes a file system available for use on a device managed by the cdromd daemon (automatically mounts a CD-ROM or DVD-ROM when it is inserted in a device, and provides the server function for all cd/dvd related commands).
+cdmount cd0 : mounts a file system on cd0.
+startsrc -s cdromd : starts the cdromd daemon which reads the /etc/cdromd.conf configuration file. 
+
+cdcheck
+Asks cdromd daemon information about a device.
+cdcheck -m cd0 : asks cdromd if a CD is mounted on cd0.
+cdeject
+Ejects a media from a CD drive managed by cdromd.
+cdeject cd0 : ejects a CD from cd0.
+cdumount
+Unmounts a previously mounted file system on a device managed by cdromd.
+cdumount cd0 : unmount a file system on cd0.
+fuser
+Identifies processes using a file or file structure.
+fuser -u /data : lists the process numbers and user login names of processes using the /data file system.
+defragfs
+Increases a file system's contiguous free space by reorganizing scattered allocations.
+defragfs /home : defragments the /home file system.
+defragfs -s /data : generates a report on the fragmentation in the /data file system.
+lmktemp	lmktemp largefile 1073741824 : Create a 1GB file named largefile.
+fsck
+Checks file system consistency and interactively repairs the file system.
+By default, the /, /usr, /var, and /tmp file systems have a check=false attribute in their /etc/filesystem stanzas.
+fsck -p /dev/lv00 : fixes minor problems with the /dev/lv00 file system automatically and if the primary superblock is corrupt, the secondary superblock is verified and copied to the primary superblock.
+dd count=1 bs=4k skip=31 seek=1 if=/dev/lvdata of=/dev/lvdata : copies the backup superblock of the /dev/lvdata file system over the primary superblock.
+fsck -V jfs2 /data : checks JFS2 with mount point /data for consistency and repairs problems found.
+dd
+Converts and copies a file.
+dd count=1 bs=4k skip=31 seek=1 if=/dev/lvdata of=/dev/lvdata : restores the backup of the superblock over the primary superblock (use when the superblock of the JFS on /dev/lvdata is corrupted (or dirty). 
+logform
+Rebuild the JFS log.
+logform /dev/hd8 : rebuilds the jfslog of rootvg, after booting the machine into maintenance mode (attention: The logform command should only be run on closed LVs).
+logform -V jfs2 /dev/jfs2log : rebuilds the jfs2log /dev/jfs2log.
+snapshot
+Modifies, creates or queries properties a JFS2 snapshot (a consistent block level image of a file system). The bos.rte.file fileset must be installed.
+snapshot -o snapfrom=/data /dev/snapsb : creates a snapshot for the /data file system on the exisiting /dev/snapsb LV.
+snapshot -d /dev/snapsb : deletes the snapshot and the LV containing the snapshot.
+backsnap
+Creates and backs up a JFS2 snapshot.
+backsnap -m /tmp/snapshot/data -s size=16M -i -f /dev/rmt0 /data : creates a 16 MB LV, creates a snapshot for the /data file system on the created LV, mounts the snapshot on /tmp/snapshot/data and backups the files and directories in that file system by name to /dev/rmt0.
+fsdb
+Examines and modifies snapshot superblock, snapshot map, block xtree copy, and segment headers. Mounted file systems cannot be modified.
+fsdb /data : debugs file system /data.
+dumpfs
+Dumps file system information (superblock, i-node map, and disk map) for debugging.
+dumpfs /dev/hd2 : prints the information for /dev/hd2.
+lsvfs
+Lists entries in the /etc/vfs file.
+
+crvfs
+Creates entries in the /etc/vfs file.
+
+chvfs
+Changes entries in the /etc/vfs file.
+
+rmvfs
+Removes entries in the /etc/vfs file.
+
+mkramdisk
+Creates a RAM disk using a portion of RAM (pinned by default). Use only for data that can be lost. Setup procedure creating a 8 MB RAM disk:
+mkramdisk 8m
+ls -l /dev | grep ram
+mkfs -V jfs /dev/ramdiskx
+mkdir /ramdiskx
+mount -V jfs -o nointegrity /dev/ramdiskx /ramdiskx
+where x is the logical RAM disk number.
+To remove the RAM filesystem:
+unmount /ramdiskx
+rmramdisk /dev/ramdiskx
+cfsadmin
+Administers disk space used for CacheFS.
+cfsadmin -c /cache1 : creates a cache directory named cache1.
+mount -V cachefs -o backfstype=nfs,cachedir=/cache1 server2:/data /ldata : CacheFS-mounts the file system /data from remote host server2 on mount point /ldata of the client using cachedir /cache1.
+cfsadmin -l /cache1 : lists file systems and statistics for cache1.
+cfsadmin -d all /cache1 : removes all cached file systems from the /cache1 directory.
+mkcfsmnt
+Mounts a CacheFS directory.
+mkcfsmnt -d /mnt -t nfs -h server2 -p /home -c /cache1 -N : mounts the /home file system of server2 locally on the /mnt directory using /cache1 as CacheFS.
+cachefslog
+Controls the logging of a cache file system.
+cachefslog -f /cache1/cachelog /mnt : sets up the file /cache1/cachelog to log CacheFS statistics.
+cachefswssize
+Displays the work space size for a cache file system.
+cachefswssize /cache1/cachelog : displays the work space size of the cache filesystems being logged in the file /cache1/cachelog..
+fsck_cachefs
+Checks the integrity of data cached with CacheFS.
+fsck_cachefs -o noclean /cache1 : forces a check on the cache directory.
+ 
+File Management
+procfiles
+procfiles -n `ls /proc` : lists all the process and files they have open.
+find
+find / -xdev -type f -mtime -1 -ls | sort +6nr | head -n 20 : lists the top-20 largest files in / that where used within the last 24 hours.
+	
+	
+  
+Logical Volume Management
+LVs automatically created at system installation are:
+hd5	boot LV (boot image). Available only at startup.
+hd6	Default paging space.
+hd8	Default logging space (jfslog) for the journaled file systems.
+hd4	/ (root) file system.
+hd2	/usr file system.
+hd9var  	/var file system.
+hd10opt	/opt file system.
+hd3	/tmp file system.
+hd1	/home file system. Users' home directories.
+Note: hd7 was used in earlier AIX versions as dump device.
+Maximum LV size is 1 TB (32-bit kernel) or 128 TB (64-bit kernel).
+A dedicated dump device lg_dumplv is created in systems with at least 4 Gigabytes of real memory.
+
+lslv
+Displays information about a logical volume (LV).
+Total LVsize=PPsize * LPs assigned to LV * Number of LV copies.
+lslv lvdata : lists all the attributes related to LV lvdata.
+lslv -m lvdata : lists the LP to PP/PV mapping of LV lvdata.
+mklv
+Creates a logical volume. The smallest LV is equal to one PP.
+mklv -y lvdata -c 3 datavg 10 : creates LV lvdata in VG datavg with ten LPs and a total of three copies of the data.
+mklv -y lvdb datavg 50M : creates LV lvdb with a minimum size of 50MB (b/B=512B, k/K=KB, m/M=MB, g/G=GB). Rounded to whole LVs to make up 50 MB.
+mklv -a c datavg 2 : creates LV lv00 with a size of two LPs and intra-physical volume allocation policy center (e=[outer] edge, m=[outer] middle, c=center, im=inner middle, ie=inner edge).
+chlv
+Changes the characteristics of a logical volume.
+chlv -w p lvdata : turns on passive MWC for LV lvdata (big VG only).
+rmlv
+Removes logical volumes from a volume group.
+rmlv -f lvdata : remove LV lvdata without requiring user confirmation (attention: all data on this LV is destroyed).
+extendlv
+Increases the size of a logical volume by adding unallocated physical partitions.
+extendlv lvdata 12 : adds twelve more LPs to LV lvdata.
+extendlv lvraw 64M : adds 64 MB to LV lvraw. Rounded to whole LVs needed to make up 64 MB.
+lquerylv *
+Queries the attributes of a logical volume.
+lreducelv *!
+Reduces the number of allocated logical partitions of a logical volume (attention: if not used with care, data is lost). Official procedure to reduce a LV:
+1. Back up all data in the logical volume.
+2. Remove the logical volume.
+3. Recreate the logical volume with the reduced logical partition allocation.
+4. Restore the data.
+cplv
+Copies the contents of a logical volume to a new logical volume.
+cplv -v datavg -y lvnew lvold : copies the contents of lvold to new LV lvnew in VG datavg.
+cplv -e lvtest -f lvdata : copies the contents of LV lvdata to a smaller, existing LV lvtest within the same VG, without requiring user confirmation (attention: if lvtest is smaller than lvdata, then data will be lost, probably resulting in corruption).
+mklvcopy
+Adds copies to a logical volume.
+mklvcopy lvdata 3 : increases the number of copies in each LP in LV lvdata to three.
+rmlvcopy
+Removes copies from a logical volume.
+rmlvcopy lvuser 2 : decreases the number of copies in each LP in LV lvuser to two.
+migratelp
+Moves an allocated LP from one PP to another PP on a different PV in the same VG.
+migratelp datalv/23 hdisk3/105 : moves the 23th LP of LV datalv to the 105th PP of PV hdisk3.
+See lspv -p to display the free PPs of PV hdisk3.
+
+splitlvcopy
+Splits copies from one logical volume and creates a new logical volume from them.
+splitlvcopy -y newlv oldlv 2 : splits one copy of each LP belonging to the LV oldlv which currently has 3 copies of each LP, and creates the LV newlv.
+getlvcb *
+Displays a formatted output of the data in the LVCB of a LV.
+getlvcb -TA hd3 : displays the information held in the LVCB of LV hd3.
+putlvcb *!
+Writes the control block information (only the specified fields) into block 0 of a logical volume (LVCB).
+putlvcb -t jfs lvdata : writes the LV type jfs to the LVCB of LV lvdata.
+ 
+Volume Group Management
+Each disk (PV) belongs to a Volume group (VG). A standard VG is a collection of 1 to 32 PVs (1 to 128 for a big VG). A PV can belong to only one VG. A maximum of 255 VGs can be defined per system.
+When a VG is created, the PVs within the VG are partitioned into contiguous, equal-sized PPs (units of disk space). PPs are the smallest unit of allocatable storage space in a VG. The PP size is determined at VG creation (can't be changed dynamically afterwards), and all PVs that are placed in the VG inherit this size. The PP size can range from 1 MB to 1024 MB, but must be a power of two. If not specified at creation time, the default PP size for a VG is 4 MB for disks up to 4 GB (the minimum PP size needed is determined by the OS), but it must be larger for PVs greater than 4 GB due to the fact that the LVM, by default, will only track up to 1016 PPs/PV. The number of PPs/PV (1016) can be increased with a factor 1-16 (or 1-64 for a big VG) at creation time or later (which will reduce the number of PVs in the VG) and/or the number of PVs/VG can be increased from 32 to 128 at creation time or later (big or gigantic VG).
+Importing a VG involves copying the VGDA data for the imported volume group into the ODM. When a volume group is exported, the data held in the ODM about that volume group is removed from the ODM database.
+
+lsvg
+Displays information about VGs.
+lsvg : lists all VGs.
+lsvg rootvg : lists the characteristics of VG rootvg.
+lsvg -o : lists only the active VGs (those that are varied on).
+lsvg -p rootvg : lists the PVs in VG rootvg (state, size, distribution).
+lsvg -l rootvg : lists the LVs in VG rootvg (type, size, state).
+lsvg -M rootvg : displays a map of all LVs.
+lqueryvg !
+Queries the attributes of a VG using VG id, or PV name of a PV that is part of a VG.
+lqueryvg -At -p hdisk0 : returns all attributes for the VG (static attributes, LV details and PV details).
+mkvg
+Creates a VG.
+mkvg -y datavg -s 32 hdisk2 hdisk4 : creates the VG datavg that contains PVs hdisk2 and hdisk4, with PP size set to 32 MB.
+mkvg -B -y uservg : create a big VG uservg (supports 128 PVs and 512 LVs).
+chvg
+Sets the characteristics of a VG.
+chvg -a{y|n} datavg : VG datavg is automatically activated (y=varyonvg) or not (n=varyoffvg) during system startup.
+chvg -u datavg : unlock the VG datavg.
+chvg -B datavg : changes the VG to big VG format (supports 128 PVs and 512 LVs). Mapping size is 4*original size.
+chvg -t 2 datavg : changes the limit of the number of PPs/PV by factor=2 (1016*2=2032 PPs/PV). Which decreases the number of disks (#PVs/factor=16 PVs/VG).
+chvg -sy datavg : attempts to automatically synchronize (AUTO SYNC) stale partitions in VG datavg (default this not done for a VG).
+chvg -L256 uservg : changes the LTG size to 256KB of VG uservg for better disk I/O performance. LTG size should be less than or equal to the maximum transfer size of all disks in the VG. Check each disk in the VG with:
+lquerypv -M hdiskx : checks the maximum supported LTG size of hdiskx.
+chvg -b n datavg : turns off the bad block relocation policy of VG datavg (default is yes for a VG).
+chvg -h y -s y uservg : sets policy in VG uservg to automatically (-h y) migrate PPs from one failing disk to one spare disk with automatic synchronization of stale PPs (-s y).
+syncvg
+Synchronizes LV copies that are not current (stale).
+syncvg -v datavg : synchronizes the copies on VG datavg.
+syncvg -p hdisk3 : synchronizes the copies on physical volumes hdisk3.
+synclvodm
+Resynchronize the ODM. The VG must be active.
+synclvodm rootvg : synchronizes the device configuration database with the LVM information for rootvg (use when the device configuration database is not consistent with the LVM information in the LVCBs and the VGDAs).
+rvgrecover	Repairs the ODM.
+mirrorvg
+Mirrors all the LVs that exist on a given VG.
+mirrorvg -S -c 3 rootvg : triply mirrors VG rootvg, returns the mirrorvg command immediately and starts a background syncvg (-S).
+mirrorvg -m datavg hdisk3 : creates an exact mapped mirror of the LVs in VG datavg.
+unmirrorvg
+Removes the mirrors that exist on VGs or specified disks.
+unmirrorvg rootvg : default unmirroring of rootvg (rootvg now has only 1 copy).
+importvg
+Imports a new VG definition from a set of PVs.
+It is highly recommended that you run the fsck command before you mount the file systems.
+importvg -y datavg hdisk9 : imports VG datavg from PV hdisk9.
+importvg -y uservg 0009898xy2727d4f : imports VG uservg from PV with PVID 0009898xy2727d4f.
+importvg -L datavg : imports VG datavg and learns about possible changes. Use if the VG was not exported and used on another machine.
+exportvg
+Exports the definition of a VG from a set of PVs.
+exportvg datavg : removes VG datavg from the system.
+redefinevg
+Redefines the set of PVs of the given VG in the device configuration database.
+extendvg
+Adds PVs to a VG.
+extendvg datavg hdisk2 : adds PV hdisk2 to VG datavg.
+reducevg
+Removes PVs from a VG. When all PVs are removed from the VG, the VG is deleted.
+reducevg datavg hdisk3 : removes PV hdisk3 from VG datavg.
+reducevg datavg 000005265ac63976 : removes PV using it's PVID 000005265ac63976 from VG datavg (use when a disk was removed without first running reducevg).
+reorgvg
+Reorganizes the PP allocation for a VG. Using the reorgvg command with the VG name and no other arguments reorganizes only the first LV in the VG.
+reorgvg datavg lvdata1 lvdata3 : reorganizes LVs lvdata1 and lvdata3 on VG datavg.
+recreatevg
+Recreates a VG (with unique IDs, names, and mount points) on a set of disks that are mirrored from another set of disks. Imports and varies on the VG. Procedure after the real duplication of the PV (like mirroring):
+chdev -l hdisk5 -a pv=clear : to avoid potential collisions of LVM component names (PVID, VGname, ...) of hdisk5.
+recreatevg -y newvg -L /newfs -Y newlv hdisk5 : newvg is the newly assigned VG name, /newfs and newlv are used for prefixes of the newly assigned file systems and LVs, and hdisk5 is the duplicated target PV name.
+splitvg
+Splits a single mirror copy of a fully mirrored VG.
+splitvg -y snapvg -c 2 datavg : splits second mirror copy of the VG datavg and creates snapshot VG snapvg.
+joinvg
+joinvg datavg : joins the the original VG datavg with the snapshot VG snapvg.
+varyoffvg
+Deactivates a VG.
+varyoffvg uservg : deactivates the VG uservg.
+varyonvg
+Activates a VG.
+varyonvg -f datavg : used to force a varyon on VG datavg even when inconsistencies are detected (between the configuration data for each VG held in the ODM database and VGDA.
+varyonvg -r uservg : varies on VG uservg in read-only mode.
+ 
+System Paging Space Management
+lsps
+Lists paging space and attributes. Configuration file: /etc/swapspaces (contains a list of swap devices).
+lsps : 
+chps
+Changes attributes of a paging space.
+chps -a {y|n} paging00 : specifies that the paging space paging00 is active (y) or inactive (n) at subsequent system restarts.
+chps -s 10 paging02 : adds ten LPs to paging02 without rebooting.
+chps -d 5 paging01 : removes five LPs from paging01 without rebooting.
+chps -d 50 hd6 : removes fifty LPs from hd6 without rebooting.
+mkps
+Adds an additional paging space to the system.
+mkps -a -n -s20 datavg : creates a permanent paging space pagingxx in VG datavg of 20 LPs and activates it immediately.
+rmps
+Removes a paging space from the system (exept hd6).
+rmps paging00 : removes deactivated paging space paging00.
+swapoff
+Deactivates one or more paging space.
+swapoff paging01 : deactivates paging space paging01.
+swapon
+Activates a paging space.
+swapon paging01 : activate paging space paging01.
+swapon -a : activates all paging spaces defined in /etc/swapspaces.
+swap
+Displays paging characteristics and enables the allocation and deallocation of paging devices.
+swap -l : displays device, major and minor numbers, and total and free space.
+swap -a /dev/paging01 : activates paging space paging01 (like swapon).
+swap -d /dev/paging01 : deactivates paging space paging01 (like swapoff).
+migratepv
+migratepv -l hd6 hdisk0 hdisk2 : moves hd6 from hdisk0 to PV hdisk2 within the same VG (always use VG rootvg for hd6 performance).
+ 
+Communications Management
+rc.tcpip
+Script that initializes selected TCP/IP daemons using SRC at each system restart: inetd, lpd, portmap, sendmail, syslogd (started by default) and gated or routed, named, timed, xntpd,rwhod, snmpd, dhcpcd, mrouted, autoconf6 (not started by default unless they are uncommented).
+stopsrc -g tcpip : stops all running TCP/IP daemons. 
+stopsrc -s named : stops the named daemon. 
+/etc/rc.tcpip : starts all selected TCP/IP daemons. Don't use startsrc -g tcpip (would start all subsystems in the tcpip group).
+startsrc -s named : starts the named daemon.
+refresh -s inetd : refresh the inetd subsystem (re-reads /etc/inetd.conf).
+/etc/tcp.clean	sh /etc/tcp.clean : stops all running TCP/IP daemons (not portmap and nfsd) and removes all /etc/locks/lpd TCP/IP lock files.
+inetd daemon
+Provides Internet service management for a network. Starts by default using the /etc/inetd.conf configuration file. Daemons controlled by the inetd daemon: ftpd, rlogind, rexecd, rshd, talkd,telnetd, and uucpd (started by default) and tftpd, fingerd, and comsat (not started by default unless they are uncommented).
+resfresh -s inetd : informs the inetd daemon of the changes to its configuration file. The ports inetd listens on are in /etc/services (unless they are commented).
+
+lsdev
+Displays devices in the system and their characteristics.
+lsdev -Cc if : lists IP interfaces.
+lscfg
+Displays configuration, diagnostic, and VPD.
+lscfg -l ent0 -v : displays the VPD for ent0.
+lsattr
+Displays attribute characteristics and possible attribute values for devices.
+lsattr -HEl en0 : displays effective values for interface en0.
+netstat
+Shows network status.
+netstat -in : shows status of IP interfaces with numeric addresses.
+netstat -rn : shows status of TCP/IP routes with numeric addresses.
+netstat -C : shows routing table, user-configured and current costs of each route.
+netstat -v : shows device driver statistics.
+arp
+Displays and modifies address resolution.
+arp -a : displays local ARP cache (ip to mac address table).
+no
+Manages network tuning parameters. Changes are valid until the next reboot.
+no -a : displays kernel variable values.
+no -o ipforwarding : displays if ipforwarding is on (=1) or off (=0).
+no -o ipforwarding=1 : specifies the kernel should forward packets (acting as an IP router).
+ifconfig
+Configures or displays network interface parameters for TCP/IP.
+ifconfig -a : displays information about all interfaces in the system.
+ifconfig en0 : displays network interface parameters for en0.
+ifconfig en0 inet 194.186.152.2 netmask 255.255.255.0 up : assigns IP-address 194.186.152.2 with network mask 255.255.255.0 to interface en0 of address family inet and turns on the network card.
+ifconfig en0 down : turns off network card en0.
+route
+Makes manual entries into the network routing tables until next reboot.
+route -rn : displays route table.
+route add -inet -net 9.19.98.1 9.19.99.10 : adds a network route to the routing table for destination host 9.19.98.1 through gateway 9.19.99.10.
+lsattr
+Displays attribute characteristics and possible values of attributes for devices.
+lsattr -El en0 : lists the current attribute values for en0.
+nslookup
+Queries Internet domain name servers.
+nslookup : enters interactive mode.
+nslookup nserver1 : returns the domain name and Internet address of nserver1. 
+traceroute
+Displays the route that IP packets take to a network host.
+traceroute server2 : displays all the hops from local host to server2.
+iptrace daemon
+Provides interface-level packet tracing for Internet protocols.
+ipreport
+Generates a trace report from the specified trace file created by the iptrace command.
+ping
+Sends an echo request to a network host.
+ping -c 6 server1 : checks the network connection to host server1 by sending 6 echo requests.
+ping -f server2 : invokes the flood-ping option to host server2.
+ping -R : displays the full round trip route of a packet.
+spray
+Sends a one-way stream of packets to a host and reports performance statistics using the RPC (default) or ICMP protocol (two-way stream).
+spray server1 -c 1000 -d 4 : sends 1000 packets at intervals of 4 microseconds to server1.
+host
+Resolves a host name into an Internet address or an Internet address into a host name. System files: /etc/hosts (local hosts table).
+host server1 : displays the Internet address and name aliases of host server1.
+host 192.186.154.3 : displays the host whose address is 192.186.154.3.
+hostid
+Sets or displays the identifier of the current local host.
+hostname
+Sets or displays the name of the current host system.
+hostname tulip : changes the hostname to tulip until the next reboot.
+chdev -l inet0 -a hostname=server1 : changes the hostname permanently to server1.
+mktcpip
+Sets the required values for starting TCP/IP on a host.
+rwho
+Displays which users are logged in to hosts (that run rwhod) on the local network.
+rwho -a : lists all users currently logged in to hosts on the local network.
+ruptime
+Displays the status of each host (that runs rwhod) that is on the local network.
+ruptime -al : lists a status report of each host on the local network sorted by load average.
+lsnamsv
+Shows name service information stored in the database /etc/resolv.conf (name resolver).
+chnamsv
+Changes TCP/IP-based name service configuration on a host.
+mknamsv
+Configures TCP/IP-based name service on a host for a client.
+rmnamsv
+Unconfigures TCP/IP-based name service on a host.
+ 
+User/Group Management
+dispuid
+Displays all valid user IDs on the system.
+logins
+Displays user and system login information.
+logins -p : lists all the logins with no passwords.
+lsuser
+Displays attributes of user accounts.
+lsuser ALL : displays all the attributes of all the users.
+mkuser
+Creates a new user account. System files: /etc/passwd (contains basic user attributes) and /etc/group (contains basic group attributes). The default attributes are in the/usr/lib/security/mkuser.default file.
+mkuser erik : creates the erik user account.
+passwd
+Changes a user's password. System files: /etc/security/passwd (contains password information).
+passwd hans : changes the password of user hans.
+pwdadm
+Administers users' passwords (by root or a member of the security group).
+chsec
+Changes the attributes in the security stanza files.
+chsec -f /etc/security/login.cfg -s default -a pwdprompt="Password:" : changes the system-wide password (echo's user name) prompt to Password (doesn't echo user name.
+chsec -f /etc/security/login.cfg -s default -a usernameecho=false : hides the user name from login and system messages.
+mkuser.sys
+Customizes a new user account.
+chuser
+Changes attributes for the specified user.
+rmuser
+Removes a user account.
+rmuser -p erik : removes user erik.
+rm -r /home/erik : removes erik's home directory.
+dispgid
+Displays all valid groups on the system.
+lsgroup
+Displays the attributes of groups.
+lsgroup ALL : lists all groups.
+chgroup
+Changes attributes for groups (don't use in combination with NIS).
+chgrpmem
+Changes the administrators or members of a group.
+mkgroup
+Creates a new group.
+rmgroup
+Removes a group.
+usrck
+Verifies the correctness of a user definition.
+grpck
+Verifies the correctness of a group definition.
+pwdck
+Verifies the correctness of local authentication information.
+last
+Displays information about previous logins using the /var/adm/wtmp file.
+last root : display all logins and logoffs by user root.
+last -t 31081125 : displays all users still logged in at 11.25 am on August 31th.
+who
+Identifies the users currently logged in.
+who /var/adm/wtmp : displays a history of logins and logouts, system startups and shutdowns.
+wall
+Writes a message to all users or users of a specific group that are logged in.
+wall -g staff : broadcasts to group staff.
+repquota
+Summarizes quotas for a file system.
+repquota -u /home : prints a summary of user quotas in the /home file system.
+repquota -a : prints quotas for all file systems enabled with quotas in the /etc/filesystems file
+
+edquota
+Edits user and group quotas.
+quota
+Displays disk usage and quotas.
+quota : displays the quotas of the current user.
+quota -u erik : displays quotas as the root user for user erik.
+quotacheck
+Checks file system quota consistency.
+quotacheck /home : checks the user and group quotas in the /home file system.
+quotaon or
+quotaoff
+Turns on and off file system quotas.
+quotaon -u /home : turns on user quotas for the /home file system.
+quotaoff -v -a : turns off user and group quotas for all file systems (-a) in the /etc/filesystems file.
+ 
+Print Management
+The AIX print subsystem (default), a combination of the System V and Berkeley Software Distribution (BSD) printing standard, and the System V R4 print subsystem are available. Both print subsystems cannot be set to the active state at the same time using the normal procedures.
+System file /etc/qconfig (stanzas that describe the printqueues and devices). Spooling uses the /var/spool/qdaemon directory. Daemon: qdaemon.
+
+
+switch.prt	Displays the current active print subsystem, or switch between the active and inactive print subsystem. Read also AIX System V Printing.
+switch.prt -d : displays the current print subsystem that is active.
+AIX print subsystem
+qprt
+Starts a print job.
+lpr
+Enqueues print jobs.
+lp
+Sends requests to a line printer.
+enq
+Enqueues a file.
+chprtsv
+Changes a print service configuration on a client or server machine.
+lsque
+Displays the queue stanza name.
+lsque -q ps : displays the name of queue stanza ps.
+mkque
+Adds a printer queue to the system.
+mkquedev
+Adds a printer queue device to the system.
+rmque
+Removes a printer queue from the system.
+rmquedev
+Removes a printer or plotter queue device from the system.
+chque
+Changes the queue name.
+chvirprt
+Changes the attribute values of a virtual printer.
+lsallq
+Lists the names of all configured queues.
+lsallqdev
+Lists all configured printer and plotter queue device names within a specified queue.
+lsprtsv
+Shows print service information stored in the database.
+lsquedev
+Displays the device stanza name.
+chquedev
+Changes the printer or plotter queue device names.
+mkvirprt
+Makes a virtual printer.
+rmvirprt
+Removes a virtual printer.
+mkprtsv
+Configures TCP/IP-based print service on a host.
+rmprtsv
+Unconfigures a print service on a client or server machine.
+System V R4 print subsystem 
+lp
+Sends print requests.
+cancel
+Cancels print requests previously sent with the lp command.
+lpstat
+Displays the status of all print requests made by the user.
+accept
+Allows the queuing of print requests.
+reject
+Prevents queuing of print requests.
+enable
+Activates the named printers, enabling them to print requests.
+disable
+Deactivates the named printers, disabling them to print requests.
+lpadmin
+Configures the lp print service by defining printers and devices.
+lpfilter
+Administers filters used.
+lpforms
+Administers the use of preprinted forms.
+lpmove
+Moves print requests between destinations.
+lpsched
+Starts the print service.
+lpshut
+Stuts down the print service.
+lpsystem
+Registers remote systems with the print service.
+lpusers
+Set printing queue priorities.
+ 
+Software Management
+A fileset is the smallest installable base unit for the AIX operating system (example: bos.perf.pefstat). A package is a group of separately installable filesets that provide a set of related functions (example: bos.perf). A Licensed Program Product (LPP) is a complete software product including all packages associated with that licensed program (example: bos). A bundle is a list of software that can contain filesets, packages, and LPPs that are suited for a particular use (examples: CDE, KDE, GNOME).
+Each fileset in a product can be divided into three parts: usr, root, and share. Parceling of a software product is used for diskless and dataless clients. Thus it can be installed on one machine (the server) and then be used remotely by other machines on a network (the clients). 
+The usr part of a software product can be shared by machines with the same hardware architecture (stored in /usr).
+The root part (optional) of a software product cannot be shared by machines. In a client/server environment, these are the files for which there must be a unique copy for each client of a server. Most of the root software is associated with the configuration of the machine or product (stored in the root (/) file tree. The /etc/objrepos directory contains the root part of an installable software product's VPD).
+The share part (optional) can be shared among machines, even if they have different hardware architectures.The share part of a product is always packaged in a separately installable package (stored in /usr/share).
+The format for a software product level in AIX 5.2 is as follows: versionnumber.releasenumber.modificationlevel.fixlevel
+configassist
+Displays the Configuration Assistant wizard (graphics display).
+install_assist
+Starts the Installation Assistant application (ASCII display).
+geninstall
+A generic software product installer for installp, InstallShield Multi-Platform (ISMP), the Red Hat Package Manager (RPM) installer and Uniform Device Interface (UDI).
+geninstall –Ld /dev/cd0 : lists the contents of the CD media.
+geninstall -d /tmp/RPM * : installs all RPM packages in the /tmp/RPM directory.
+geninstall -d /dev/cd0 R:cdrecord : installs the cdrecord RPM package.
+install_wizard
+Invokes the Web-based System Manager Install Wizard or the SMIT install menu.
+install_wizard -d /dev/cd0 : invokes the Web-based System Manager Install Wizard using an install CD in /dev/cd0.
+gencopy
+Allows software products of various packaging formats (installp, RPM, ISMP, UDI) to be copied. Wraps to the bffcreate command.
+gencopy –Ld /dev/cd0 : lists the contents of the CD media.
+gencopy –d /dev/cd0 I:bos.perf R:cdrecord : copies bos.perf and cdrecord images from CD media to the default directory (/usr/sys/inst.images).
+installp
+Install, update, and perform maintenance tasks on software.
+installp -aXYd /dev/cd0 bos.perf : installs (automatically committed) all filesets within bos.perf from /dev/cd0, expands file systems if necessary (-X), and accepts software licenses (-Y).
+installp -pad /dev/cd0 X11.Dt : previews installation of X11.Dt from /dev/cd0.
+installp -u -V2 X11.Dt : removes fileset X11.Dt with a verbose display of successes, warnings and failures.
+installp -ld /dev/cd0 : lists all software products and their separately installable options on /dev/cd0.
+installp -cgX all : commits all applied updates and removes the filesets for the previous version.
+installp -C : cleans up after a failed installation.
+mkinstallp
+Creates software packages in installp format.
+rpm
+Installs, upgrades, queries, and deletes Linux RPM packages and maintains the RPM package database (located in /var/opt/freeware/lib/rpm).
+rpm -qa : queries installed RPM packages.
+rpm -Uvh * : installs the RPM packages in the current directory.
+lslpp
+Displays information about installed filesets/fileset updates.
+lslpp -l bos.net.nfs.client : displays the maintenance level and state.
+lslpp -L all : lists all installed software.
+lslpp -L bos.dosutils : check if software installed.
+lslpp -f  bos.perf : displays the names of all the files of fileset bos.perf.
+lslpp -ha : lists installation history of filesets.
+lslpp -w /usr/sbin/nfsd : lists the fileset that the file belongs to.
+lslpp -E bos.rte : displays the license agreements of the installed filesets.
+lslpp -v :shows only the filesets that do not have the required prerequisites or are not completely installed.
+inulag
+Manages license agreements (front end).
+inulag -l : lists all available software license agreements.
+epkg
+Creates emergency fix (efix) packages that can be installed by the efix manager, emgr.
+epkg perf : runs the epkg command in interactive mode and creates efix package perf.
+emgr
+Starts the emergency fix (efix) manager, which installs, removes, lists, and checks system efixes. The efix manager installs packages created with the epkg command and maintains a database containing efix information. Databases are in the /usr/emgrdata/DBS directory.
+emgr -l : lists all efixes on the system.
+emgr -X -e perf.040503.epkg.Z : installs efix package perf.040603.epkg.Z and automatically expand file systems if needed.
+lppmgr
+Manages an existing installp image source.
+lppmgr -d /images -u : lists all duplicate and conflicting updates in image source directory /images.
+lppmgr -d /images -u -r : removes all duplicate and conflicting updates in image source directory /images.
+lppchk
+Verifies that files of an installable software product (fileset) match the SWVPD database information for file sizes, checksum values, or symbolic links.
+lppchk -v : verifies that all filesets have all required requisites and are completely installed.
+lppchk -c X11.Dt : checks that file checksums and sizes of X11.Dt are consistent with SWVPD.
+lppchk -l 'bos*' : verifies the symbolic links of all 'bos*' software products.
+compare_report
+Compares fileset levels to those available and generates a report of filesets needed.
+compare_report -s -r /tmp/LatestFixData52 -l : compares the software installed on a system (-s) to the report of available updates (-r) LatestFixData52, available from the support Web site at IBM.
+
+oslevel
+Reports the latest installed maintenance level of the system.
+oslevel -r : determines the highest recommended maintenance level reached for the current version of AIX.
+oslevel -lr 5100-04: lists which fileset updates are missing if after installing ML 04 on 5100-03 the command oslevel -r still shows 5100-03 (so, preferrably no output!).
+instfix
+Installs filesets associated with keywords or fixes.
+instfix -i | grep ML : displays all ML's installed.
+instfix -ik "IY39231 IY38794" : checks if fixes IY39231 and IY38794 are installed.
+instfix -k IY42424 -d /dev/fd0 : installs fix IY42424 from diskette.
+install_all_
+            updates
+Updates installed system software to the latest level that is on the media and verifies the current recommended maintenance level.
+install_all_updates -d /dev/cd0 : installs all installp updates on /dev/cd0 and verifies the current recommended maintenance level.
+install_all_updates -d /images -rc : commit installs all installp updates and installs any installable rpm updates in directory /images.
+whence
+Displays the absolute path name.
+whence nfsd : displays the full path of the nfsd program.
+what
+Displays identifying information in files.
+which_fileset
+Displays which fileset owns a command.
+The bos.content_list fileset must be installed.
+which_fileset topas : displays which fileset owns the topas command.
+inutoc
+Creates a .toc file.
+inutoc : creates the .toc file for the /usr/sys/inst.images directory.
+ 
+Backup and Restore Management
+lsmksysb
+Lists or restores the contents of a system backup.
+lsmksysb : lists the contents of a system backup located on default device /dev/rmt0.
+lsmksysb -f /dev/cd0 -s : lists the contents of a non-rootvg VG backup (-s).
+lsmksysb -B : displays the volume group backup log.
+lsmksysb -f /dev/cd0 : lists the contents of the system backup located on device /dev/cd0.
+lsmksysb -f /dev/cd0 -r ./etc/inittab : restores /etc/inittab from the system backup on device /dev/cd0.
+lsmksysb -r -d /tmp/etc ./etc : restores all files in the /etc directory of the rootvg backup on /dev/rmt0 and write the restored files to /tmp/etc.
+mksysb
+Creates a bootable system backup of the rootvg volume group. Uses /image.data (contains information on VGs, LVs, file systems, paging space, and PVs for an mksysb backup) and/bosinst.data (specifies requirements at the target system for an mksysb backup (INSTALL_METHODPROMPT, CONSOLE, DESKTOP, RECOVER_DEVICES, HDISKNAME, etc.).
+mksysb -i -e /dev/rmt0 2>/tmp/mksysb.err : creates a system backup (-i generates the /image.data file) while excluding from the mksysb backup the user specified files and directories in /etc/exclude.rootvg.
+Procedure to restore /etc/inittab:
+Find out the blocksize of the fourth image if not default:
+cd /tmp
+tctl -f /dev/rmt0 rewind
+chdev -l rmt0 -a block_size=512
+restore -s2 -xqdvf /dev/rmt0.1 ./tapeblksz
+cat ./tapeblksz
+chdev -l rmt0 -a block_size=[number in the ./tapeblksz file]
+Restore /etc/inittab:
+cd /
+tctl -f /dev/rmt0 rewind
+restore -s4 -xqdvf /dev/rmt0.1 ./etc/inittab
+mkszfile
+Saves the system state for reinstallation on the current system or on another system in the /image.data file.
+mkszfile : creates or overwrites /image.data.
+mkcd
+Creates a multi-volume CD (or CDs) or DVD from a mksysb or savevg backup image. Supported are: bootable and non-bootable CDs in Rock Ridge (ISO9660) or UDF (Universal Disk Format) format. Only CHRP platform supports booting from DVD.
+mkcd -d /dev/cd0 : creates a bootable system backup on CD-R /dev/cd0.
+mkcd -U -d /dev/cd1 -V rootvg : creates a mksysb image (UDF format) on DVD-RAM.
+savevg
+Finds and backs up all files belonging to a specified volume group.
+savevg -i uservg : backs up VG uservg to the default tape drive (dev/rmt0) and creates a new /tmp/vgdata/uservg/uservg.data file (-i).
+mkvgdata
+Creates a /tmp/vgdata/vgname/vgname.data file containing information about a volume group for use by savevg and restvg.
+mkvgdata uservg : creates a new /tmp/vgdata/uservg/uservg.data file.
+restvg
+Restores the user volume group and all its containers and files.
+restvg -l -f /dev/rmt0 : displays VG information about the VG backed up on the tape in /dev/rmt0.
+restvg -s -f /dev/rmt0 hdisk1: restores the VG image from /dev/rmt0 onto PV hdisk1 with the LVs created at the minimum size possible to accommodate the file systems (-s: shrink file systems).
+listvgbackup
+Lists or restores the contents of a volume group backup. listvgbackup -r and restorevgfiles are interchangeable (perform identical operations).
+listvgbackup -f /dev/cd0 : lists the contents of the system backup on device /dev/cd0.
+listvgbackup -r -s ./data/mydata : restores the /data/mydata file from a non-rootvg backup on device /dev/rmt0.
+restorevgfiles
+Restores files from a backup source.
+restorevgfiles -f /dev/cd0 -s -d /tmp ./data/mydata : restores the /data/mydata file from a non-rootvg backup on /dev/cd0 to the /tmp directory.
+backup
+Backs up files and file systems including extended permissions (ACLs).
+find . -print | backup -i -q -f /dev/rmt0 : backs up all the files and subdirectories in the current directory to /dev/rmt0 using relative path names, without prompting to prepare the backup medium (-q).
+backup -0 -u -f /dev/rmt0 /home : backs up all the files (level 0) in the /home file system to /dev/rmt0 and updates /etc/dumpdates (-u).
+
+restore
+Extracts files from archives created with the backup command.
+restore -Pa -vf /dev/rmt0 : restores only the permissions of the files on the tape archive.
+restore -s4 -Tdvqf /dev/rmt0.1 : lists contents of a mksysb tape.
+restore -s4 -xdvqf /dev/rmt0.1 ./etc/inittab : restores the inittab file from tape.
+pax
+Extracts, writes, and lists members of archive files; copies files and directory hierarchies.
+tar
+Manipulates archives. Use /opt/freeware/bin/tar for the Linux tar.
+tar -cvf /dev/rmt0 * : backs up the current directory to /dev/rmt0.
+tar -xvf /dev/rmt0 /etc/passwd : extracts the file /etc/passwd form tape.
+tcopy
+Copies a magnetic tape.
+tcopy /dev/rmt0 /dev/rmt1 : duplicates tape from tape device /dev/rmt0 to /dev/rmt1.
+tcopy /dev/rmt0 : shows the block size in bytes for each tape file.
+cpio
+Copies files into and out of archive storage and directories.
+find /home -print | cpio -ocvB > /dev/rmt0 : backs up /home to /dev/rmt0 using absolute path names.
+cpio -idmv </dev/rmt0 : restores all files from /dev/rmt0 while retaining previous file modification time (-m).
+cpio -i "ma*" "myfile" </dev/rfd0 : restores all files that match ma* and the file myfile from diskette.
+dd
+Converts and copies a file.
+dd if=/dev/rmt0 bs=128k count=1 | wc -c : reads a single block from /dev/rmt0 and finds out used block size.
+chdev -l rmt0 -a block_size=512 : changes the block size of /dev/rmt0 to 512 bytes.
+dd if=/dev/fd0 of=/tmp/fdcopy : copies the contents of the diskette into /tmp/fdcopy.
+tctl
+Gives subcommands to a streaming tape device. Default device is /dev/rmt0.
+tctl fsf 3 : moves forward three file marks.
+tctl -f /dev/rmt1 rewind : rewinds the rmt1 tape device.
+tctl rewoffl : rewinds the tape and takes the tape drive offline.
+ 
+ODM Management
+ODM information is stored in the directories /etc/objrepos (default ODM directory, $ODMDIR env variable), /usr/lib/objrepos and /usr/share/lib/objrepos.
+odmadd
+Adds objects to created object classes.
+odmchange
+Changes the contents of a selected object in the specified object class.
+odmcreate
+Produces the .c (source) and .h (include) files necessary for ODM application development and creates empty object classes.
+odmdelete
+Deletes selected objects from a specified object class.
+odmdrop
+Removes an object class.
+odmget
+Retrieves objects from the specified object classes and places them into an odmadd input file.
+odmshow
+Displays an object class definition.
+odmshow CuDv : displays  the object class definition for the Customized Device Database.
+ 
+System Resource Controller (SRC)
+lssrc
+Gets the status of a subsystem, a group of subsystems, or a subserver.
+lssrc -a : displays the status of all subsystems.
+lssrc -g tcpip : display the status of the tcpip subsystem group.
+startsrc
+Starts a subsystem, a group of subsystems, or a subserver.
+stopsrc
+Stops a subsystem, a group of subsystems, or a subserver.
+refresh
+Requests a refresh of a subsystem or group of subsystems.
+refresh -g tcpip : refresh the group tcpip.
+refresh -s inetd : refresh the inetd subsystem (re-reads /etc/inetd.conf).
+chssys
+Changes a subsystem definition in the subsystem object class.
+mkssys
+Adds a subsystem definition to the subsystem object class.
+rmssys
+Removes a subsystem definition from the subsystem object class.
+mkserver
+Adds a subserver definition to the subserver object class.
+rmserver
+Removes a subserver definition from the subserver object class.
+ 
+Process Management
+utmpd
+The utmpd daemon monitors /etc/utmp for validity of the user process entries every 300 seconds (default). Default there is no entry in /etc/inittab for utmpd.
+utmpd 500 : runs utmpd every 500 seconds.
+whodo
+Reports the list of processes and their child processes belonging to users.
+who -l : summarises the current activity on the system.
+procwdx
+Prints the current working directory of a process.
+procwdx 21318 : displays the current working directory of process 21318.
+truss
+Traces system calls executed by a process as, records the received signals and the occurrence
+of machine faults. The output of truss can become very large.
+truss -e -o truss.out whoo : runs the who command under truss including the environment content (-e) and redirects the output to truss.out.
+ 
+Scheduling
+crontab
+Submits, edits, lists, or removes cron jobs for the cron daemon. The cron daemon logs its activities in /var/adm/cron/log. 
+Each crontab file entry contains six fields: minute hour day_of_month month weekday command
+crontab -l : lists the user's crontab file.
+crontab -e : edit the crontab file using an intermediate copy.
+at
+Runs commands at a later time.
+at -l : reports the current user's scheduled jobs.
+batch
+Runs jobs when the system load level permits.
+skulker
+Cleans up file systems by removing unwanted files. Remove the comment from the skulker entry of the root crontab to enable operation.
+ 
+Performance Management
+The base priority of a thread is 40. The nice value defaults to 20 for foreground processes and 24 for background processes.
+The CPUs on a system are shared among all of the threads by giving each thread a time slice of one clock tick (10 ms).
+Install the bos.perf.tools (base tools), bos.sysmgt.trace, bos.perf.perfstat and perfagent.tools filesets. Commands no longer supported: bf (bigfoot), bfrpt, lockstat, stem, and syscalls.
+
+topas
+Reports selected local system statistics.
+schedo
+Manages CPU scheduler tunable parameters.
+schedo -o 15 : changes the time slice of one clock tick to 15 ms.
+bindprocessor
+Binds or unbinds the kernel threads of a process to a processor.
+bindprocessor 22358 2 : binds the threads in process 22358 to processor 2.
+perfpmr
+A set of tools and instructions for collecting the data needed to analyze a AIX performance problem.
+fdpr
+A performance tuning utility for improving execution time and real memory utilization of user-level application programs.
+iostat
+Reports CPU statistics and input/output statistics for the entire system, adapters, tty devices, disks and CD-ROMs.
+iostat -s 2 4 : displays four reports at two second intervals starting with the sum of all activities (-s).
+iostat -a : generates an adapter throughput report for all of the disk adapters.
+lsattr -E -l sys0 -a iostat : displays the current iostat settings.
+chdev -l sys0 -a iostat=false : disable the collection of iostat data.
+lvmstat
+Reports input/output statistics for LPs, LVs and VGs for hot-spot management.
+lvmstat -v rootvg -e : enables statistics collection for all the LVs in VG rootvg.
+lvmstat -v rootvg : reports statistics for all the LVs in VG rootvg.
+lvmstat -v rootvg -C : clears the counter for VG rootvg.
+lvmstat -l hd6 : reports statistics for LV hd6 (paging).
+See migratelp to move LPs from one PP to another on a different PV.
+
+ 
+DOS files Management
+Install the bos.dosutils fileset for the DOS-commands or install mtools (AIX Toolbox for Linux Applications).
+
+dosdir
+Lists the directory for DOS files (default device is /dev/fd0).
+dosread
+Copies DOS files to AIX files.
+dosread -a yourfile.txt yourfile : copies a text file from a DOS diskette and replaces each carriage return, line-feed sequence with a new-line character and interprets a Ctrl-Z as the end-of-line character.
+dosdir | awk '!/There are/ {print $1}'|xargs -t -i dosread {} {} : copies every DOS file from a DOS diskette.
+doswrite
+Copies AIX files to DOS files.
+doswrite -a myfile myfile.txt : copies file myfile to a DOS diskette and replaces new-line characters with carriage return, line-feed sequences (-a). Ctrl-Z is added at the end of file.
+for i in *;do;doswrite $i $i;done : copies every file in the current directory to a DOS diskette.
+dosdel
+Deletes DOS files.
+dosformat
+Formats a DOS diskette.
+Mtools is a public domain collection of tools to allow Unix systems to manipulate MS-DOS files
+Documentation: Mtools (HTML) or Mtools (PDF).
+
+floppyd	floppy daemon to run on your X server box 
+floppyd_installtest	small utility to check for the presence of floppyd 
+mattrib	change MS-DOS file attribute flags 
+mbadblocks	tests a floppy disk, and marks the bad blocks in the FAT 
+mcat	same as cat. Only usefull with floppyd. 
+mcd	change MS-DOS directory 
+mcopy	copy MS-DOS files to/from Unix 
+mdel	delete an MS-DOS file 
+mdeltree	recursively delete an MS-DOS directory 
+mdir	display an MS-DOS directory 
+mdu	list space occupied by directory and its contents 
+mformat	add an MS-DOS filesystem to a low-level formatted floppy disk 
+minfo	get information about an MS-DOS filesystem. 
+mlabel	make an MS-DOS volume label 
+mkmanifest	makes a list of short name equivalents 
+mmd	make an MS-DOS subdirectory 
+mmount	mount an MS-DOS disk 
+mpartition	create an MS-DOS as a partition 
+mrd	remove an MS-DOS subdirectory 
+mmove	move or rename an MS-DOS file or subdirectory 
+mren	rename an existing MS-DOS file 
+mshowfat	shows the FAT map of a file 
+mtoolstest	tests and displays the configuration 
+mtype	display contents of an MS-DOS file 
+mzip	zip disk specific commands 
+ 
+CDE
+dtconfig
+/usr/dt/bin/dtconfig -d : disables desktop logins (-e enables desktop logins).
+dtlogin
+/usr/dt/bin/dtlogin -daemon : starts the desktop login manager manually.
+xinit
+Initializes the X Window System.
+xinit /etc/dt/Xsession : starts the CDE desktop from command line interface (customized version, if present).
+xinit /usr/dt/bin/Xsession : starts the CDE desktop from command line interface (default version).
+ 
+Miscellaneus
+ 	
+  
+Abbreviations and Acronyms
+APAR	 Authorized Program Analysis Report
+CDE	 Common Desktop Environment
+CHRP	 Common Hardware Reference Platform
+CuDv	 Customized Devices object class (ODM)
+DHCP	 Dynamic Host Configuration Protocol
+ICMP	 Internet Control Message Protocol
+ISA	 Instrumentation Systems and Automation Society
+ISMP	 InstallShield Multi-Platform
+JFS	 Journaled File System
+JFS2	 Enhanced Journaled File System
+LFT	 Low Function Terminal
+LTG	 Logical Track Group
+LPP	 Licensed Program Product
+LV	 Logical Volume
+LVCB	 Logical Volume Control Block
+MCA	 Micro Channel Bus Architecture
+ML	 Maintenance Level
+MWC	 Mirror Write Consistency
+NIS	 Network Information Service
+NVRAM	 NonVolatile Random Access Memory
+ODM	 Object Data Manager Database
+PB	 PetaBytes (1 PB is equal to 1024 TB)
+PCI	 Peripheral Component Interconnect
+PCMCIA	 Personal Computer Memory Card International Association
+PdDv	 Predefined Devices object class (ODM)
+PV	 Physical Volume
+PVID	 Physical Volume IDentifier
+PP	 Physical Partition
+PTF	 Program Temporary Fix
+RPC	 Remote Procedure Call
+PReP	 POWERPC Reference Platform
+RPM	 Red Hat Package Manager
+SRC	 System Resource Controler
+SWVPD	 Software Vital Product Data
+TB	 TeraBytes (1 TB is equal to 1024 GB)
+UDI	 Uniform Device Interface
+VG	 Volume Group
+VGDA	 Volume Group Description Area
+VGSA	 Volume Group Status Area
+VPD	 Vital Product Data
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+
