@@ -1,0 +1,80 @@
+PROCESS MANAGEMENT:-
+
+utmpd						<--The utmpd daemon monitors /etc/utmp for validity of the user process entries every 300 seconds (default). Default there is no entry in /etc/inittab for utmpd.
+								utmpd 500 : runs utmpd every 500 seconds.
+
+whodo						<--Reports the list of processes and their child processes belonging to users.
+								who -l : summarises the current activity on the system.
+
+procwdx						<--Prints the current working directory of a process.
+								procwdx 21318 : displays the current working directory of process 21318.
+
+truss						<--Traces system calls executed by a process as, records the received signals and the occurrence of machine faults. The output of truss can become very large.
+								truss -e -o truss.out whoo : runs the who command under truss including the environment content (-e) and redirects the output to truss.out.
+ 
+ 
+Scheduling:-
+
+crontab						<--Submits, edits, lists, or removes cron jobs for the cron daemon. The cron daemon logs its activities in /var/adm/cron/log. 
+								Each crontab file entry contains six fields: minute hour day_of_month month weekday command
+								crontab -l : lists the user's crontab file.
+								crontab -e : edit the crontab file using an intermediate copy.
+								
+								When changes are made to the files, the cron daemon must be notified to reread the files. 
+								If you open crontab with "ccrontab -e" and after quit, crontab daemon will be notified an re-reads that file.
+
+								/var/spool/cron/crontabs   users`s crontab files are located here
+								/var/adm/cron/log          cron daemon creates a log of its activities
+								/var/adm/cron/cron.deny    Any user can use cron except those listed in this file
+								/var/adm/cron/cron.allow   Only users listed in this file can use cron (root user included)
+
+								crontab -l                 Lists the contents of your current crontab file
+								crontab -e                 Edits your current crontab file (when the file saved, the cron daemon is automatically refreshed.)
+								crontab -r                 Removes your crontab file from the crontab directory
+								crontab -v                 check crontab submission time
+								crontab mycronfile         submit your crontab file to /var/spool/cron/crontabs directory
+
+								crontab file format:
+								minute    hour    day_of_month    month        weekday        command
+								0-59      0-23    1-31            1-12        0-6 Sun-Sat     shell command
+
+								* * * * * /bin/script.sh        schedule a job to run every minute
+								0 1 15 * * /fullbackup          1 am on the 15th of every month
+								0 0 * * 1-5 /usr/sbin/backup    start the backup command at midnight, Mo - Fr
+								0,15,30,45 6-17 * * 1-5 /home/script1                                     execute script1 every 15 minutes between 6AM and 5PM, Mo - Fr
+								0 1 1 * * /tmp -name 'TRACE*' -mtime +270 -exec rm {} \\; >/dev/null 2>&1 it will delete files older than 9 months
+																										  (\\; <-- double "\" needed because to interpret ";" correctly)
+								--------------------------------------------------------------------------------
+
+								Ctontab: Adding and Removing lines with script:
+
+								To add a line to cron (in this example "0 1 * * * /tmp/test.sh >> /tmp/test.log")
+								crontab -l | awk '{print} END {print "0 1 * * * /tmp/test.sh >> /tmp/test.log"}' | crontab
+
+								To remove an line from cron (in this example any lines that match "/tmp/test.sh >> /tmp/test.log")
+								crontab -l | sed '\!/tmp/test.sh >> /tmp/test.log!d' | crontab
+
+at							<--Runs commands at a later time.
+								at -l : reports the current user's scheduled jobs.
+								at                          submits a job for cron to run at a specific time in the future
+															(at -f /home/root/bb_at -t 2007122503)
+								echo "<command>" | at now   this starts in the background (and you can log off)
+
+								at now +2 mins
+								banner hello > /dev/pts/0
+								<ctrl-d>                    (at now + 1 minute,at 5 pm Friday )
+
+
+								/var/adm/cron/at.deny       allows any users except those listed in this file to use the at command.
+								/var/adm/cron/at.allow      allows only those users listed in this file to use the at command (including root).
+								at -l                       Lists at jobs
+								atq [user]                  Views other user's jobs (Only root can use this command.)
+								at -r                       Cancels an at job
+								atrm job                    Cancels an at job by job number
+								atrm user                   Cancels an at job by the user (root can use it for any user; users can cancel their jobs.)
+								atrm                        Cancels all at jobs belonging to the user invoking the atrm command
+								
+batch						<--Runs jobs when the system load level permits.
+								submits a job to be run in the background when the processor load is low
+
+skulker						<--Cleans up file systems by removing unwanted files. Remove the comment from the skulker entry of the root crontab to enable operation.
