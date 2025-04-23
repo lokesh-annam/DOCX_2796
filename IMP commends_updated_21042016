@@ -1,0 +1,2166 @@
+1. #tail -f /dairectory.txt---------------------to see the dairectory list.  14539
+
+2. #du -sh * >> /tmp/directory.txt  --------------to copy the dairectory in /tmp/directory.txt.
+
+3. #du -sh * ------------- to list the dairetory size.
+
+4. #ln -s /tmp ./junk -------Links subdirectory junk under the current directory to directory /tmp.
+
+5. #ls -lrth |grep "Sep  5" |grep 30339261987----- List the particular month  account no.
+
+6. #du -sh `ls -ltrh|grep drwxrwxrwx|grep core* |awk '{print $NF}'`  ----List particular dairectory size.
+
+7. #du -sh `ls -ltrh|grep drwxrwxrwx|grep core*` --------- list core details particular dairectory.
+   0K   drwxrwxrwx
+   0K   10
+   0K   coresbie
+   0K   other
+   0K   10
+   0K   Sep
+   0K   6
+   0K   2007
+
+*********************** IMP ************************
+***--- find /data -type d |awk '{print "mkdir -p " $0}' >>data.sh --- floder stucture creation path.
+***--- alt_disk_mksysb -m (location of mksysb image) -d hdisk$ (target Disk) - to boot with perticular disk.
+
+********************* END ******************************
+
+8. -bash-3.2$ ls -ltrh|grep drwxrwxrwx|grep core* |du -sh  core* ----- to list the core
+   0K   core*
+   -bash-3.2$ ls -ltrh|grep drwxrwxrwx|grep core* ----------------------- to list the core and date dairectory.
+
+9.  #du -sh * -------------dairectory size .
+
+10. #df -a , df ,df -h , df -hT /home , 
+
+11. #df -k------- list in dyte blocks.
+
+12. #df -m------- list in MB.
+
+13. #df -h------- list in GB.
+
+14. #df -i------- list inodes.
+
+15. #df -T-------list type of FS.
+
+16. #df -t ext3------ following command will only display ext3 file system.
+
+17. #df --help-------display a list of available option that are used with df command.
+
+18. #du -m /some/path | sort -nr | head -n 20-----------I often need to find the biggest directories, so to get a sorted     list containing the 20 biggest dirs I do     
+    this:
+
+19. #ls -l------which only displays the size of the individual files in a directory, nor 
+
+20. #du -hs /path/to/directory---The command du "summarizes disk usage of each FILE, recursively for directories," e.g.,
+
+
+    -h is to get the numbers "human readable", e.g. get 140M instead of 143260 (size in KBytes)
+    -s is for summary (otherwise you'll get not only the size of the folder but also for everything in the folder     separately)
+
+21. #ls -l | grep '^d'-------------list the directory
+
+22. #errpt;df -gt;date-------- helth check.
+
+
+23. #http://www-03.ibm.com/systems/power/hardware/730/perfdata.html-- to find the threads
+
+24. #scp -pr gcprasad@10.0.248.31/konylogs/KonyOneserver/middlewarelog/middleware9/middleware.log.2014-10-16 /tmp/ 
+     
+    ------------- we get the logs in another server to present server useing server through SCP.(192.168.25.70)
+
+25. #scp -pr middleware1 gcprasad@10.0.251.81:/tmp------------send to another server through SCP.
+
+26. # umount -f /testingdocroot/  -----unmount filesystem.
+
+27. #mount -F nfs -o vers=3 10.0.252.111:/testing-docroot /doc-root ------ mount the filesystem.
+
+28. #bootinfo -m----- missition model code
+ 
+29. #dladm show-dev  ------ to show the network devices
+
+30. #fmadm faulty -a ------ find the errors in solaries.
+ 
+31. #useradd  -c OS_ADMINISTRATOR -d /home/sunil  -m -g 4 -u 6003 -s /bin/sh sunil ----- user creation in solaries
+
+32. #mklv -y 'ndloglv' -t 'jfs2' -c'2' rootvg 100 hdisk0 hdisk1 --- lv cretion in aix cmd mode
+
+33. #fcinfo hba-port -------- to see the HBA status in solaries.
+ 
+34. #lparstat -i ------- to find the lpar statastics.
+
+35. #for i in `ls *`; do echo $i; cat $i | grep 'Differed'; done ---- to find  log grep.
+for i in `find . -type f -name "*.bz2"`; do echo $i; bzcat $i | grep "CPC4523119"; done 
+root@sbimum56:/sysmon_bkp/ndlogs/May_2017#find . -type f -name "retail*0517*"
+root@sbimum56:/sysmon_bkp/ndlogs/May_2017#for i in `find . -type f -name "autopay*.log.010817-*.bz2"`
+> do
+> echo $i
+> bzcat $i | grep "4592000069212260"
+> done
+
+###################
+touch -t 201412312359 delete.txt
+for i in `find . -type f ! -name delete.txt ! -newer delete.txt| grep pdf`; do ls -ltr $i;mv $i /sysmonlogs/Demat_pdf/2014/.; done
+###############################
+chuser unsuccessful_login_count=0 root
+chuser minage=0 histexpire=0 histsize=0 root
+echo "root:S@t@g^#231"|chpasswd 
+pwdadm -c root
+chuser minage=1 histexpire=13 histsize=20 root
+################################
+
+36. #for srv in `lsnim -t standalone | awk '{print $1}' | sort`; do printf "%-20s" $srv; nim -o lslpp $srv >/dev/null 2>&1;[ "$?" == 0 ] && echo OK || echo "Problem";      
+done --- to find the nim clients
+
+37. #$lsdev | grep ^ent --- to find the adapters in vio.
+
+38. # system show all *---------- datadomain cmd
+
+39. # root@sbiamc23$cat corpuser23j|grep "Message ID Mismatch: Message ID Sent From INB:"-------To read the 
+
+40. #root@sbiamc23$ls -lrt|grep "corpuser23*"
+
+41. # lsmpio -l hdisk1 -S -----------to find mpio capabulty
+
+42. #lsmpio-- lspath------------ '' '' '' '' ''' ''' ''' ''' 
+
+43. #extendlv lg_dumplv 16 hdisk0; extendlv lg_dumplv2 16 hdisk1
+ 
+44. #echo 65404928/256|bc -l ------- to find caluculate ram size
+
+45. #lscfg -vpl sysplanar0 | egrep -i "MCM|WAY|W[ ]*PROC" | grep -v "BP EXPAN" --- to find th sokets in aix
+
+46. #mount the mount points  by useing scripts.
+
+    root@sbiwmr11$cd scripts/
+    root@sbiwmr11$ls -lrt
+    total 16
+    -rw-r-----    1 root     system           69 Oct 30 12:57 df.sh
+    -rwxrwxrwx    1 root     system          212 Oct 30 13:02 mntall
+    root@sbiwmr11$./mntall
+    root@sbiwmr11$df -gt
+    Filesystem    GB blocks      Used      Free %Used Mounted on
+    /dev/hd4          10.00      5.17      4.83   52% /
+    /dev/hd2           5.00      4.24      0.76   85% /usr
+    /dev/hd9var       10.00      1.57      8.43   16% /var
+    /dev/hd3           5.00      3.64      1.36   73% /tmp
+    /dev/hd1           5.00      0.31      4.69    7% /home
+    /dev/hd11admin      0.25      0.00      0.25    1% /admin
+    /proc                 -         -         -    -  /proc
+    /dev/hd10opt      35.00     29.38      5.62   84% /opt
+    /dev/livedump      0.25      0.00      0.25    1% /var/adm/ras/livedump
+    /dev/fslv00        6.75      2.72      4.03   41% /export/nim
+    /dev/fslv01        0.25      0.02      0.23    8% /tftpboot
+    192.168.25.81:/webpool   1366.66   1189.01    177.66   88% /weblogs
+    192.168.25.69:/doc-root    105.00     83.35     21.65   80% /doc-root
+    192.168.25.68:/sysmonlogs    200.00    175.85     24.15   88% /sysmonlogs
+    root@sbiwmr11$cat mntall
+    mount -o vers=4 192.168.25.81:/webpool /weblogs
+    mount -V nfs -o intr,hard,llock,rsize=65536,wsize=65536,vers=4,proto=tcp,rw 10.192.244.31:/doc-root /doc-root
+    mount -o intr,hard,llock,rsize=65536,wsize=65536,vers=3,proto=tcp,rw 10.192.244.31:/doc-root /doc-root
+    
+
+    root@sbiwmr11$
+    root@sbiwmr11$clear
+    root@sbiwmr11$
+    root@sbiwmr11$
+    root@sbiwmr11$cat mntall
+     	 192.168.25.81:/webpool /weblogs
+    mount -V nfs -o intr,hard,llock,rsize=65536,wsize=65536,vers=4,proto=tcp,rw 192.168.25.69:/doc-root /doc-root
+    mount -o vers=4 192.168.25.68:/sysmonlogs /sysmonlogs
+
+
+47. #chsh ------ To find the Current available shells
+
+48. #finger -----  To find the who r the looged in system idl time
+
+49. #last ------ To find the who r the login in server
+
+50. #no -po perameter=value  ------- to change the perameter value
+
+51. #/opt/sbi/datamatic/logs------------- suposse opt 100% full goto this path
+
+52. #luxadm -e port---------- to find the network port status.
+ 
+53. #for i in `ls *`; do echo $i; cat $i | grep 'Differed'>> /tmp/Differed_19_11_14.log; done --- take the differed file
+for i in `find . -type f -name 'autopay*030417*'`
+> do echo $i
+> bzcat |egrep "SBIUTXN514880|SBIUTXN531874|SBIUTXN516635|SBIUTXN512888|SBIUTXN410549"
+> done
+
+
+54. #egrep -i 'JTHAIKANDY' `ls *` >>/tmp/JTHAIKANDY.txt----- find the particular user logs 
+
+55. #luxadm -e port  ----- find fc ports in solaries.
+
+56. #fcinfo remote-port -p ------------ to find the fc attributes
+
+57. #luxadm -e dump_map /dev/cfg/c3 ---------- to find the wwn numbersin solaries.
+     Pos  Port_ID  Hard_Addr  Port WWN          Node WWN          Type
+     0    630000   0          50000975f00c4941  50000975f00c4800  0x0   (Disk device)
+     1    630100   0          50000975f00c49c1  50000975f00c4800  0x0   (Disk device)
+     2    630200   0          10000000c9b03e6b  20000000c9b03e6b  0x1f  (Unknown Type,Host Bus Adapter)
+
+58. # cfgadm -al -o show_FCP_dev c2 ------------------- to find the particular device configuration.
+    
+    Ap_Id                          Type         Receptacle   Occupant     Condition
+    c2                             fc-fabric    connected    configured   unknown
+    c2::50000975f00c4945,0         disk         connected    configured   unknown
+    c2::50000975f00c4945,1         disk         connected    configured   unknown
+
+59. #luxadm -e port |grep CONNECTED --------------  to find fc  information. 
+    
+    /devices/pci@400/pci@1/pci@0/pci@8/SUNW,emlxs@0/fp@0,0:devctl      NOT CONNECTED
+
+60. # 
+
+    2.6.18-300.el5
+
+61. #lsb_release -a --------------------- to find the oslevel , version ,code name. in linux
+    LSB Version:    :core-4.0-amd64:core-4.0-ia32:core-4.0-noarch:graphics-4.0-amd64:graphics-4.0-ia32:graphics-4.0-noarch:printing-4.0-amd64:printing-4.0-            
+ia32:printing-    4.0-noarch
+    Distributor ID: RedHatEnterpriseServer
+    Description:    Red Hat Enterprise Linux Server release 5.8 Beta (Tikanga)
+    Release:        5.8
+    Codename:       Tikanga
+
+62. #top --------------- to find the cpu utilaization.
+    top - 16:50:14 up 551 days,  4:18, 11 users,  load average: 0.03, 0.04, 0.00
+    Tasks: 1397 total,   1 running, 1395 sleeping,   0 stopped,   1 zombie
+    Cpu(s):  0.0%us,  0.1%sy,  0.0%ni, 99.8%id,  0.0%wa,  0.0%hi,  0.0%si,  0.0%st
+    Mem:  16431200k total, 14655056k used,  1776144k free,  1254472k buffers
+    Swap: 20972848k total,      192k used, 20972656k free,  9389212k cached
+
+      PID USER      PR  NI  VIRT  RES  SHR S %CPU %MEM    TIME+  COMMAND
+    26960 root      15   0 13688 2128  812 R  1.3  0.0   0:00.28 top
+    11198 root      19   0 4874m 2.3g  57m S  0.3 15.0 287:33.93 java
+        1 root      15   0 10368  656  556 S  0.0  0.0   0:12.30 init
+        2 root      RT  -5     0    0    0 S  0.0  0.0   0:13.84 migration/0
+        3 root      34  19     0    0    0 S  0.0  0.0   0:00.03 ksoftirqd/0
+        4 root      RT  -5     0    0    0 S  0.0  0.0   0:00.00 watchdog/0
+        5 root      RT  -5     0    0    0 S  0.0  0.0   0:19.82 migration/1
+63. #top -bn1 | grep "Cpu(s)" |            sed "s/.*, *\([0-9.]*\)%* id.*/\1/" |awk '{print 100 - $1"%"}'    -------  system cpu usage and present it in %.100%
+
+64. # ip a ---------------- to find the network in linux.
+1:  lo: <LOOPBACK,UP,LOWER_UP> mtu 16436 qdisc noqueue
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+    inet6 ::1/128 scope host
+       valid_lft forever preferred_lft forever
+2:  eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast qlen 1000
+    link/ether 00:22:19:bc:79:59 brd ff:ff:ff:ff:ff:ff
+    inet 10.192.242.41/24 brd 10.192.242.255 scope global eth0
+    inet6 fe80::222:19ff:febc:7959/64 scope link
+       valid_lft forever preferred_lft forever
+3:  eth1: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 1500 qdisc pfifo_fast qlen 1000
+    link/ether 00:22:19:bc:79:5b brd ff:ff:ff:ff:ff:ff
+    inet 10.192.242.41/24 brd 10.192.242.255 scope global eth1
+4:  sit0: <NOARP> mtu 1480 qdisc noop
+    link/sit 0.0.0.0 brd 0.0.0.0
+
+65. #service network stop/restart/start----------------------- stop the services in linux.
+
+66. root@sbiamk31$cat cpuram.sh ------------ memory ,cpu ,pro useage form particular server scropt.
+    #!/bin/ksh
+    memory=`prtconf -m | awk 'BEGIN {FS=" "} {print $3/1024}'`
+    usedmem=`svmon -G | grep memory | awk 'BEGIN {FS=" "} {print $3/256/1024}'`
+    freemem=`echo $memory-$usedmem | bc -l`
+    # Conclusion
+    echo "Avai Mem: $memory GB"
+    echo "Free Mem: $freemem GB"
+    echo "Used Mem: $usedmem GB"
+    echo "-------------------------------------------------------"
+    echo "Number Of Sockets"
+    lscfg -vpl sysplanar0 |grep "CUOD"|wc -l
+    echo "-------------------------------------------------------"
+    echo "Socket Details"
+    lscfg -vpl sysplanar0 |grep "CUOD"
+    echo "-------------------------------------------------------"
+    echo "CPU -CORE "
+    lparstat -i  |grep CPU
+    echo "-------------------------------------------------------"
+    echo "Processor"
+    prtconf |grep proc
+    bindprocessor -q
+    echo "-------------------------------------------------------"
+
+67. psrinfo -pv ------------ to find the processers in solaries.
+
+68. prstat ------------------ to find proceesseess i useage mmemory
+
+    PRSTAT   : FIELDS  
+    Field    : Description 
+    PID      : The unique process ID of the process 
+    USERNAME : Owner (user or uid) of the process 
+    SIZE     : The total virtual memory size of mappings within the process, including all mapped files and devices. 
+    RSS      : Resident set size. The amount of physical memory mapped into the process,including that shared with other processes. 
+    STATE    : The state of the process 
+    PRI      : The priority of the process. Larger numbers mean higher priority. 
+    NICE     : Nice value used in priority computation. 
+
+
+69. smit mknfsexp  ------------- export the nfs mountpoint.
+
+70. cat /etc/exports ---------------- find the exported mount points.
+
+    /doc-root -sec=sys:krb5p:krb5i:krb5:dh,rw
+    /preprod-doc-root -sec=sys:krb5p:krb5i:krb5:dh,rw
+
+71. root@stageapp84$cat /etc/xtab
+   
+    /doc-root -sec=sys:krb5p:krb5i:krb5:dh,rw
+    /preprod-doc-root -sec=sys:krb5p:krb5i:krb5:dh,rw
+    root@stageapp84$cat /etc/rmtab
+    #tageapp83:/MQHA
+    stageapp87:/preprod-doc-root
+    root@stageapp84$vi /etc/filesystems
+    root@stageapp84$
+
+72. pwdadm -q root ------------ to find the passwd last update time.
+
+    lastupdate = 1425643202
+    flags = NOCHECKe
+
+73. chsec -f /etc/security/passwd -s schedule -a lastupdate=1506608052 ----------------- exprire the passwd ofter 6 months.
+
+74. lshmc -n -------------------- to find the hmc ip address and network 
+
+75. lssyscfg -r sys ---------------  List all managed systems 
+
+76. lssyscfg -r sys -F name:type_model:serial_num ------ List only the user-defined name, machine type and model, and serial number for all of the systems managed and     
+    separate the output values with a colon: .
+
+77. lssyscfg -r sys -m system1 --------------- List the managed system system1: .
+
+78.  --------- List all of the capabilities supported by managed system system1 .
+
+79. lssyscfg -r lpar -m 9406-570*12345678 -F --header ---------------- List all partitions in the managed system, and only display attribute values for each partition,     
+    following a header of attribute names:
+
+80. lssyscfg -r lpar -m system1 --filter ""lpar_names=lpar1,lpar2,lpar3"" ------------------ List the partitions lpar1, lpar2, and lpar3.
+
+81. rpcinfo -p | grep nfs -------------- to find the nfs version.
+
+82. lssyscfg -r prof -m system1 --filter "lpar_ids=2,"profile_names=prof1,prof2"" --------------- List the partition profiles prof1 and prof2 defined for the partition     
+    that has an ID of 2
+
+83. lssyscfg -r sysprof -m 9406-520*100128A -------------------- List all system profiles defined for the managed system: .
+
+84. lssyscfg -r sysprof -m system1 --filter "profile_names=sysprof1" ----------------  List the system profile sysprof1: .
+
+85. lssyscfg -r frame --------- List all frames managed .
+
+**. lssyscfg -m AF3-5_Server-8231-E2D-SN06BBE3T -r lpar -F name,lpar_id,state --------- list all lapars detail in manage system in hmc level.
+
+86. lssyscfg -r frame -e myFrame ----------- List the managed frame myFrame: .
+
+87. lssyscfg -r cage -e 9119-59*000012C ------------------ List all cages in the managed frame: .
+
+88. vtmenu ---------- list the all managrment systems
+ 
+89. lshmc -v---------------------- to find the hmc version.
+
+90. vgdisplay ------------------ to find the vgs in linux.
+
+91. http://www.datadisk.co.uk/html_docs/redhat/rh_lvm.htm --------- to find the lvn cmds in linux.
+
+92. vgcreate my_volume_group /dev/sda /dev/sdb /dev/sdc ----------- to create a vg in linux.\
+
+93. /opt/sfw/bin/rsync -ltpvrog  -e ssh  --rsync-path=/opt/sfw/bin/rsync root@192.168.25.67:/doc-root/nri/*  /doc-root/nri/ ----sync the doc_root folder in one file.
+
+94. http://www.redbooks.ibm.com/redbooks/pdfs/sg247491.pdf ----------- to find NTP comnfiguration in AIX.
+
+95. cat /etc/hostname.e1000g4  ------------------ to find the nic cord priyarity.
+
+96. http://www.datadisk.co.uk/html_docs/sun/sun_cluster_cs.htm ------------  to ckeck the suncluster resource groups.
+
+97. http://www.oracle.com/technetwork/articles/servers-storage-admin/  ------------ how-to-install-two-node-cluster-166763.pdf
+
+98. find . -type f -name 'middleware.log'  -------------- to find particular user logs.
+
+99. scp -pr `ls -lrt |grep '15122014'|awk '{print $9}'` root@10.192.24.68:/data/sftp_files/home/corporates/temp/Files_Outgoing/ ---------- to find particular path 
+    files.
+
+100. * /export/home/chinna/rsynclogs * --------------- check the sync is runing or not.
+
+101 .http://aixteam.blogspot.in/2012/10/nim-configuration_4907.html ------ nim doc
+
+102 . https://rageek.wordpress.com/2012/04/16/configuring-ipmp-on-solaris-11/ ----- ipmp configuration in solaries 11.
+
+103 .# mpathadm list lu  ------------------- list the disk paths in solaries 10
+
+O/P	
+
+/dev/rdsk/c4t60020F20000035AF4267CCCB0002CEE2d0s2
+		Total Path Count: 2
+		Operational Path Count: 2
+	/dev/rdsk/c4t60003BA27D2120004204AC2B000DAB00d0s2
+		Total Path Count: 2
+		Operational Path Count: 2
+	/dev/rdsk/c4t60003BA27D2120004204AC1A000F1D6Cd0s2
+		Total Path Count: 2
+		Operational Path Count: 2
+
+------------------------------------------------------------------------------------------------------
+
+104. mpathadm show lu /dev/rdsk/c4t60003BA27D2120004204AC2B000DAB00d0s2 -------------list the disk attributes.
+
+
+logical unit: /dev/rdsk/c4t60003BA27D2120004204AC2B000DAB00d0s2
+	mpath-support libmpscsi_vhci.so
+	 Vendor:  SUN
+	 Product:  T4
+	 Revision:  0301
+	 Name Type:  SCSI Inquiry VPD page 83 type 3
+	Name:  60003ba27d2120004204ac2b000dab00
+	 Asymmetric:  yes
+	 Current Load Balance:  round-robin
+	 Logical Unit Group ID:  NA
+	 Auto Failback:  on
+	 Auto Probing:  NA
+ 
+	 Paths:
+	 	 
+                 Initiator Port Name:  2000000173818713
+	 	 Target Port Name:  20030003ba27d212
+	 	 Override Path:  NA
+	 	 Path State:  OK
+	 	 Disabled:  no
+ 
+		 Initiator Port Name:  2000000173018713
+	 	 Target Port Name:  20030003ba27d095
+	 	 Override path:  NA
+	 	 Path State:  OK
+	 	 Disabled:  no
+ 
+	 Target Port Groups:
+	 	 
+                 ID:  2
+	 	 Explicit Failover:  yes
+	 	 Access State:  standby
+	 	 Target Ports:
+	 	 	 Name:  20030003ba27d212
+	 	 	 Relative ID:  0
+	 
+	 	 ID:  5
+	 	 Explicit Failover:  yes
+	 	 Access State:  active
+	 	 Target Ports:
+	 	 	 Name:  20030003ba27d095
+	 	 Relative ID:  0
+
+--------------------------------------------------------------------------------------------------------------------
+
+105. ncpa.cpl--------- change ip in system windoes
+
+106.luxadm -e port |grep CONNECTED --------------------check the HBA adapters connected in solaries11.
+
+O/P 
+
+/devices/pci@2,600000/SUNW,emlxs@0/fp@0,0:devctl                   CONNECTED
+/devices/pci@2,600000/SUNW,emlxs@0,1/fp@0,0:devctl                 CONNECTED
+/devices/pci@3,700000/SUNW,qlc@0/fp@0,0:devctl                     CONNECTED
+/devices/pci@3,700000/SUNW,qlc@0,1/fp@0,0:devctl                   CONNECTED
+/devices/pci@7,700000/SUNW,qlc@0/fp@0,0:devctl                     CONNECTED
+/devices/pci@7,700000/SUNW,qlc@0,1/fp@0,0:devctl                   CONNECTED
+
+=-----------------------------------------------------------------------------------------------------------------------------
+107. fcinfo hba-port |grep Port ---------------------- to find the wwnn numbers in solaries 11.
+
+O/P
+
+HBA Port WWN: 10000000c997763c
+        Port Mode: Initiator
+        Port ID: 5f0600
+HBA Port WWN: 10000000c997763d
+        Port Mode: Initiator
+        Port ID: 600d00
+HBA Port WWN: 21000024ff552c80
+        Port Mode: Initiator
+        Port ID: 610600
+        Max NPIV Ports: 255
+HBA Port WWN: 21000024ff552c81
+        Port Mode: Initiator
+        Port ID: 620800
+        Max NPIV Ports: 255
+HBA Port WWN: 21000024ff552cd0
+        Port Mode: Initiator
+        Port ID: 5f1400
+        Max NPIV Ports: 255
+HBA Port WWN: 21000024ff552cd1
+        Port Mode: Initiator
+        Port ID: 600f00
+        Max NPIV Ports: 255
+
+------------------------------------------------------------------------------------------------------------------------------
+108. cfgadm -l --------------------- list all the connected points in solaries 11.
+
+O/P
+
+Ap_Id                          Type         Receptacle   Occupant     Condition
+SB0                            System_Brd   connected    configured   ok
+SB1                            System_Brd   connected    configured   ok
+SB2                            System_Brd   connected    configured   ok
+
+cfgadm: Configuration administration not supported: Error: hotplug service is probably not running, please use 'svcadm enable hotplug' to enable the service. 
+See cfgadm_shp(1M) for more details.
+------------------------------------------------------------------------------------------------------------------------------------------------
+109. cfgadm -al ----------------- list all the adapters in solaries 11.
+
+O/P
+
+Ap_Id                          Type         Receptacle   Occupant     Condition
+SB0                            System_Brd   connected    configured   ok
+SB0::cpu0                      cpu          connected    configured   ok
+SB0::cpu1                      cpu          connected    configured   ok
+SB0::cpu2                      cpu          connected    configured   ok
+SB0::cpu3                      cpu          connected    configured   ok
+SB0::memory                    memory       connected    configured   ok
+SB0::pci0                      io           connected    configured   ok
+SB0::pci1                      io           connected    configured   ok
+SB0::pci2                      io           connected    configured   ok
+
+---------------------------------------------------------------------------------------------------------------------------------------------
+
+110.root@sbiwmr11$cat cpuproram.sh  ---------------------######################## cpu script ###################################
+
+#!/bin/ksh
+memory=`prtconf -m | awk 'BEGIN {FS=" "} {print $3/1024}'`
+usedmem=`svmon -G | grep memory | awk 'BEGIN {FS=" "} {print $3/256/1024}'`
+freemem=`echo $memory-$usedmem | bc -l`
+# Conclusion
+echo "Avai Mem: $memory GB"
+echo "Free Mem: $freemem GB"
+echo "Used Mem: $usedmem GB"
+echo "-------------------------------------------------------"
+echo "Number Of Sockets"
+lscfg -vpl sysplanar0 |grep "CUOD"|wc -l
+echo "-------------------------------------------------------"
+echo "Socket Details"
+lscfg -vpl sysplanar0 |grep "CUOD"
+echo "-------------------------------------------------------"
+echo "CPU -CORE "
+lparstat -i  |grep CPU
+echo "-------------------------------------------------------"
+echo "Processor"
+prtconf |grep proc
+bindprocessor -q
+echo "-------------------------------------------------------"
+root@sbiwmr11$
+
+########################################################################## DONE #########################################################
+
+O/P
+
+root@sbiwmr11$./cpuproram.sh
+Avai Mem: 125 GB
+Free Mem: 117.12038 GB
+Used Mem: 7.87962 GB
+-------------------------------------------------------
+Number Of Sockets
+       2
+-------------------------------------------------------
+Socket Details
+      6-WAY  PROC CUOD:
+      6-WAY  PROC CUOD:
+-------------------------------------------------------
+CPU -CORE
+Online Virtual CPUs                        : 8
+Maximum Virtual CPUs                       : 11
+Minimum Virtual CPUs                       : 4
+Maximum Physical CPUs in system            : 12
+Active Physical CPUs in system             : 12
+Active CPUs in Pool                        : 12
+Shared Physical CPUs in system             : 12
+Physical CPU Percentage                    : 68.75%
+Desired Virtual CPUs                       : 8
+-------------------------------------------------------
+Processor
++ proc0                                                           Processor
++ proc4                                                           Processor
++ proc8                                                           Processor
++ proc12                                                          Processor
++ proc16                                                          Processor
++ proc20                                                          Processor
++ proc24                                                          Processor
++ proc28                                                          Processor
+The available processors are:  0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31
+-------------------------------------------------------
+
+
+========================================================================================================================================================
+
+111. wasadmin@stageapp86$vi test.txt   ---------------------to change the name by useing this cmd..
+wasadmin@stageapp86$cat test.txt
+suresh muppala
+ravi muppala
+wasadmin@stageapp86$cat test.txt | sed s/muppala/paritals/g
+suresh paritals
+ravi paritals
+wasadmin@stageapp86$
+==========================================================================================================================================================
+
+112. start /SP/console ------------- console to # in solares  (oem_setup_env)
+
+==========================================================================================================================================================
+
+113. grep '</ns42:RecurringDepositConfirmResponse>' middleware.log -----------find particular name logs
+
+===========================================================================================================================================================
+
+114. https://www-947.ibm.com/support/entry/portal/!ut/p/b1/04_Sj9Q1MjCxMDGyNDE11I_Qj8pLLMtMTyzJzM9LzAHxo8zijd2djbxDnEMCQ029jAw8Q9xNzAL9woxNHEEaInErMDAwI06_
+AQ7gaEBIf7h-FD4lYBeAFeCxws8jPzdVPzcqx83SU9cRAGF4Ryk!/dl4/d5/L2dJQSEvUUt3QS80SmtFL1o2XzNHQzJLVENUUVU1SjIwSVRHNDZRTlYzNEEx/?type=8231&serial=06E0D0R-----ibm find model number..
+
+115. ls -l /var/adm/ras/bosinstlog  --------------  To find the when the server OS onstalation in AIX 5.1 To 7.1 .. 
+
+116. dmidecode -s system-serial-number -------- To find the serialnumber in linux ...
+
+117. http://www.unixmantra.com/2013/04/boot-process-in-aix.html ------boot process in aix linkS
+
+http://thegeekdiary.com/how-to-configure-a-solaris-10-jumpstart-server-and-client-sparc/ ---------- diff B/w JUMP/KIKE
+http://blogs.dlt.com/tuning-netbackup-multiplexing-multiple-data-streams/ ---- type of tape backup
+https://support.symantec.com/en_US/article.TECH10085.html ----------- symantec net backup
+
+118. find  /opt/batchlogs/wac -type d |awk '{print "mkdir -p " $0}' >>/tmp/floder.sh ..........copy the entair subfolders in /tmp path.
+
+119 .process 1
+   1.find / -xdev -size +100 -exec ls -l {} \; | awk '[print $5" "$9}' |sort -nr |more
+ process 2
+  2.cd /usr
+ls | xargs du -sk | sort -rn |head
+will show you the 10 biggest users of space
+828144 lpp
+621972 opt
+311600 websm
+257852 lib
+102800 sbin
+94088 openv
+90268 java14
+86956 dt
+83636 mozilla
+82308 java5_64
+cd /lpp
+ls | xargs du -sk | sort -rn |head
+174768 X11
+121632 db2_08_01.db2.rte
+67492 db2_08_01.repl
+64800 db2_08_01.icut
+61172 db2_08_01.client
+54104 db2_08_01.db2.engn
+49300 ILMT-TAD4D-agent
+35948 xlC
+34572 OpenGL
+24104 db2_08_01.cj
+Mike
+"Whenever I dwell for any length of time on my own shortcomings, they gradually begin to seem mild, harmless, rather engaging little things, 
+not at all like the staring defects in other people's characters."
+
+
+
+##############linux##############
+
+
+120.fdisk -l|grep Disk |grep "/dev/sd*" -----------to find the hord disks & size..
+
+Disk /dev/sda: 53.7 GB, 53687091200 bytes
+
+121. cat /proc/meminfo |grep -i "Mem" ----- to find the RAM 
+
+MemTotal:        8053548 kB
+MemFree:         6806136 kB
+Shmem:              3716 kB
+
+
+122. lscpu ------- list core,cpu details ..
+
+Architecture:          x86_64
+CPU op-mode(s):        32-bit, 64-bit
+Byte Order:            Little Endian
+CPU(s):                4
+On-line CPU(s) list:   0-3
+Thread(s) per core:    1
+Core(s) per socket:    1
+Socket(s):             4
+NUMA node(s):          1
+Vendor ID:             GenuineIntel
+CPU family:            6
+Model:                 62
+Stepping:              4
+CPU MHz:               2799.999
+BogoMIPS:              5599.99
+Hypervisor vendor:     VMware
+Virtualization type:   full
+L1d cache:             32K
+L1i cache:             32K
+L2 cache:              256K
+L3 cache:              25600K
+NUMA node0 CPU(s):     0-3
+
+
+123. how to incress filesystem size in linux..
+
+1. vgs
+2. lvdisplay
+3. lvextend -L +18G /dev/vg_templatelinux/lv_opt
+4. resize2fs /dev/vg_templatelinux/lv_opt
+
+# vgs
+vG               #PV #LV #SN Attr   VSize  VFree
+vg_templatelinux   2   6   0 wz--n- 49.50g 6.00g
+
+#lvdisplay
+
+ --- Logical volume ---
+  LV Path                /dev/vg_templatelinux/lv_home
+  LV Name                lv_home
+  VG Name                vg_templatelinux
+  LV UUID                2XBztB-n23H-ASsg-RtKQ-vP7B-ZBtU-Ieyy32
+  LV Write Access        read/write
+  LV Creation host, time Template-linux66, 2015-06-01 16:58:51 +0530
+  LV Status              available
+  # open                 1
+  LV Size                1.95 GiB
+  Current LE             500
+  Segments               1
+  Allocation             inherit
+  Read ahead sectors     auto
+  - currently set to     256
+  Block device           253:3
+
+
+#lvextend -L +4G /dev/vg_templatelinux/lv_home
+
+  Size of logical volume vg_templatelinux/lv_home changed from 1.95 GiB (500 extents) to 5.95 GiB (1524 extents).
+  Logical volume lv_home successfully resized
+
+#resize2fs /dev/vg_templatelinux/lv_home
+
+resize2fs 1.41.12 (17-May-2010)
+Filesystem at /dev/vg_templatelinux/lv_home is mounted on /home; on-line resizing required
+old desc_blocks = 1, new_desc_blocks = 1
+Performing an on-line resize of /dev/vg_templatelinux/lv_home to 1560576 (4k) blocks.
+The filesystem on /dev/vg_templatelinux/lv_home is now 1560576 blocks long.
+
+124. #dmidecode |grep -i "Manufacturer"|more ------to find the machine type
+
+        Manufacturer: VMware, Inc.
+        Manufacturer: Intel Corporation
+
+
+ ** uname -r  ------------  kernel information in linux.
+
+##############linux##############end
+
+######### VMAX Storage CMD ##################
+
+125. vxdg list
+ 
+126. ps -ef |grep vxconf
+
+127. vxprint -htq
+
+128. vxprint -htq |grep -i disabled
+
+129. symsg -sid 786 show SBICHNDB_SG
+  
+130. symcfg -sid 0786 list -pools -thin -mb
+
+131. symtier -sid 0786 list –vp
+
+132. symfast -sid 0786 list -control_parms
+ 
+133. symtw -sid 0786 list
+ 
+134. symtw -sid 0786 list –summary
+ 
+135. symfast -sid 0786 list –fp
+ 
+136. symfast -sid 0786 list -association –demand
+
+tcpdump -i en1  -w /tmp/tcpdump host nnn.nnn.nnn.nnn
+ 
+137. symcfg -sid 0786 list -tdev -sg SBICHNDB_SG –detail
+
+######### VMAX Storage CMD ##################end
+
+######### Sendmail ################## 96,98,99 --- wac
+
+svcs -a send
+#################### solaries 11 ##################
+ 505  svcs -p sendmail
+  506  svcs -o state,nstate,fmri service1
+  507  ps -ef | grep svc
+  508  /lib/svc/bin/svc.configd
+  509  find /etc/svc -name "*.db"
+  510  svcs -a|grep syslog
+  511  svcs -a|grep syslogd
+  512  ps -ef | grep svc
+  513  ps -ef | grep svc
+  514  svcs
+  515  svcs -a |grep system/system-log
+  516  svcsdm restart svc:/system/system-log:default
+  517  svcadm restart svc:/system/system-log:default
+  518  history
+
+#######################################################
+
+
+
+
+ps -ef |grep send
+svcadm disable sendmail
+kill -9 `ps -ef |grep send |awk '{print $2}'`
+ps -ef |grep send
+     
+if necessary  
+   cd /etc/init.d/
+    ls -lrt init *
+     ls -lrt init.*
+./init.snmpdx stop
+./init.wbem stop
+./init.sma stop
+
+svcadm enable sendmail
+
+check telnet  25 port on smtp server 
+
+   mailx gcnagendra.varaprasad@techmahindra.com
+
+ctrl+D
+   mailx gcnagendra.varaprasad@techmahindra.com
+
+
+cat syslog |grep nagendra --for verfication
+
+
+######### Sendmail ##################end
+
+
+
+#########Zone steps in  Cisco MDS switch ##################
+
+
+Backup Server ---70 
+
+
+HBA Port WWN: 10:00:00:00:c9:b0:3d:28
+HBA Port WWN: 10:00:00:00:c9:a0:d3:0d
+
+
+Data domin --pwwwn
+
+  21:00:00:21:88:4c:71:73
+
+  21:10:00:21:88:4c:71:73
+
+
+----------------------------------
+
+Zone Configration 
+
+95
+
+config t 
+
+device-alias name sbicbk70_T5210  pwwn 10:00:00:00:c9:b0:3d:28 
+device-alias name sbiddchn73  pwwn 21:00:00:21:88:4c:71:73 
+
+device-alias commit 
+exit 
+
+
+config t 
+zone name SBICBK70_T5120_HBA_EMC_DD_860 vsan 10
+member pwwn 10:00:00:00:c9:b0:3d:28 ;
+member pwwn 21:00:00:21:88:4c:71:73 ;
+
+exit 
+
+
+config t 
+zoneset name SWITCH_CONFIG_FAB01
+  member SBICBK70_T5120_HBA_EMC_DD_860  
+
+exit 
+
+
+config t 
+zoneset activate SWITCH_CONFIG_FAB01 vsan10;
+exit 
+
+
+
+
+copy running startup
+
+
+
+---------------------------------------------------------------------
+96
+
+
+device-alias name sbicbk70_T5210_1 pwwn 10:00:00:00:c9:a0:d3:0d
+
+device-alias name sbiddchn73  pwwn   21:10:00:21:88:4c:71:73
+
+
+zone name SBICBK70_T5120_HBA_EMC_DD_860 vsan 10
+                member pwwn 10:00:00:00:c9:a0:d3:0d;
+                member pwwn 21:10:00:21:88:4c:71:73;
+
+
+zoneset name SWITCH_CONFIG_FAB02
+   member SBICBK70_T5120_HBA_EMC_DD_860  
+
+
+zoneset activate SWITCH_CONFIG_FAB01 vsan10
+
+
+copy running startup
+
+#########Zone steps in  Cisco MDS switch ################## end
+
+################list of vgs filesystems#############
+
+
+lspv | awk '{ print $1, $3 }' | while read hd vg
+do
+        lspv -l $hd                     \
+                | grep -v "N/A"         \
+                | grep -v ":"           \
+                | grep -v NAME          \
+                | awk -v vg="$vg" -v hd="$hd" '{ print "HD: ", hd, "VG: ", vg, " VOL: ", $1, " Mount: ", $5 }'
+done
+
+################list of vgs filesystems#############END
+
+################LVM Setup in aix #####################
+
+1.create volumegroup 
+2.Create Physical volume if exits 
+    ---pvcreate
+3 add PV to volumegroup 
+   ---vgextend <groupname> <pvs>
+4 create lv by 
+
+    lvcreate -L <Size> -n <lv_name> <volume gp name>
+
+5.create file system 
+
+mkfs.ext4 /dev/mapper/<newly created lv>
+
+6.create mount point 
+
+7.mount -a 
+
+###########################END############################
+
+################# os instalation imp outputs ################
+
+root@sbimwac79 # dladm show-dev
+e1000g0         link: up        speed: 1000  Mbps       duplex: full
+e1000g1         link: unknown   speed: 0     Mbps       duplex: half
+e1000g2         link: down      speed: 0     Mbps       duplex: half
+e1000g3         link: unknown   speed: 0     Mbps       duplex: half
+root@sbimwac79 # uname -a
+SunOS sbimwac79 5.10 Generic_150400-13 sun4v sparc SUNW,SPARC-Enterprise-T2000
+root@sbimwac79 # uptime
+  9:49am  up 46 day(s),  9:33,  20 users,  load average: 0.21, 0.22, 0.22
+root@sbimwac79 # date
+Tue Sep 30 09:49:57 IST 2014
+root@sbimwac79 # netstat -rn
+
+Routing Table: IPv4
+  Destination           Gateway           Flags  Ref     Use     Interface
+-------------------- -------------------- ----- ----- ---------- ---------
+default              192.168.27.33        UG        1      32059
+192.168.27.32        192.168.27.36        U         1      35039 e1000g0
+224.0.0.0            192.168.27.36        U         1          0 e1000g0
+127.0.0.1            127.0.0.1            UH        6      73471 lo0
+root@sbimwac79 # prtconf -pvv| grep boot
+        bootarchive:  '/ramdisk-root'
+        bootfs:  fed7ba40
+        bootargs:  '-r'
+        bootpath:  '/pci@780/pci@0/pci@9/scsi@0/disk@0,0:a'
+        reboot-command:
+        auto-boot-on-error?:  'false'
+        auto-boot?:  'false'
+        network-boot-arguments:
+        boot-command:  'boot'
+        boot-file:
+        boot-device:  'disk0 disk1'
+        multipath-boot?:  'false'
+        boot-device-index:  '0'
+        error-reset-recovery:  'boot'
+root@sbimwac79 # eeprom
+ttya-rts-dtr-off=false
+ttya-ignore-cd=true
+keyboard-layout=US-English
+reboot-command: data not available.
+security-mode=none
+security-password: data not available.
+security-#badlogins=0
+verbosity=min
+pci-mem64?=false
+diag-switch?=false
+local-mac-address?=true
+fcode-debug?=false
+scsi-initiator-id=7
+oem-logo: data not available.
+oem-logo?=false
+oem-banner=Authorized uses only. All activity may be monitored and reported.
+oem-banner?=true
+ansi-terminal?=true
+screen-#columns=80
+screen-#rows=34
+ttya-mode=9600,8,n,1,-
+output-device=virtual-console
+input-device=virtual-console
+auto-boot-on-error?=false
+load-base=16384
+auto-boot?=false
+network-boot-arguments: data not available.
+boot-command=boot
+boot-file: data not available.
+boot-device=disk0 disk1
+multipath-boot?=false
+boot-device-index=0
+use-nvramrc?=true
+nvramrc=devalias mirror /pci@780/pci@0/pci@9/scsi@0/disk@1,0
+." ChassisSerialNumber NNL074205Y " cr
+error-reset-recovery=boot
+root@sbimwac79 #
+root@sbimwac79 # cat /etc/defaultrouter
+192.168.27.33
+root@sbimwac79 # cat /etc/resolv.conf
+domain  sbiinb.com
+search  sbiinb.com
+nameserver      10.0.251.106
+root@sbimwac79 # cat /etc/vfstab
+#device         device          mount           FS      fsck    mount   mount
+#to mount       to fsck         point           type    pass    at boot options
+#
+fd      -       /dev/fd fd      -       no      -
+/proc   -       /proc   proc    -       no      -
+#/dev/dsk/c0t0d0s1      -       -       swap    -       no      -
+/dev/md/dsk/d10 /dev/md/rdsk/d10        /       ufs     1       no      -
+/dev/md/dsk/d20 -       -       swap    -       no      -
+/dev/md/dsk/d30 /dev/md/rdsk/d30        /opt    ufs     2       yes     -
+#/dev/dsk/c0t0d0s3      /dev/rdsk/c0t0d0s3      /opt    ufs     2       yes     -
+/devices        -       /devices        devfs   -       no      -
+sharefs -       /etc/dfs/sharetab       sharefs -       no      -
+ctfs    -       /system/contract        ctfs    -       no      -
+objfs   -       /system/object  objfs   -       no      -
+swap    -       /tmp    tmpfs   -       yes     -
+root@sbimwac79 # cat /scripts/mntall
+mount -F nfs 192.168.27.167:/testing-doc-root  /doc-root
+mount -F nfs 192.168.27.167:/batchdump/doc-root   /52doc-root
+root@sbimwac79 # cat /etc/dfs/dfstab
+
+#       Place share(1M) commands here for automatic execution
+#       on entering init state 3.
+#
+#       Issue the command 'svcadm enable network/nfs/server' to
+#       run the NFS daemon processes and the share commands, after adding
+#       the very first entry to this file.
+#
+#       share [-F fstype] [ -o options] [-d "<text>"] <pathname> [resource]
+#       .e.g,
+#       share  -F nfs  -o rw=engineering  -d "home dirs"  /export/home2
+share -F nfs /data
+share -F nfs /opt/bv1to1
+share -F nfs /opt/sbi/wac/prepaidcardSimulator
+share -F nfs /opt/sbi/wac/conf/commission/commission
+share -F nfs /opt/bv1to1_var/logs/housekeeping
+share -F nfs /opt/SDK
+root@sbimwac79 # swap -l
+swapfile             dev  swaplo blocks   free
+/dev/md/dsk/d20     85,20     16 33560432 33560432
+root@sbimwac79 # sneep
+NNL074205Y
+root@sbimwac79 # eeprom |egrep "securit|diag"
+security-mode=none
+security-password: data not available.
+security-#badlogins=0
+diag-switch?=false
+k
+
+####################### END #########################################
+################## Vmware patch instalation ############################
+
+ifconfig -a;hostname;cat /etc/redhat-release;
+
+env x='() { :;}; echo vulnerable' 'BASH_FUNC_x()=() { :;}; echo vulnerable' bash -c "echo test"
+
+rpm -q bash;bash --version;
+
+md5sum bash-4.1.2-15.el6_5.1.x86_64.rpm
+
+yum update bash-4.1.2-15.el6_5.1.x86_64.rpm;
+
+ifconfig -a;hostname;cat /etc/redhat-release;
+
+
+rpm -q bash;bash --version;
+
+env x='() { :;}; echo vulnerable' 'BASH_FUNC_x()=() { :;}; echo vulnerable' bash -c "echo test"
+
+########################### END #####################################
+
+###################### Passwd Expired ################################
+
+1. # pwdadm -q root
+   
+     root: lastupdate = 1409918473
+
+2. # expr 604800 \* 13
+    
+     7862400
+
+3. # expr 7862400 + 1409918473
+   
+     1417780873
+
+4. # chsec -f /etc/security/passwd -s trickle -a lastupdate=1425643202
+
+5. # perl -e 'print scalar(localtime(1425643202)), "\n"'
+    
+     Fri Mar  6 17:30:02 2015
+6. chsec -f /etc/security/login.cfg -s usw -a pwd_algorithm=smd5 -- by using chage the username max-lenth in aix 
+
+######################### END ####################################
+
+################################ solaris IMP CMDS ########################
+
+#fcinfo hba-port
+
+#mminfo -av |grep -i <tape no>
+
+#scanner -m -s newobcbkp /dev/rmt/4cbn
+
+#scanner -i -s newobcbkp /dev/rmt/4cbn
+
+# find . -type f | xargs grep -il one
+
+#string /var/fm/fmd/errlog
+
+#fmadm faulty 
+
+
+prstat -a     = process status,cpu utilization
+
+top = cpu utilization it is package we have to install and then execute this command
+
+iostat -En (h/w,S/w errors & Tapedrive details)
+iostat -en
+
+prtdiag -v |more (display cpu,RAM memory bankwise,h/w status,firmware version, serial no)
+
+dmesg   = any error or faulty messages
+
+more /var/adm/messages  = any error or faulty messages
+
+sysdef  (to see total memeory size)
+
+
+uname -a  (version of os)
+
+cat /etc/release  (os release)
+
+sneep (to see server serial number)
+
+scstat  ---------(sun cluster status)
+
+prtconf |grep Mem ------------(Ram Size)
+
+dladm show-dev  ---------- To See interface details
+
+ifconfig -a   --------------    to see ip address
+
+psrinfo    ----------------    display no.of.threads   (1 core =8cpu/threads , 4 core =32cpu , 8 core =64cpu)
+
+devfsadm    --------- after attach any h/w like HDD,tapedrive,RAM etc.
+
+showrev-p|grep <patch number>    --------------  to check the patch is avail or not
+
+
+
+bash-3.2# fmadmfaulty
+
+
+df -h    (file system)
+
+du -sh   (foldersize)
+
+isainfo   --> to see architecture
+
+
+
+ok banner
+
+
+
+#svscs -a |grep sma
+
+
+
+#metastat |more
+
+
+
+#echo |format
+metadb
+#svcadm restart <smapath>
+
+start --> Run --> cmd-->tracert -d <gatewayip>
+
+To Set ip permanantly
+----------------------
+
+#vi /etc/hosts
+
+
+to set gateway
+----------------
+
+vi /etc/defaultrouter
+
+
+to set netmask
+-----------------
+
+
+vi /etc/netmasks
+-----------------
+
+
+To set DNS
+
+
+
+# vi /etc/resolv.conf
+
+
+
+domain cesc.co.in
+nameserver  10.50.2.9
+nameserver 10.50.2.11
+
+
+
+#vi /etc/defaultdoamin
+cesc.co.in
+netstat -nr
+
+
+#vi nsswitch.conf
+
+hosts:dns
+
+
+
+lpd-adm -d (down)
+lpd-adm -d (recover)
+
+
+
+swap -l
+swap -s
+uptime
+/etc/vfstab
+/etc/mnttab
+prtdiag -v |more
+
+
+
+
+#luxadm -e port  -- > To see the storsge/server connectivity
+
+#cfgadm -al
+
+
+
+
+cheking boot disk
+---------------------
+
+#prtconf -pv |grep -i boot 
+
+#echo | format  (check the physical name)
+
+
+
+#############################
+
+
+#metastat |grep %   --- ( to check the Resync processs in %)
+
+
+
+
+################################################################
+
+sc>showfru   (to see the field replacement unit PART NUMBERS)
+
+#prtfru -x
+#prtfru |grep -i dimm  (ram part number)
+
+
+
+
+###########################################33
+
+ok .asr    (display disabled components )
+
+
+
+
+
+# dladm show-dev
+# dladm show-link
+# prtconf -D 
+
+
+
+# kstat ce0
+# ndd -get /dev/bge0 link_speed
+
+############################### END ############################################
+
+
+138 . http://www.ecurep.ibm.com/app/upload_rcms ------------------ IBM File uploading sait ...
+
+139 . http://www.thegeekstuff.com/2010/11/dell-service-tag-for-vmware/ ----------- VMWARE Details ..
+
+140. df -F ufs -o i -------------- to find the  solaris ufs inode details..
+
+141. /etc/default/fs ------------to find  file for local file systems type ..
+
+142. /etc/dfs/fstypes ---------- to find  file for local file systems type ..
+ 
+143. fstyp /dev/rdsk/c0t0d0s0 ---------- to find  file for local file systems type ..
+
+144. rmvterm -p  AD13-06E0CER  -m Server-8231-E2C-SN06E0CER ----- close the terminal in hmc cmd line..
+
+145. gzip -cd impstxn.log.181115.gz|grep FA00191709 -------- .gz file list in solaris..
+
+146.cd /usr/openv/netbackup/bin/goodies/ ------- to find the available media tapes.
+
+147. cd /usr/openv/netbackup/bin/admincmd/ ------- to find the backup cmds 
+
+148. http://nixinfra.blogspot.in/2012/12/netbackup-important-terminologies-part-1.html ---- net backup
+
+149. http://itgust.com/booting-sequence-linux-server/ ----- linux BOOT process.
+
+150. http://www.unixmantra.com/2014/02/ibm-aix-admin-best-practices.html ---------- ITIL process for changemanagement.
+
+151. prtvtoc /dev/rdsk/c2t0d0s2 | fmthard -s - /dev/rdsk/c2t1d0s2   in solaris frogmentation from one disk to another disk in single pool.
+
+
+Ctrl + A or Home 
+ 
+Moves the cursor to the start of a line.
+ 
+
+ Ctrl+ E or End 
+ 
+Moves the cursor to the end of a line.
+ 
+
+ Esc + B 
+ 
+Moves to the beginning of the previous or current word.
+ 
+
+ Ctrl + K 
+ 
+Deletes from the current cursor position to the end of the line.
+ 
+
+ Ctrl + U 
+ 
+Deletes from the start of the line to the current cursor position.
+ 
+
+ Ctrl + W 
+ 
+Deletes the word before the cursor.
+ 
+
+ Alt + B 
+ 
+Goes back one word at a time.
+ 
+
+ Alt + F  
+ 
+Moves forward one word at a time.
+ 
+
+ Alt + C 
+ 
+Capitalizes letter where cursor is and moves to end of word.
+ 
+
+
+
+--------------------- ASMI logs in HMC ---------------
+
+1. Login to HMC.
+2. System Management> Servers > select the problematic server
+3. Click on Operations> Launch Advanced System Management
+4. Login to ASMI, Username is 'admin' and default password is 'admin'
+5. Click on System Configuration > Hardware Deconfiguration > Memory Deconfiguration > select and click on continue. 
+Please share the screenshots of memory deconfiguration.
+4.Click on System service aids > Error/Event logs > select all > Click on show details > Copy all the events, save it in a wordpad document and share the same with us.
+
+-------------------- END ------------------------
+----------------- SNAP FILE --------------------
+
+http://www.ecurep.ibm.com/app/upload
+
+1. Click on the standard upload
+2. Then click on the RCMS
+3. RCMS ticket id: call no
+4. RCMS country: 744
+5. Email address: Your email id.
+
+
+---------------SNAP File  END-------------
+
+-------------- ssh without passwd key -------------
+
+#ssh-keygen -t rsa
+
+root@stageapp86$cd /
+root@stageapp86$cd .ssh
+root@stageapp86$ls -lrt
+total 32
+-rw-r--r--    1 root     system         2591 Jun 02 12:59 known_hosts
+-rw-r-----    1 root     system          401 Jun 02 13:04 authorized_keys
+-rw-------    1 root     system         1679 Jun 02 13:06 id_rsa
+-rw-r-----    1 root     system          397 Jun 02 13:06 id_rsa.pub
+****id_rsa.pub
+
+
+copy id_rsa.pub in remote server  authorized_keys in the user location 
+
+
+*** authorized_keys need to create
+
+
+
+
+and remoteserver id_rsa.pub  in current server authorized_keys
+
+
+------------------------- END ----------------
+
+150. find /path/to/dir -name '*.gz' -exec sh -c 'gzip -cd "$0" | grep -- "pattern"' {} \; ------------- to find the logs insaid directory
+
+151. lslpp -qch | awk -F: '{printf "%-14s %-40s %-15s\n",$7,$2,$3}' | sort | uniq | sed 's/70/-70/' --------- last updated pkg,patch find cmd
+
+152. kstat cpu_info|grep core_id|sort -u|wc -l --------------- to check core value in solaris 10.
+
+153. chsubserver -r inetd -C /etc/inetd.conf -d -v 'login' -p 'tcp' ----- to disable the rlogin in AIX.
+	
+154. refresh -s inetd ----- ofter disable need to refresh .
+
+155. sed -n '/Jun 17 13:39:54/ , /Jun 18 10:50:28/p' filename --------------- particular time to time log.
+
+156. sed -n '/$DATE1/,/$DATE2/p' output.log | wc -l to find date range
+
+sed -n '/23:55:04/,/23:55:05/p' filename
+
+
+cd /tmp/govt/
+for i in `ls -lrt |awk '{ print $9 }' `
+do
+newfile=`echo $i | sed s/_1//g  `
+finalfile=`echo $newfile | sed s/_new//g  `
+echo $finalfile
+mv $i $finalfile
+done
+
+	
+
+
+
+chuser minage=1 maxage=13 maxexpired=2 minalpha=2 minloweralpha=0 minupperalpha=0 minother=1 mindigit=0 minspecialchar=1 mindiff=4 maxrepeats=2 minlen=8 histexpire=13 root
+
+chuser minage=0 maxage=0 maxexpired=0 minalpha=0 minloweralpha=0 minupperalpha=0 minother=1 mindigit=0 minspecialchar=0 mindiff=0 maxrepeats=0 minlen=0 histexpire=0 histsize=0 root
+
+chuser minage=0;histsize=0;histexpire=0 root
+
+
+
+
+
+
+
+
+
+
+
+java -Xms64m -Xmx512m wac.framework.Workaholic start impstxn >>/opt/batchlogs/freedomwac/impstxn/systemout.log 2>1 &
+java -Xms64m -Xmx512m wac.framework.Workaholic start rettxnenquiry >>/opt/batchlogs/freedomwac/rettxnenquiry/systemout.log 2>1 &
+java -Xms64m -Xmx512m wac.framework.Workaholic start genericreversal >>/opt/batchlogs/freedomwac/genericreversal/systemout.log 2>1 &
+java -Xms64m -Xmx512m wac.framework.Workaholic start rettxncreation >>/opt/batchlogs/freedomwac/rettxncreationl/systemout.log 2>1 &
+java -Xms64m -Xmx512m wac.framework.Workaholic start mtopupposting >>/opt/batchlogs/freedomwac/mtopupposting/systemout.log 2>1 &
+java -Xms64m -Xmx512m wac.framework.Workaholic start usermigration >>/opt/batchlogs/freedomwac/usermigration/systemout.log 2>1 &
+java -Xms64m -Xmx512m wac.framework.Workaholic start alertsystem >>/opt/batchlogs/freedomwac/alertsystem/systemout.log 2>1 &
+java -Xms64m -Xmx512m wac.framework.Workaholic start rettxnposting >>/opt/batchlogs/freedomwac/rettxnposting/systemout.log 2>1 &
+java -Xms64m -Xmx512m wac.framework.Workaholic start genericreport >>/opt/batchlogs/freedomwac/genericreport/systemout.log 2>1 &
+java -Xms64m -Xmx512m wac.framework.Workaholic start repretailtxnposting >>/opt/batchlogs/freedomwac/repretailtxnposting/systemout.log 2>1 &
+
+
+
+ 
+
+/opt/IBM/WebSphere/AppServer/profiles/Appsrv01/installedApps -------defaulty path jar.logs
+ 
+
+
+
+to start routines
+hereafter
+ 
+
+
+
+
+
+mv `ls -lrt | grep "Aug "|awk '{print $9}'` /test/doc-root_NAB_backup/Aug/ 
+
+
+vi /ect/security/limites
+
+
+
+
+
+192.168.27.166	inbshikshanweb
+
+10.0.251.87	stageapp87
+
+ mv `ls -lrt|grep "Nov 2"|grep "2013"|awk '{print $9}'` /test/doc-root_XML_backup/Nov-2013/
+ mv `ls -lrt|grep "Dec 1"|grep "2013"|awk '{print $9}'` /test/doc-root_XML_backup/Dec-2013/
+
+
+
+
+
+10.0.255.16110.
+
+find . -type f -name thirdparties17m
+
+
+for i in `ls -lrt|grep "Sep"|awk '{print $9}'`; do echo $i; mv $i /storagepool/docroot_3P_backup/Sep_2015; done
+
+for i in `find . -type f -name 'khata24d'`; do echo $i; cat $i | grep -i 'INBSARALUSER1'; done
+
+0A32216 500GB --- faulty HDD part NO..
+
+
+ Drw@sNd8!$
+
+ncpa.cpl--------- change ip in system windows
+
+
+\\172.18.193.160\scan_docs ----- scan copies
+
+
+ap@c50431
+
+https://10.0.251.86:9043/ibm/console/collectionButton.do
+
+
+for i in `ls *`; do echo $i; cat $i | grep '6716466'; done
+\
+
+gzip -cd impstxn.log.181115.gz|grep FA00191709 -------- .gz file list in solaris.
+
+
+find /ndlogs/ -type f -exec grep -l "bzcp723" {} + >> /tmp/bzcp723.txt
+
+
+
+################################## How to Remove a Node from an HACMP Cluster #########################################
+
+ 
+
+Contents
+
+    Introduction
+    STEP 1: Stop the Cluster Services on the Second Node
+    STEP 2: Remove the Node from all Resource Groups
+    STEP 3: Remove the Node from the Cluster
+    STEP 4: Verify and Synchronize Cluster 
+
+    Related Information 
+
+
+node01# clRGinfo
+-----------------------------------------------------------------------------
+Group Name     Group State                  Node           
+-----------------------------------------------------------------------------
+RES_GRP_01     ONLINE                       node01        
+               OFFLINE                      node02        
+
+RES_GRP_02     ONLINE                       node01        
+               OFFLINE                      node02        
+
+Conclusion: node02 is member of two resource groups, but all resources are active on node01. 
+
+
+----> STEP 1: Stop the Cluster Services on the Second Node.
+
+ We need to release all resources from the node we want to remove from the cluster. If there are any resources active we have to move the resources to the next priority node. In this example (see above) node02 has no active resources so we can select Bring Resource Groups Offline here:
+
+node02# smitty clstop
+
+                                     Stop Cluster Services
+
+Type or select values in entry fields.
+Press Enter AFTER making all desired changes.
+
+                                                        [Entry Fields]
+* Stop now, on system restart or both                 now                                          +
+  Stop Cluster Services on these nodes               [node02]                                      +
+  BROADCAST cluster shutdown?                         false                                        +
+* Select an Action on Resource Groups                 Bring Resource Groups Offline                +
+
+ 
+----> STEP 2: Remove the Node from all Resource Groups
+
+node01# smitty hacmp
+  -> Extended Configuration
+    -> Extended Resource Configuration
+      -> HACMP Extended Resource Group Configuration
+        -> Change/Show a Resource Group
+
+                                  Change/Show a Resource Group
+
+Type or select values in entry fields.
+Press Enter AFTER making all desired changes.
+  
+                                                        [Entry Fields]
+  Resource Group Name                                 RES_GRP_01
+  New Resource Group Name                            []
+  Participating Nodes (Default Node Priority)        [node01]                                      + <=== remove node02 from the list ==
+  
+  Startup Policy                                      Online On Home Node Only                     +
+  Fallover Policy                                     Fallover To Next Priority Node In The List   +
+  Fallback Policy                                     Never Fallback                               +
+
+Remove node02 from the list of participating nodes. Repeat this step for all resource groups with node02 as partitipating node. 
+
+----> STEP 3: Remove the Node from the Cluster
+
+node01# smitty hacmp
+  -> Extended Configuration
+    -> Extended Topology Configuration
+      -> Configure HACMP Nodes
+        -> Remove a Node in the HACMP Cluster
+          -> Select node02
+
+                                    Configure HACMP Nodes
+
+Move cursor to desired item and press Enter.
+
+  Add a Node to the HACMP Cluster
+  Change/Show a Node in the HACMP Cluster
+ >Remove a Node in the HACMP Cluster<
+
+
+----> STEP 4: Verify and Synchronize Cluster
+
+node01# smitty hacmp
+  -> Extended Configuration
+    ->  Extended Verification and Synchronization
+
+Job done: clRGinfo now shows one node less:
+
+node01# clRGinfo
+-----------------------------------------------------------------------------
+Group Name     Group State                  Node           
+-----------------------------------------------------------------------------
+RES_GRP_01     ONLINE                       node01        
+
+RES_GRP_02     ONLINE                       node01        
+
+ 
+A. Related Information
+
+    AIX 7.1 Information Center > PowerHA SystemMirror > HACMP Version 6.1 > Removing a cluster node from the HACMP configuration .
+
+
+######################################################################################################################################################################
+
+################################################ How to Add a New VG to an Active HACMP Resource Group ###############################################################
+
+
+Contents
+
+    1. Introduction
+    2. Identify New Disks
+    3. Create a Concurrent-Capable VG
+    4. Create the Filesystem(s)
+    5. Import on the Other Node
+    6. Add the VG to the HACMP Resource Group
+    7. Final Synchronization of the Cluster 
+
+    A. Related Information
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+######################################################################################################################################################################
+
+------>Unicast
+
+Unicast is the term used to describe communication where a piece of information is sent from one point to another point. In this case there is just one sender, and one receiver.
+
+Unicast transmission, in which a packet is sent from a single source to a specified destination, is still the predominant form of transmission on LANs and within the Internet. All LANs (e.g. Ethernet) and IP networks support the unicast transfer mode, and most users are familiar with the standard unicast applications (e.g. http, smtp, ftp and telnet) which employ the TCP transport protocol.
+
+
+------>Broadcast
+
+Broadcast is the term used to describe communication where a piece of information is sent from one point to all other points. In this case there is just one sender, but the information is sent to all connected receivers.
+
+Broadcast transmission is supported on most LANs (e.g. Ethernet), and may be used to send the same message to all computers on the LAN (e.g. the address resolution protocol (arp) uses this to send an address resolution query to all computers on a LAN). Network layer protocols (such as IPv4) also support a form of broadcast that allows the same packet to be sent to every system in a logical network (in IPv4 this consists of the IP network ID and an all 1's host number).
+
+
+------>Multicast
+
+Multicast is the term used to describe communication where a piece of information is sent from one or more points to a set of other points. In this case there is may be one or more senders, and the information is distributed to a set of receivers (theer may be no receivers, or any other number of receivers).
+
+One example of an application which may use multicast is a video server sending out networked TV channels. Simultaneous delivery of high quality video to each of a large number of delivery platforms will exhaust the capability of even a high bandwidth network with a powerful video clip server. This poses a major salability issue for applications which required sustained high bandwidth. One way to significantly ease scaling to larger groups of clients is to employ multicast networking.
+
+Multicasting is the networking technique of delivering the same packet simultaneously to a group of clients. IP multicast provides dynamic many-to-many connectivity between a set of senders (at least 1) and a group of receivers. The format of IP multicast packets is identical to that of unicast packets and is distinguished only by the use of a special class of destination address (class D IPv4 address) which denotes a specific multicast group. Since TCP supports only the unicast mode, multicast applications must use the UDP transport protocol.
+
+Unlike broadcast transmission (which is used on some local area networks), multicast clients receive a stream of packets only if they have previously elect to do so (by joining the specific multicast group address). Membership of a group is dynamic and controlled by the receivers (in turn informed by the local client applications). The routers in a multicast network learn which sub-networks have active clients for each multicast group and attempt to minimise the transmission of packets across parts of the network for which there are no active clients.
+
+The multicast mode is useful if a group of clients require a common set of data at the same time, or when the clients are able to receive and store (cache) common data until needed. Where there is a common need for the same data required by a group of clients, multicast transmission may provide significant bandwidth savings (up to 1/N of the bandwidth compared to N separate unicast clients).
+
+The majority of installed LANs (e.g. Ethernet) are able to support the multicast transmission mode. Shared LANs (using hubs/repeaters) inherently support multicast, since all packets reach all network interface cards connected to the LAN. The earliest LAN network interface cards had no specific support for multicast and introduced a big performance penalty by forcing the adaptor to receive all packets (promiscuous mode) and perform software filtering to remove all unwanted packets. Most modern network interface cards implement a set of multicast filters, relieving the host of the burden of performing excessive software filtering.
+
+
+------>Ethernet MAC Address
+
+The Ethernet network uses two hardware addresses which identify the source and destination of each frame sent by the Ethernet. The MAC destination address (all 1 s) is used to identify a broadcast packet (sent to all connected computers in a broadcast domain) or a multicast packet (lsb of 1st byte=1) (received by a selected group of computers).
+
+The hardware address is also known as the Medium Access Control (MAC) address, in reference to the IEEE 802.x series of standards that define Ethernet. Each computer network interface card is allocated a globally unique 6 byte address when the factory manufactures the card (stored in a PROM). This is the normal source address used by an interface. A computer sends all packets which it creates with its own hardware source address, and receives all packets which match its hardware address or the broadcast address. When configured to use multicast, a selection of multicast hardware addresses may also be received.
+
+#######################################################################################################################################################################
+
+ 
+In 115 Server – gateway restart mails 
+Cd /opt/sbi/gateway/sgate
+java com.sbi.gateway.creator.GatewayStarter start serverbackup6999 &
+userid gateway
+Gateway123
+
+
+######################################### user creation script #############################################################################################
+
+    8  for i in velumani sundaram anbuk sudhir indhu; do j=9000; mkuser id=$j shell=/usr/bin/ksh gecos=Fdmwac_Resource $i; j=`expr ${j} + 1`; echo $i; done
+   10  for i in velumani sundaram anbuk sudhir indhu; do j=9000; mkuser id=$j shell=/usr/bin/ksh gecos=Fdmwac_Resource $i;j=$((j+1)); echo $j; done
+   21  for i in velumani sundaram anbuk indhu sudhir; do echo $i; pwdadm -c $i; done
+  506  history|grep for
+
+############################################### Done ############################################################################################################
+
+########################################  find command syntax ############################################################################# 
+
+The Next Step: Double exec
+ 
+You have the find command syntax, so I suppose you could run a command to run ls -l first. Just replace rm -f with ls -l:
+ 
+find /apps -xdev -name "*.log" -type f -mtime +60 -exec ls -l {} \; > /tmp/clean_appslogs.out 2>&1 
+ 
+And then run the abovementioned zealot's cleanup command (zealotsweep.sh).
+ 
+But that is inelegant.
+ 
+Wouldn't it be better to run the ls and the rm in the same find command? You can do that by running two -exec statements. Here's how:
+ 
+find /apps -xdev -name "*.log" -type f -mtime +60 -exec ls -l {} \; -exec rm -f {} \; > /tmp/clean_appslogs.out 2>&1 
+ 
+Let's break that up a bit with some comments:
+ 
+find /apps          # Starting directory is /apps
+ 
+-xdev               # Do not traverse sub-directories outside this file system
+ 
+-name "*.log"                  # Find files matching "*.log"
+ 
+-type f             # Only find files, not directories, links etc.
+ 
+-mtime +60                         # Files' modification time (mtime) is more than 60 days ago.
+ 
+-exec ls -l {} \;       # List files first with ls -l (even your newbie knows that command)
+ 
+-exec rm -f {} \;       # And remove those files, but only if they are files (rm -f). Probably the -f is superfluous, as we're only looking for type f files anyway A reader has kindly corrected this. The rm -f isn't about file type. rm -f forces a delete operation without prompting in the case of a write-protected file. This is in contrast to rm -i which is used to get user confirmation before removing a file.
+ 
+> /tmp/clean_appslogs.out # Send the output to this file and overwrite this output file each time you run the find command.
+ 
+2>&1                                        # Capture errors in the same file as standard output
+
+
+################################################## Done ########################################################################
+
+
+################################################ ZFS  #############################################################################
+
+Solaris ZFS command line reference (Cheat sheet)
+
+By Sandeep 2 Comments
+
+Pool Related Commands
+# zpool create datapool c0t0d0	Create a basic pool named datapool
+# zpool create -f datapool c0t0d0	Force the creation of a pool
+# zpool create -m /data datapool c0t0d0	Create a pool with a different mount point than the default.
+# zpool create datapool raidz c3t0d0 c3t1d0 c3t2d0	Create RAID-Z vdev pool
+# zpool add datapool raidz c4t0d0 c4t1d0 c4t2d0	Add RAID-Z vdev to pool datapool
+# zpool create datapool raidz1 c0t0d0 c0t1d0 c0t2d0 c0t3d0 c0t4d0 c0t5d0	Create RAID-Z1 pool
+# zpool create datapool raidz2 c0t0d0 c0t1d0 c0t2d0 c0t3d0 c0t4d0 c0t5d0	Create RAID-Z2 pool
+# zpool create datapool mirror c0t0d0 c0t5d0	Mirror c0t0d0 to c0t5d0
+# zpool create datapool mirror c0t0d0 c0t5d0 mirror c0t2d0 c0t4d0	disk c0t0d0 is mirrored with c0t5d0 and disk c0t2d0 is mirrored withc0t4d0
+# zpool add datapool mirror c3t0d0 c3t1d0	Add new mirrored vdev to datapool
+# zpool add datapool spare c1t3d0	Add spare device c1t3d0 to the datapool
+## zpool create -n geekpool c1t3d0	Do a dry run on pool creation
+Show Pool Information
+# zpool status -x	Show pool status
+# zpool status -v datapool	Show individual pool status in verbose mode
+# zpool list	Show all the pools
+# zpool list -o name,size	Show particular properties of all the pools (here, name and size)
+# zpool list -Ho name	Show all pools without headers and columns
+File-system/Volume related commands
+# zfs create datapool/fs1	Create file-system fs1 under datapool
+# zfs create -V 1gb datapool/vol01	Create 1 GB volume (Block device) in datapool
+# zfs destroy -r datapool	destroy datapool and all datasets under it.
+# zfs destroy -fr datapool/data	destroy file-system or volume (data) and all related snapshots
+Set ZFS file system properties
+# zfs set quota=1G datapool/fs1	Set quota of 1 GB on filesystem fs1
+# zfs set reservation=1G datapool/fs1	Set Reservation of 1 GB on filesystem fs1
+# zfs set mountpoint=legacy datapool/fs1	Disable ZFS auto mounting and enable mounting through /etc/vfstab.
+# zfs set sharenfs=on datapool/fs1	Share fs1 as NFS
+# zfs set compression=on datapool/fs1	Enable compression on fs1
+File-system/Volume related commands
+# zfs create datapool/fs1	Create file-system fs1 under datapool
+# zfs create -V 1gb datapool/vol01	Create 1 GB volume (Block device) in datapool
+# zfs destroy -r datapool	destroy datapool and all datasets under it.
+# zfs destroy -fr datapool/data	destroy file-system or volume (data) and all related snapshots
+Show file system info
+# zfs list	List all ZFS file system
+# zfs get all datapool”	List all properties of a ZFS file system
+Mount/Umount Related Commands
+# zfs set mountpoint=/data datapool/fs1	Set the mount-point of file system fs1 to /data
+# zfs mount datapool/fs1	Mount fs1 file system
+# zfs umount datapool/fs1	Umount ZFS file system fs1
+# zfs mount -a	Mount all ZFS file systems
+# zfs umount -a	Umount all ZFS file systems
+ZFS I/O performance
+# zpool iostat 2	Display ZFS I/O Statistics every 2 seconds
+# zpool iostat -v 2	Display detailed ZFS I/O statistics every 2 seconds
+ZFS maintenance commands
+# zpool scrub datapool	Run scrub on all file systems under data pool
+# zpool offline -t datapool c0t0d0	Temporarily offline a disk (until next reboot)
+# zpool online	Online a disk to clear error count
+# zpool clear	Clear error count without a need to the disk
+Import/Export Commands
+# zpool import	List pools available for import
+# zpool import -a	Imports all pools found in the search directories
+# zpool import -d	To search for pools with block devices not located in /dev/dsk
+# zpool import -d /zfs datapool	Search for a pool with block devices created in /zfs
+# zpool import oldpool newpool	Import a pool originally named oldpool under new name newpool
+# zpool import 3987837483	Import pool using pool ID
+# zpool export datapool	Deport a ZFS pool named mypool
+# zpool export -f datapool	Force the unmount and deport of a ZFS pool
+Snapshot Commands
+
+Combine the send and receive operation
+# zfs snapshot datapool/fs1@12jan2014	Create a snapshot named 12jan2014 of the fs1 filesystem
+# zfs list -t snapshot	List snapshots
+# zfs rollback -r datapool/fs1@10jan2014	Roll back to 10jan2014 (recursively destroy intermediate snapshots)
+# zfs rollback -rf datapool/fs1@10jan2014	Roll back must and force unmount and remount
+# zfs destroy datapool/fs1@10jan2014	Destroy snapshot created earlier
+# zfs send datapool/fs1@oct2013 > /geekpool/fs1/oct2013.bak	Take a backup of ZFS snapshot locally
+# zfs receive anotherpool/fs1 < /geekpool/fs1/oct2013.bak	Restore from the snapshot backup backup taken
+# zfs send datapool/fs1@oct2013 | zfs receive anotherpool/fs1
+# zfs send datapool/fs1@oct2013 | ssh node02 “zfs receive testpool/testfs”	Send the snapshot to a remote system node02
+Clone Commands
+# zfs clone datapool/fs1@10jan2014 /clones/fs1	Clone an existing snapshot
+# zfs destroy datapool/fs1@10jan2014	Destroy clone
+
+##############################################################  DONE  #################################################################################
+ 
+############################################################ XSCF Health Check #########################################################################
+
+showboards -v
+showdomainstatus -a
+showenvironment
+showfru
+showhardconf 
+showstatus
+fmdump -v
+showlogs error
+showlogs power
+showdcl -va
+showlogs -d 00 -M console
+version -c xcp -v
+version -c xscf -v
+
+######################################################### DONE #########################################################################
+
+######################################################### IBM FTP LINK #################################################################
+
+# cd desktop
+# ftp delivery04-mul.dhe.ibm.com
+Type user name password
+# hash
+# prompt
+# bi
+# cd /ecc/hsb/HSDI5NDQzNzQxXzE0NjQ2MDMxNzM5OThfUnNEb1JoS3Z0VQ
+# mget *
+
+
+######################################################## IBM FTP LINK #####################################################################
+######################################################## ENC TextGenerator ################################################################
+192.168.27.36:/opt/sbi/wac/bin
+--------------------------------
+-bash-3.2$ java EncTextGenerator
+Enter project: (wac/smsgateway/pdfgen/itfo/scfuabs/scheduler/cmpcinb/sbfsms)
+wac
+Enter type: (encrypt/decrypt)
+decrypt
+Enter text:
+X9oMSE63GY9Ud8GVf/e9mw==
+Decrypted text ...:scfu123
+
+######################################################## ENC TextGenerator ################################################################
+
+
+
+
+
