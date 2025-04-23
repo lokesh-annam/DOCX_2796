@@ -1,0 +1,415 @@
+ODM (Object Data Manager) :- 
+ODM contains total system data information.
+1) Device configuration information 
+2) SMIT Information
+3) Vital product data information for installation and update procedures
+4) TCP/IP Communication configuration information
+6) System resource controller (SRC) data information
+7)Error log and dump information
+8)Network Installation Manager (NIM) information
+
+
+Actually ODM data will stored on three important directories:
+/etc/objrepos -> This directory contains the customized data information
+/usr/lib/objrepos -> This directory contains the predefined data inforamtion
+/usr/share/lib/objrepos -> This directory contains the Software Vital Product data information (SWVPD).
+
+ODM information is stored in the directories /etc/objrepos (default ODM directory, $ODMDIR env variable), /usr/lib/objrepos and /usr/share/lib/objrepos.
+
+odmadd						<--Adds objects to created object classes.
+odmchange					<--Changes the contents of a selected object in the specified object class.
+odmcreate					<--Produces the .c (source) and .h (include) files necessary for ODM application development and creates empty object classes.
+odmdelete					<--Deletes selected objects from a specified object class.
+odmdrop						<--Removes an object class.
+odmget						<--Retrieves objects from the specified object classes and places them into an odmadd input file.
+odmshow						<--Displays an object class definition.
+								odmshow CuDv : displays  the object class definition for the Customized Device Database.
+
+ODM can be divided into 3 parts:
+
+- Object Classes (odmcreate, odmdrop):
+The ODM consists of many database files, where each file is called an object class.
+
+odmcreate descriptor_file.cre            it creates an ODM class (descriptor_file.cre contains the class definition)
+odmdrop -o object_class_name            it deletes an entire ODM class
+
+
+- Objects (odmshow):
+Each object class consists of objects. Each object is one record in an object class.
+
+odmshow object_class_name            it shows the underlying layout of the objec class
+
+
+- Descriptors (odmadd, odmchange, odmdelete, odmget):
+The descriptors describe the layout of the objects. They determine the name and datatype of the fields that are part of the object class.
+
+-------------------------
+
+ODM object classes are held in 3 repositories:
+
+
+
+/etc/objrepos:(Cu* classes and / (root) part of SWVPD)
+
+- CuDv (Customized Device): It contains entries for all device instances defined in the system. (A defined device has been created by the define method, but an actual device no necessarily should be attached to the system)
+
+- CuAt (Customized Attribute): It contains customized device-specific attribute information. Devices in CuDv have attibutes in PdAt and CuAt. Attributes taking the default value are found in PdAt, and attributes with customized values are in CuAt.
+
+- CuDep (Customized Dependency): It contains logical dependencies. (i.e. dependency between lv and a vg, physical device dependencies are stored in CuDv)
+
+- CuDvDr (Customized Device Driver): It stores the major and minor numbers of devices. (Some programs use these special files to access a certain device.)
+
+- CuVPD (Customized Vital Product Data): It contains vital product data (manufacturer of device, part number, and so forth) that is useful for technical support. When an error occurs with a specific device the vital product data is shown in the error log.
+
+- Config_Rules: There is one ODM object class which the cfgmgr uses to determine the correct sequence when configuring devices.
+
+
+
+/usr/lib/objrepos:(Pd* classes and /usr part of SWVPD)
+
+- PdDv (Predefined Devices): It contains entries for all devices supported by system. A device that is not part of this could not be configured on AIX.
+
+- PdAt (Predefined Attribute): It contains attributes for each device represented in the PdDv object class. These attributes become the default values if they are not modified. Modified attributes are written to the CuAt.
+
+- PdCn (The Predefined Connection): It contains information about how devices physically connect to the system.
+
+- sm*: SMIT menu are located in the folowing files : sm_cmd_hdr, sm_cmd_opt,sm_name_hdr, sm_menu_opt
+
+
+
+/usr/share/lib/objrepos: (/usr/share part of SWVPD)
+
+
+-------------------------
+
+Software Vital Product Data
+
+Whenever installing a product or update an AIX, installp command uses ODM to maintain SWVPD. It contains name of the software, version, Applied, Commited..
+SWVPD consists of 4 classes which are sored at 3 different places (see image above).
+
+3 places of SWVPD:
+
+- /etc/objrepos: root part (/) of SWVPD
+The root part of the software contains the part of the product that cannot be shared among machines.
+
+- /usr/lib/objrepos: /usr part of SWVPD
+Software installed in the /usr-part can be shared among several machines with compatible hardware architectures.
+
+- /usr/share/lib/objrepos: /usr/share part of SWVPD
+These files are not hardware dependent, they can be shared among several machines even if the machines have a different hardware architecture
+
+To display classes stored at different places, change ODMDIR (i.e. ODMDIR=/usr/lib/objrepos) then rerun odmget command. (ODMDIR defaults to /etc/objrepos)
+
+
+4 classes of SWVPD:
+
+- lpp: contains information about the installed program, state, description... (odmget -q name=Java14.sdk lpp)
+
+- inventory: contains information about the files associated with the program (odmget -q lpp_id=264 inventory)
+
+- product: contains information about the product, i.e: prerequisites (odmget -q lpp_name=Java14.sdk product)
+
+- history: contains historical information about the installation and updates (odmget -q lpp_id=264 history)
+
+These object classes are linked together by the lpp_id descriptor.
+
+-------------------------
+
+Object Classes:
+
+
+PdDv, PdAt - CuDv, CuAt:
+
+Predefined device information describes all supported devices.
+Customized device information describes all devices that are actually attached to the system.
+
+If a device is to be configured, it must be part of the PdDv class. It is not possible to configure a device that is not defined in the corresponding Pd classes. If a device is in the defined state, there is an entry in ODM class CuDv.  When a device is available, the device driver has been loaded and a special file is created in the /dev directory (these special files are used by applications to access the device drivers loaded into the kernel). The difference between the defined and available state is, that no device driver has been loaded into the AIX kernel.
+
+
+
+1. When a device is defined in AIX, the device must be defined in ODM class PdDv.
+
+2. A device can be defined by either the cfgmgr (if the device is detectable), or by the mkdev command. Both commands use the define method to generate an instance in ODM class CuDv. The configure method is used to load a specific device driver and to generate an entry in the /dev directory.
+
+3. At this point, you only have default attribute values in PdAt, which means for a terminal you could not log in (default is disable) and the terminal type is dumb. If you change the attributes, for example, log in to enable and term to ibm3151, you get objects describing the nondefault values in CuAt.
+
+-------------------------
+
+The lsdev command actually gets its information from the PdDv and CuDv files.
+The lsattr command actually queries the PdAt and CuAt files.
+
+-------------------------
+
+echo $ODMDIR                default value is /etc/objrepos, it can be set in /etc/environment
+(odm commands (odmget..)will work in the dir which is set in $ODMDIR. You can change it, so you can find items (swvpd) from root or usr part)
+ODMDIR=/etc/objrepos        odm commands will get the / (root) part of the SWVPD
+ODMDIR=/usr/lib/objrepos    odm commands will get the /usr  part of the SWVPD
+
+odmcreate <descriptor_file.cre>     create an ODM class
+odmdrop -o <object_class_name>      delete an entire ODM class
+odmshow <object_class_name>         view the undelying layout of an object class (i.e: odmshow PdAt)
+
+odmget ...                          queries objects in classes (odmget PdDv: will list all the predefined devices)
+odmadd ...                          add new objects to an object class
+odmdelete ...                       delete objects (odmdelete -q name=paging00 -o CuAt)
+odmchange ...                       changes objects
+
+
+Operators:
+=      equal
+!=     not equal
+>      greater
+>=     greater than or equal to
+<      less than
+<=     less than or equal to
+like   similar to; finds path names in character string data
+?      odmget -q "name like hdisk?" CuDv
+*      odmget -q "name like hdisk*" CuDv
+
+some examples:
+odmget -q name=hdisk0 CuDv
+odmget -q "name=hdisk0 and attribute=pvid" CuAt
+odmget -q "lpp_name=bos.rte.filesystem and fix=52" product
+
+odmget -q "name like hdisk?" CuDv           
+odmget -q "value3 like hdisk?" CuDvDr
+
+odmdelete -q "lpp_name=bos.rte.filesystem and fix=52" -o product
+
+-------------------------
+
+getlvodm -j <hdisk>    get the vgid for the hdisk from the odm
+
+getlvodm -t <vgid>     get the vg name for the vgid from the odm
+getlvodm -v <vgname>   get the vgid for the vg name from the odm
+
+getlvodm -p <hdisk>    get the pvid for the hdisk from the odm
+getlvodm -g <pvid>     get the hdisk for the pvid from the odm
+
+-------------------------
+
+chdef (changing parameters in PdAt)
+
+I wanted to increase queue_depth value in PdAt, but to avoid any odm manipulation used chdef command:
+chdef -a attribute=value -c <Class> -s <subclass> -t <type>
+
+1. odmget -q attribute=queue_depth PdAt | grep -p vscsi    <--to check current value
+2. lsdev -H -F "name class subclass type" | grep hdisk     <--to check class, subtype, type which is needed for chdef
+3. chdef -a queue_depth=32 -c disk -s vscsi -t cvdisk      <--it will increase queue_depth to 32 in PdAt
+
+after odmget will show our new value.
+
+-------------------------
+
+
+Deleting a disk completely from ODM:
+
+For example if rmdev command does not work:
+
+# rmdev -dl hdiskX
+Method error (/etc/methods/undefine):
+        0514-009 Cannot delete an object from the device
+                 configuration database.
+
+
+1. find disk in ODM customized database: 
+   odmget -q name=hdisk# CuAt
+   odmget -q value=hdisk# CuAt
+   odmget -q name=hdisk# CuDv
+   odmget -q value3=hdisk# CuDvDr
+   odmget -q name=hdisk# CuDep
+   odmget -q name=hdisk# CuVPD
+   odmget -q name = hdisk# CuPath
+   odmget -q name = hdisk# CuPathAt
+
+
+2. remove disk entries from ODM customized database: 
+   odmdelete -q name=hdisk# -o CuAt
+   odmdelete -q value=hdisk# -o CuAt
+   odmdelete -q name=hdisk# -o CuDv
+   odmdelete -q value3=hdisk# -o CuDvDr
+   odmdelete -q name=hdisk# -o CuDep
+   odmdelete -q name=hdisk# -o CuVPD
+   odmdelete -q name=hdisk# -o CuPath
+   odmdelete -q name=hdisk# -o CuPathAt
+
+-------------------------
+
+Changing Attribute Values:
+
+1. odmdelete and odmadd commands
+
+-we want to change default block size to 1024:
+odmget -q"uniquetype=tape/vscsi/ost and attribute=block_size" PdAt
+
+PdAt:
+        uniquetype = "tape/vscsi/ost"
+        attribute = "block_size"
+        deflt = "512"   
+        values = "0-2147483648,1"
+        width = ""
+        type = "R"
+        generic = "DU"
+        rep = "nr"
+        nls_index = 2
+
+-create a temporary file:
+odmget -q"uniquetype=tape/vscsi/ost and attribute=block_size" PdAt > ODM_tape_file
+
+-change the value to 1024:
+vi ODM_tape_file
+
+-before adding the new object, the old object must be deleted otherwise we would have 2 objects:
+odmdelete -q"uniquetype=tape/vscsi/ost and attribute=block_size" -o PdAt              
+(if we have 2 objects with the same type, the 1st one will be used)
+
+-add the new object:
+odmadd ODM_tape_file
+(The first line of the file will contain which object class this entry should go (here PdAt) )
+
+
+2. odmchange command
+(It does the same as the delete and the add operations, but all in one step)
+
+odmget -q name=et0 CuDv > ODM_et_file
+vi ODM_et_file
+odmchange -q name=et0 -o CuDv ODM_et_file
+
+-------------------------
+
+Fixing ODM problems of non-rootvg:
+1.umount fs -> varyoffvg homevg
+2.exportvg homevg                       <--remove completely from ODM
+3.importvg -y homevg hdiskX             <--import vg by creating new ODM objects (-y: specify the vg name)
+for rootvg: rvgrecover
+
+------------------
+
+Checking in which class to look for an entry:
+
+cd /etc/objrepos
+grep -l paging00 *                      <--lists the name of the files (once) which contain matching line
+
+------------------
+
+
+FIXING FILESETS: (GENERAL)
+
+lppchk -v shows problems with a fileset and you don't want to (or can't) remove it:
+devices.common.IBM.iscsi.rte 5.2.0.0    (not installed; requisite fileset)
+
+1. save ODM
+   tar -cvf /tmp/odm.tar /etc/objrepos /usr/lib/objrepos
+
+2. check lpp_id
+   odmget -q name=devices.common.IBM.iscsi.rte lpp
+   output will show lpp_id:
+    ...
+    lpp_id = 355
+
+3. delete from /etc/objrepos (lpp,product, history, inventory) (check odmdir: echo $ODMDIR)
+   export ODMDIR=/etc/objrepos
+   odmdelete -q name=devices.common.IBM.iscsi.rte -o lpp
+   odmdelete -q lpp_name=devices.common.IBM.iscsi.rte -o product
+   odmdelete -q lpp_id="355" -o history
+   odmdelete -q lpp_id="355" -o inventory
+
+4. delete from /usr/lib/objrepos (lpp,product, history, inventory) (check odmdir: echo $ODMDIR)
+   export ODMDIR=/usr/lib/objrepos
+   odmdelete -q name=devices.common.IBM.iscsi.rte -o lpp
+   odmdelete -q lpp_name=devices.common.IBM.iscsi.rte -o product
+   odmdelete -q lpp_id="355" -o history
+   odmdelete -q lpp_id="355" -o inventory
+
+   export ODMDIR=/etc/objrepos (sets back ODMDIR to its original value)
+   check lppchk -v if it is OK now
+
+5. (if needed) reinstall base fileset with force flag (then update)
+   installp -aF -d /home/bb/bb1 all
+
+   or
+
+   update to the required level
+
+------------------
+
+FIXING FILESETS: (SPECIFIC:bos.rte.printers)
+A fileset is in Broken state and no Base install fileset has been found (so we could not do a force install)
+(We had a good base fileset, and a failed updated fileset.)
+
+Plan: Clean up from ODM the failed updated fileset, then update again.)
+
+1. lppchk -v shows:
+     bos.rte.printers 5.3.10.1               (BROKEN)
+
+2. checking where is it broken:
+    lslpp -lc | grep bos.rte.printers
+    /usr/lib/objrepos:bos.rte.printers:5.3.10.1::BROKEN:F:Front End Printer Support:
+    /etc/objrepos:bos.rte.printers:5.3.8.0::COMMITTED:I:Front End Printer Support:
+
+3. backing up ODM:
+    tar -cvf /tmp/odm.etc.tar /etc/objrepos
+    tar -cvf /tmp/odm.usr.lib.tar /usr/lib/objrepos
+
+4. checking fileset in the ODM (ODMDIR is set here /etc first):
+    odmget -q lpp_name=bos.rte.printers product                <--fileset exists only here and here 5.3.8 version exists, mod=8)
+    odmget -q lpp_name=bos.rte.printers lpp                    <--here nothing
+
+5. export ODMDIR=/usr/lib/objrepos                             <--problem occured at /usr, so ODMDIR has been changed to it
+
+6. now checking the ODM in /usr/lib/objrepos:
+    odmget -q lpp_name=bos.rte.printers product                <--here 5.3.10 version exists, mod=10)
+
+7. final check to identify the corect entry what we need to delete (mod=10)
+    odmget -q "lpp_name=bos.rte.printers and mod=10" product   <--mod=10 is the updated version
+    odmget -q "lpp_name=bos.rte.printers and mod=8" product    <--mod=8 is the base version
+
+8. deleting from ODM:
+    odmdelete -o product -q "lpp_name=bos.rte.printers and mod=10"    <--updated version deleted
+
+9. after that update was OK:
+    smitty update_all
+
+10. setting back ODMDIR (no problem if omitted):
+    export ODMDIR=/etc/objrepos                                 <--if login again it will be refreshed from /etc/environment
+
+------------------
+
+
+Changing ODM parameters of the HDLM driver:
+
+root@aix1 : /home/padmin # odmget PdAt > /tmp/PdAtbackup_091119
+root@aix1 : /home/padmin # odmget -q"uniquetype=disk/fcp/Hitachi and attribute=reserve_policy" PdAt > /tmp/pdatreserve_policy
+
+Edit /tmp/pdatreserve_policy:
+
+PdAt:
+
+        uniquetype = "disk/fcp/Hitachi"
+        attribute = "reserve_policy"
+        deflt = "no_reserve"
+        values = "no_reserve,single_path,PR_exclusive,PR_shared"
+        width = ""
+        type = "R"
+        generic = "DU"
+        rep = "sl"
+        nls_index = 96
+
+# odmchange -o PdAt -q"uniquetype=disk/fcp/Hitachi and attribute=reserve_policy" /tmp/pdatreserve_policy
+
+------------------
+
+Major/Minor numbers from ODM:
+
+odmget -q "value3=lp1" CuDvDr
+
+Should return something like:
+
+CuDvDr:
+
+resoure="devno"
+value1="15"
+value2="2"
+value3="lp1"
+
+The major number is 15 and minor 2.
