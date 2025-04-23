@@ -1,0 +1,64 @@
+root@sbinfsc67 # cat serverinfo.sh |more
+date
+uptime
+hostname
+uname -a
+df -h
+echo | format
+dladm show-dev
+ifconfig -a
+netstat -rn
+dladm show-dev
+cat /etc/rc2.d/S99route
+cat /etc/netmasks
+cat /etc/defaultrouter
+cat /etc/hosts
+cat /etc/hostname.*
+cat /etc/nsswitch.conf
+cat /etc/resolv.conf
+cat /etc/vfstab
+share
+cat /scripts/mntall
+cat /etc/dfs/dfstab
+cat /etc/dfs/sharetab
+swap -l
+sneep
+prtdiag -v
+prtconf -pvv| grep boot
+eeprom
+eeprom |egrep "securit|diag"
+java -version
+which java
+ls -lrth /usr/bin/java
+cat  /etc/passwd
+cat  /etc/group
+cat  /etc/vfstab
+cat  /etc/system
+who -r
+svcs -a
+svcs -xv
+who
+metadb
+metadb -i
+metastat
+metastat -p
+metastat -c
+iostat -en
+iostat -En
+zpool status
+zpool list
+cat /etc/system
+dmesg
+cat /var/adm/messages
+cfgadm -al
+fmdump
+fcinfo hba-port
+luxadm -e port
+fmadm faulty
+ulimit -a
+top -b
+ps -ef | grep pmon
+ps -ef | grep smon
+ps -ef | grep java
+ps -ef | grep http
+ps -ef | grep wac
