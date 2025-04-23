@@ -1,0 +1,100 @@
+retail-error.log.
+
+
+find . -name 'retailyono.-error.log.*' -type f -mtime +17 -exec rm -rf {} \;
+find . -name 'retailyono.log.*' -type f -mtime +17 -exec rm -rf {} \;
+
+
+
+
+rmitab piobe
+rmitab rcnfs
+chsubserver -r inetd -C /etc/inetd.conf -d -v 'shell' -p 'tcp6'
+chsubserver -r inetd -C /etc/inetd.conf -d -v 'cmsd' -p 'sunrpc_udp'
+chsubserver -r inetd -C /etc/inetd.conf -d -v 'ttdbserver' -p 'sunrpc_tcp'
+chmod u=rw,go=r /etc/inetd.conf
+chown root:system /etc/inetd.conf
+chmod ugo= /usr/bin/rcp
+chmod ugo= /usr/bin/rsh
+chmod ugo= /usr/bin/rlogin
+chmod ugo= /usr/sbin/rlogind
+chmod ugo= /usr/sbin/rshd
+chmod ugo= /usr/sbin/tftpd
+echo 'root' > /var/adm/cron/at.allow
+rm /var/adm/cron/at.deny
+
+#touch /var/adm/authlog
+chown root:system /var/adm/authlog
+chmod u=rw,go= /var/adm/authlog
+
+#touch /var/adm/syslog
+chmod u=rw,g=r,o= /var/adm/syslog
+chmod u=rw,g=r,o= /etc/mail/sendmail.cf
+chown root /etc/mail/sendmail.cf
+chmod u=rwx,go= /var/spool/mqueue
+chown root /var/spool/mqueue
+
+#mkdir -p /var/adm/sa
+chown adm:adm /var/adm/sa
+chmod u=rwx,go=rx /var/adm/sa
+
+pwdck -n ALL
+
+
+
+lslpp -L 'bos.msg.en_US.net.tcp.client'
+dspcat -g /usr/lib/nls/msg/en_US/ftpd.cat > /tmp/ftpd.tmp 
+sed "s/\"\%s FTP server (\%s) ready.\"/\"\%s Authorized uses only. All activity may be monitored and reported\"/" /tmp/ftpd.tmp > /tmp/ftpd.msg 
+gencat /usr/lib/nls/msg/en_US/ftpd.cat /tmp/ftpd.msg
+rm /tmp/ftpd.tmp /tmp/ftpd.msg
+
+cp -p /etc/mail/sendmail.cf /etc/mail/sendmail.cf.pre_cis
+vi /etc/mail/sendmail.cf
+O SmtpGreetingMessage=$j Sendmail $b
+O SmtpGreetingMessage=mailerready
+
+
+
+Commands:
+Uninstallation:
+unset DT_HOME 
+unset LDR_PRELOAD64 
+cd /opt/dynatrace/oneagent/agent/initscripts ==> ./oneagent stop  
+cd /opt/dynatrace/oneagent/agent  
+./Uninstall.sh  
+rm -rf /var/log/dynatrace/oneagent 
+cd /var/lib/dynatrace/oneagent/agent/config 
+rm -rf *(*= delet all config files) 
+Delete dynatrace directory from /opt
+
+
+Installation:
+Now Move the installation file to /tmp 
+mv Dynatrace-OneAgent-Aix-1.239.226.sh /opt/ 
+chown root:system Dynatrace-OneAgent-Aix-1.239.226.sh 
+chmod 775 Dynatrace-OneAgent-Aix-1.239.226.sh
+export http_proxy="http://10.191.191.39:9090" 
+export https_proxy="https://10.191.191.39:9090" 
+export ftp_proxy=ftp://10.191.191.39:9090 
+/bin/sh Dynatrace-OneAgent-Aix-1.293.153.sh --set-host-group=INB-COR-APP
+
+
+unset DT_HOME 
+unset LDR_PRELOAD64 
+cd /opt/dynatrace/oneagent/agent/initscripts ==> ./oneagebt stop  
+cd /opt/dynatrace/oneagent/agent  
+./Uninstall.sh  
+rm-rf /var/log/dynatrace/oneagent 
+cd /var/lib/dynatrace/oneagent/agent/config 
+rm-rf *(*= delet all config files) 
+Delete dynatrace directory from /opt
+Installation:
+Move the installation file to local
+chown root:system Dynatrace-OneAgent-Aix-1.239.226.sh 
+chmod 775 Dynatrace-OneAgent-Aix-1.239.226.sh
+./Dynatrace-OneAgent-Aix-1.293.153.sh --set-host-group=HostGroupColumnExcel (Example : ./Dynatrace-OneAgent-Aix-1.293.153.sh --set-host-group=INB-RET-APP)
+
+
+
+
+
