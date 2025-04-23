@@ -1,0 +1,465 @@
+  
+System installation and maintenance management 
+Problem determination:-								
+System initialization and boot management:-
+Hardware installation and configuration management:-
+
+
+Physical Volume Management:-
+See also lsdev, chdev, mkdev and rmdev.
+
+ 
+File System Management:-
+
+
+ 
+
+	
+	
+  
+
+ 
+ 
+Volume Group Management:-
+
+
+								 
+ 
+System Paging Space Management:-
+
+
+ 
+ 
+Communications Management:-
+
+
+ 
+ 
+User/Group Management:-
+
+IBM AIX COURSE CONTENT
+
+Chapter 1 : Introduction to AIX
+
+Introduction to AIX includes RISC Technology, 
+RISC Processors, RISC History, POWERArchitecture, 
+P-Series System Buses (PCI,ISA,MCA Buses) Uniprocessor , SMP and Cluster1600. Difference between SMP and SMT.
+
+Chapter 2 : Introduction to IBM Hardware
+
+Introduction to IBM Hardware include Series of Hardware in IBM, Introduction to POWER and History of POWER Hardware, POWER Hardware Generations, AIX evolutions.
+
+Chapter 3 : UNIX Basics
+
+Structure of Unix include Hardware, shell, kernel and Utilities and Application
+
+Chapter 4 : Unix File System Hierarchy
+
+Unix File System Hierarchy include file system Hierarchy
+
+Chapter 5 : Boot Process in AIX
+
+Boot Process in AIX include Modes of System startup, Startup Process in AIX, Importance of /etc./inittab file in boot process, Common Booting codes, Shutdown Process of AIX.
+
+Chapter 6 : AIXS 6.1 and 7.1 OS installation
+
+Basic Requirements for AIX OS Installation (AIX 6.1 and AIX 7.1) AIX Installation Methods.
+
+Chapter 7 : Software Installation and Maintenance
+
+AIX Product Offering, Packaging Definitions, Fileset Namings, Software updates, 
+oslevel commands and AIX oslevel Naming. Types of Software upgrades, Software installations By 
+geninstall, Software installations and Maintenance, Software Maintenance & Utilities, Instfix Commands, 
+Integrity of the operating system commands. System Management Interface Tool (smit),smit Fast Paths, smit Features, smit Modes of operations.
+
+Chapter 8 : Object Data Manager
+
+What is Object Data Manager (ODM),Basic Components of the ODM, important ODM Database files, ODM Commands, Examples of using the ODM.
+
+
+
+
+
+Chapter 11 : Logical Volume Manager (LVM)
+
+Component of AIX Storage, Traditional Unix Disk Storage, Issue with Traditional Unix Disk Storage, 
+Benefit of the LVM, Logical Volume Components, Volume Group Types, Volume Group -t Factor, Limitations of logical volume storage, 
+Volume Group Descriptor Area (VGDA), Quorum, Volume Group Status Area(VGSA),Logical Storage, Logical Volumes, LVM Mapping, Uses of Logical Volumes, 
+Logical volume control block (LVCB),Physical Volume Allocation Policy, Logical Volume Mirroring, logical Volume Striping, Logical Track Group(LTG).
+
+Chapter 12 : File Systems in AIX
+
+What is File systems, Standard Filesystem in AIX ,AIX Supported Filesystems,/etc./filesystems descriptions, 
+What Is Mount Points, Structure of a Journaled File System, File System Fragmentation, Difference between JFS and JFS2,System Storage Review. 
+
+Chapter 13 : Paging Space
+
+What is Paging Space, Paging Space Placement, Creation of Paging Space, Paging Space Commands, Removing Paging Space, Paging Space Troubleshooting.
+
+
+
+Chapter 15 : Performance Monitoring in AIX
+
+iostat, vmstat, netstat, ps, lsattr, lslv, nfsstat, topas, etc. Nmon Configuration in AIX.
+
+Chapter 16 : Scheduling Jobs
+
+Function of the Cron daemon, Starting of cron, crontab files, crontab commands, at command.
+
+Chapter 17 : Backups
+
+Why Backups, Types of Backups, Backup Devices, Device Naming in AIX, rootvg Backup Process, Tape layout of a mksysb image, 
+backup Commands, Types of Paths, restore commands, Other Unix Backup Commands, tctl Command, Good Backup Practices.
+
+
+
+Chapter 19 : Overview of Network File System (NFS)
+
+What is NFS,NFS Versions.
+
+Chapter 20 : Overview of Network Installation Manager (NIM)
+
+What is NIM, Basic NIM Components.
+
+Chapter 21 : Overview of HACMP
+
+What is HACMP, Basics HACMP Components.
+
+Chapter 22 : Overview of LPAR, DLPAR, VIOS
+
+What is LPAR Basics of Lpar ,What is DLPAR and What is VIOS.
+
+Chapter 23 : Overview of Storage Area Network connectivity with AIX
+
+SAN Connectivity with AIX, Description about HBA, Identification of Storage Volumes.
+
+Chapter 24 : AIX Project Implementations in Lab
+
+AIX Project Implementation in Lab include from System commission to decommission of system, 
+AIX Project Implementations will help student to get confidence in all AIX terms.
+
+
+								 
+ 
+
+ 
+ 
+
+ 
+ 
+
+								 
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+
+
+
+Miscellaneus
+ 	
+  
+
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+
+oslevel -s
+oslevel -sq
+oslevel -rq
+
+uname -aMu 
+uname -M			<--to get the uname output for the machine type.
+uname -p			<--The system architecture is queried using.
+
+
+
+
+lppchk -vm3
+lppchk -m 3 -f
+lppchk -m 3 -c
+lsuser <USER_NAME>
+pwdadm -q <USER_NAME>
+
+
+echo "wasadmin:wasadmin@12345" |chpasswd
+
+chfs -a size=+5G /home -->Resize File System
+Filesystem size changed to 20971520
+
+
+netstat -nr
+netstat -ano | findstr :2121
+netstat -Aan | grep LISTEN | grep <PORT_NO> -->To Determine which processes have listening ports on AIX
+Get Socket ID
+# netstat -Aan | grep "\.6200" | grep LISTEN
+f10010002b09d3b8 tcp        0      0  *.6200                *.*                   LISTEN
+Get Process ID
+# rmsock f10010002b09d3b8 tcpcb
+The socket 0xf10010002b09d008 is being held by proccess 48890224 (ons).
+Get Process Name
+# ps -ef | grep 48890224 | grep -v grep
+    grid 48890224 13697416   0   Feb 22      -  0:02 /u01/app/19.0.0/grid/opmn/bin/ons -d
+
+
+export PS1=$(echo `whoami`@"\033[3;36m"`hostname`:"\033[0m"'$PWD'#)
+
+
+
+rmsock <f100050000b05bb8> tcpcb -->removes a socket that does not have a file descriptor
+ex: rmsock 70054edc socket
+/var/adm/ras/rmsock.log	Contains the rmsock.log file.
+
+Examples
+To remove a socket from its socket address, type:
+rmsock 70054edc socket
+
+You do not need to specify the type of the socket. It can be a tcpcb, udp, raw, or routing socket.
+
+To remove a socket from its inpcb address, type:
+rmsock 70054edc inpcb
+
+To remove a socket from its tcpcb address, type:
+rmsock 70054ecc tcpcb
+
+
+
+zcat 16.1.0.14-IBM-xlCcmp-AIX-FP014.tar.Z | tar xvf -   -->unpack the package to an empty folder:
+
+
+
+# lslpp -l | grep -i <Package_name> -->To find the installed packages.
+
+
+
+
+
+df -gt
+print 'root
+adm' > /var/adm/cron/cron.allow
+
+mkdir -p /var/adm/sa
+ chown adm:adm /var/adm/sa
+ chmod u=rwx,go=rx /var/adm/sa
+ 
+lsdev -C|grep Process|wc –l -->To check number of CPU’s in the server
+nmon
+topas
+
+dspcat -g /usr/lib/nls/msg/en_US/ftpd.cat | grep "^9[[:blank:]]"
+cat /etc/motd
+cat /etc/mail/sendmail.cf
+cat /etc/rc.tcpip
+cat /etc/inittab
+
+
+emgr -P -->Check the IFIX 
+
+
+rmitab qdaemon
+chrctcp -d snmpd
+
+rmuser -p guest
+rm -r /home/guest
+
+cat /var/adm/syslog | grep -Ei 'Apr 23|10:20:00|10:30:00'
+
+chfs -a size=+15G /tmp/
+
+pwdadm -q SOCVA --> To check with particular userâ€™s last password changed in AIX.
+perl -le "print scalar localtime 1679908514"
+
+sudo lsuser -f -a time_last_unsuccessful_login tty_last_unsuccessful_login host_last_unsuccessful_login unsuccessful_login_count service-account-name-here
+
+tail -1000 /var/adm/syslog | grep -i failed.*myservacct
+tail -f FILE_NAME
+
+stopsrc -s sshd;startsrc -s sshd
+pwdck -n ALL
+
+tcpdump -i enl -w /tmp/text.pcap host 10.189.112.148
+tcpdump -w /tmp/text.pcap -i en1
+
+lslpp -L "bos.msg.en_US.net.tcp.client"
+
+
+lsdev -Cc adapter
+
+
+
+ps -ef | grep -Ei 'java|httpd|wac|gateway'
+
+
+
+instfix -i | grep AIX_ML  -->list of maintanace levels that have been applied on the server.
+
+	
+# oslevel -s
+
+
+
+
+printf 'auth.info\t\t/var/adm/authlog rotate time 1w files 4' >> /etc/syslog.conf
+refresh -s syslogd
+
+
+=================================================================================================>
+VA Observation
+
+
+
+
+
+
+
+==================================================================================================>
+
+Listing the AIX System Configuration
+Audience: All
+Date: January 30, 2002
+
+You can use the prtconf command to list your AIX hardware configuration. including CPU's, memory, adapters, disk and network. The prtconf command is available the current version of AIX 4.3.3**, and on AIX 5. For those running older versions of AIX, here's a list of commands that provide the same information.
+
+General
+prtconf			-  list system configuration
+lscfg [-v]		- devices (-v = verbose for microcode levels, etc)
+lscfg -v  		- devices verbose (microcode level, firmware, etc)
+lsdev -Cc adapter	- adapter cards
+lsdev -Cc disk		- disks
+lsdev -Cc processor     - CPU's
+lsattr -El sys0		- serial number, model number, memory
+AIX
+oslevel			- AIX OS level
+instfix -i |grep ML 	- AIX maintenance level
+lslpp -l		- installed SW and levels
+Disk
+lsvg -o			- active volume groups
+lsvg -p vgname		- disk drives in VG
+lsvg -l  vgname		- LV's in VG
+lslv  lvname		- LV detail
+lslv -l lvname		- LV disk location 
+lspv			- disks
+lspv -l hdisk#		- LV's residing on a disk
+Network
+lsdev -Cc if		-List network interfaces
+netstat -rn		-List network gateways
+
+
+
+
+
+ 
+ 
+ How to check VLAN ID number on AIX?
+Article Number: 74 | Rating: Unrated | Last Updated: Mon, May 28, 2018 10:45 AM
+To check VLAN ID on AIX you can issue the command entstat filtering the result as the follow:
+
+# entstat -d en0 | grep 'Port VLAN ID'
+Port VLAN ID:   800
+
+How to check VLAN-ID with command on LPAR for know information or something!!
+
+Serv01:root:/root> entstat -d ent61 |grep -i vlan
+Invalid VLAN ID Packets: 0
+Port VLAN ID: 95
+VLAN Tag IDs: None
+ 
+ 
+ 
+ 
+ How to deal with performance monitoring in AIX ?
+Article Number: 55 | Rating: Unrated | Last Updated: Fri, May 25, 2018 9:23 PM
+To display top 10 highly utilized files under /var FS: find /var –xdev –ls|sort +6rn|head
+
+ 
+
+
+
+ 
+
+
+
+
+
+
+
+
+
+
+==================================================================================================>
+
+
+==================================================================================================>
+
+chps -s 80 hd6			<--Increase the 10GB pagespacing
+lsps -s					<--Check the pagespace.
+
+==================================================================================================>
+
+crfs -v jfs2 -g datavg -a size=30G -A yes -m /IHS9
+ mount /IHS9
