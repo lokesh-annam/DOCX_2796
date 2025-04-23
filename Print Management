@@ -1,0 +1,86 @@
+Print Management:-
+
+The AIX print subsystem (default), a combination of the System V and Berkeley Software Distribution (BSD) printing standard, and the System V R4 print subsystem are available. Both print subsystems cannot be set to the active state at the same time using the normal procedures.
+System file /etc/qconfig (stanzas that describe the printqueues and devices). Spooling uses the /var/spool/qdaemon directory. Daemon: qdaemon.
+
+
+switch.prt					<--Displays the current active print subsystem, or switch between the active and inactive print subsystem. Read also AIX System V Printing.
+								switch.prt -d : displays the current print subsystem that is active.
+
+AIX print subsystem
+
+qprt						<--Starts a print job.
+
+lpr							<--Enqueues print jobs.
+
+lp					  		<--Sends requests to a line printer.
+
+enq							<--Enqueues a file.
+
+chprtsv						<--Changes a print service configuration on a client or server machine.
+
+lsque						<--Displays the queue stanza name.
+								lsque -q ps : displays the name of queue stanza ps.
+
+mkque						<--Adds a printer queue to the system.
+
+mkquedev					<--Adds a printer queue device to the system.
+
+rmque						<--Removes a printer queue from the system.
+
+rmquedev					<--Removes a printer or plotter queue device from the system.
+
+chque						<--Changes the queue name.
+
+chvirprt					<--Changes the attribute values of a virtual printer.
+
+lsallq						<--Lists the names of all configured queues.
+
+lsallqdev					<--Lists all configured printer and plotter queue device names within a specified queue.
+
+lsprtsv						<--Shows print service information stored in the database.
+
+lsquedev					<--Displays the device stanza name.
+
+chquedev					<--Changes the printer or plotter queue device names.
+
+mkvirprt					<--Makes a virtual printer.
+
+rmvirprt					<--Removes a virtual printer.
+
+mkprtsv						<--Configures TCP/IP-based print service on a host.
+
+rmprtsv						<--Unconfigures a print service on a client or server machine.
+
+
+System V R4 print subsystem :-
+
+lp							<--Sends print requests.
+
+cancel						<--Cancels print requests previously sent with the lp command.
+
+lpstat						<--Displays the status of all print requests made by the user.
+
+accept						<--Allows the queuing of print requests.
+
+reject						<--Prevents queuing of print requests.
+
+enable						<--Activates the named printers, enabling them to print requests.
+
+disable						<--Deactivates the named printers, disabling them to print requests.
+
+lpadmin						<--Configures the lp print service by defining printers and devices.
+
+lpfilter					<--Administers filters used.
+
+lpforms						<--Administers the use of preprinted forms.
+
+lpmove						<--Moves print requests between destinations.
+
+lpsched						<--Starts the print service.
+
+lpshut						<--Stuts down the print service.
+
+lpsystem					<--Registers remote systems with the print service.
+
+lpusers						<--Set printing queue priorities.
