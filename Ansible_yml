@@ -1,0 +1,1245 @@
+=======================PlayBook========================================>
+---
+- name: 
+  hosts: 
+  become: 
+  tasks:
+     - name: 
+	   ping: 
+...
+
+=========================================================================>
+---
+- name: Change shell for a user in AIX
+  hosts: all
+  become: true
+  tasks:
+    - name: Lock user accounts using chuser
+      ansible.builtin.command:
+        cmd: "chuser account_locked=true {{ item }}"
+      with_items:
+        - pons
+      changed_when: false
+#    - name: change all users shell
+#      ansible.builtin.command:
+#        cmd: "chuser shell=/usr/bin/false {{ item }}"
+#      changed_when: null
+#    - name: Verify if the account is locked
+      ansible.builtin.command:
+        cmd: "lsuser -a account_locked {{ item }}"
+        register: result
+      changed_when: false
+    - name: Display account status
+      ansible.builtin.debug:
+        var: result.stdout
+		
+		
+=================================================================>
+---
+- name: Backup file in the same location on AIX 
+  hosts: all
+  become: true
+  tasks:
+    - name: Backup first file in the same location on AIX 
+	  ansible.builtin.copy:
+	   src: /etc/security/login.cfg
+	   dest: /etc/security/login.cfg_bkp
+	   remote_src: yes
+	   backup: yes 
+=================================================================>
+---
+- name: Change shell for a user in AIX
+  hosts: all
+  become: true
+  tasks:
+    - name: Change shell to /usr/bin/false for the user in /etc/security/login.cfg
+      ansible.builtin.command:
+        cmd: "chsec -f /etc/security/login.cfg -s usw -a {{ item }}"
+        with_items:
+         - "shells= '/usr/bin/bash,/bin/sh,/bin/bsh,/bin/csh,/bin/ksh,/bin/tsh,/bin/ksh93,/bin/bash,/usr/bin/sh,/usr/bin/bsh,/usr/bin/csh,/usr/bin/ksh,/usr/bin/tsh,/usr/bin/ksh93,/usr/bin/rksh,/usr/bin/rksh93,/usr/sbin/uucp/uucico,/usr/sbin/sliplogin,/usr/sbin/snappd,/usr/bin/false'"
+      register: result
+    - name: Show the result of chsec command
+      ansible.builtin.debug:
+       var: result.stdout
+---------------------------------------------------------------------->
+---
+- name: 
+
+
+----------------------------------------------------------------------->
+---
+- name: Change shell for a user in AIX
+  hosts: all
+  gather_facts: no
+  become: true
+  tasks:
+   - name: Lock user accounts using chuser
+      cmd: "chuser account_locked=true {{ item }}"
+     with_items:
+      - inbitam
+      - addmitam
+      changed_when: false
+#   - name: change all users shell
+#      cmd: chuser shell=/usr/bin/false {{ item }}
+   - name: Verify if the account is locked
+      cmd: "lsuser -a account_locked {{ item }}"
+     register: result
+     changed_when: false
+   - name: Display account status
+     ansible.builtin.debug:
+      var: result.stdout
+[topsadm@sbiiretuata16:/home/topsadm]$ cat user_lock1.yml
+---
+- name: Change shell for a user in AIX
+  hosts: all
+  become: true
+  tasks:
+   - name: Change shell to /usr/bin/false for the user in /etc/security/login.cfg
+     ansible.builtin.command:
+        shell: "chsec -f /etc/security/login.cfg -s usw -a {{ config }}"
+     loop:
+#    with_items:
+      - "shells='/usr/bin/bash,/bin/sh,/bin/bsh,/bin/csh,/bin/ksh,/bin/tsh,/bin/ksh93,/bin/bash,/usr/bin/sh,/usr/bin/bsh,/usr/bin/csh,/usr/bin/ksh,/usr/bin/tsh,/usr/bin/ksh93,/usr/bin/rksh,/usr/bin/rksh93,/usr/sbin/uucp/uucico,/usr/sbin/sliplogin,/usr/sbin/snappd,/usr/bin/false'"
+#      - "another_setting='value'"
+     loop_control:
+      loop_var: config
+     register: result
+
+   - name: Show the result of chsec command
+     ansible.builtin.debug:
+       var: result.stdout
+=====================================================================================>
+---
+- name: Lock Generic Users in AIX
+  hosts: all
+  become: yes
+  vars:
+    users_to_lock:
+     - trickle
+     - trickled
+     - socva
+     - unicon
+     - coretxn
+     - idsldap
+     - yono2imps
+     - svnadmin
+  tasks:
+   - name: Lock user accounts
+     shell: chuser account_locked=true {{ item }}
+     loop: "{{ users_to_lock }}"
+~
+=====================================================================================>
+---
+- name: Lock Generic Users in AIX
+  hosts: any
+  become: yes
+  vars:
+    users_to_lock:
+      - trickle 
+      - trickled 
+      - socva 
+      - unicon 
+      - coretxn 
+      - idsldap 
+      - yono2imps 
+svnadmin 
+ 
+  tasks:
+    - name: Lock user accounts
+      commamd: chuser account_locked = true {{ item }}
+      loop: "{{ users_to_lock }}"
+	  
+====================================================================================>
+
+---
+- name: Get Aix User Details
+  hosts: all
+  become: yes
+  gather_facts: no
+  tasks:
+   - name: Get User List
+#     shell: "cat /etc/passwd | awk -F: '{print $1,$6}'"
+     shell: "lsuser ALL"
+     register: user_list
+   - name: Check lock status for each user
+     shell: "lsuser -a account_locked {{ item }}"
+     register: lock_status
+     loop: "{{ user_list.stdout_lines }}"
+#     changed_when: false
+   - name: Display User Details
+     debug:
+      msg: "{{ item.stdout }}"
+     loop: "{{ lock_status.results }}"
+=============Configuring Apache Web server===================================>
+---
+- name: Configuring Apache Web server
+  hosts: null
+  taske:
+    - name: Install Apache PKG
+      yum:
+        name: httpd
+        state: present
+    - name: Start Apache Services
+      service:
+        name: httpd
+        state: stated
+    - name: Add firewall Rules
+      firewalld:
+        port: 80/tcp
+        permanent: true
+        state: enabled
+    - name: Relode firewall Configuration for the new rule
+      systemd:
+        name: firewalld
+        state: reloaded
+    - name: Copy Indux File to Apache Directory
+      copy:
+        src: /tmp/index.html
+        dest: /var/www/html/
+    - name: Restart Apache Service
+      service:
+        name: httpd
+        state: restarted
+
+...		
+=============Using Roles in Ansible Playbooks=======================================>
+
+====================================================================================>
+---
+- hosts: localhost
+  gather_facts: no
+  vars:
+    newline_character: "\n"
+    services_running: []
+    services_NOT_running: []
+  tasks:
+  - name: populate service facts
+    service_facts:
+
+  - name: populate running services
+    set_fact:
+      services_running: "{{ services_running + [item] }}"
+    when: hostvars[inventory_hostname]['services']['{{item}}']['state'] == "running"
+    with_items: "{{ hostvars[inventory_hostname]['services'].keys() }}"
+
+  - name: populate NOT running services
+    set_fact:
+      services_NOT_running: "{{ services_NOT_running + [item] }}"
+    when: hostvars[inventory_hostname]['services']['{{item}}']['state'] != "running"
+    with_items: "{{ hostvars[inventory_hostname]['services'].keys() }}"
+
+  - debug:
+      msg: "running services: {{ services_running }}"
+
+  - debug:
+      msg: "NOT running services: {{ services_NOT_running }}"
+
+
+====================================================================================>
+- name: checking service status
+  hosts: localhost
+  tasks:
+  - name: checking service status
+    command: lssrc -s "{{ item }}"
+    with_items:
+    - splunkd
+    - ds_agent
+    - sshd
+    register: result
+    ignore_errors: yes
+  - name: showing report
+    debug:
+#     msg: result.stdout
+     msg: "{{ ansible_hostname }} {{ result }}"
+
+====================================================================================>
+---
+- name: Connectivity Check
+  user: topsadm
+  hosts: all
+  become: yes
+  connection: ssh
+
+  tasks:
+  - name: Ping Test
+    ping:
+...
+
+====================================================================================>
+---
+- name: Check file systems usage
+  hosts: DC_doc_root
+  gather_facts: no
+  tasks:
+     - name: Get the filesystem usage
+       shell: |
+          hostname
+          df -gt /doc-root | awk '$5+0 {print $5,$6}'
+        register: fs_usage
+
+     - name: DC_Doc-root Currnt Usage
+       debug:
+         msg: "{{ fs_usage.stdout }}"
+       when: fs_usage.stdout != ""
+
+====================================================================================>
+---
+- name: Backup file in the same location on AIX
+  hosts: all
+  become: true
+  tasks:
+    - name: Backup first file in the same location on AIX
+      ansible.builtin.copy:
+        src: /etc/security/login.cfg
+        dest: /etc/security/login.cfg_bkp_$(date +%Y%m%d)
+        remote_src: yes
+        backup: yes
+
+====================================================================================>
+---
+- name: Check file systems usage DC
+  hosts: all
+  gather_facts: no
+  tasks:
+    - name: Get the filesystem usage
+      shell: hostname;lsuser -a account_locked {{ item }}
+      loop:
+      - inbitam
+      - addmitam
+      register: fs_usage
+
+    - name: Check if any filesystem in DC
+      debug:
+        msg: "{{ fs_usage.stdout }}"
+      when: fs_usage.stdout != ""
+
+=====pwd_reset.yml=====================================================>
+---
+- name: Reset user password in AIX
+  hosts: all
+  become: yes
+  tasks:
+    - name: Change user password
+      shell: echo "sbiitam:Sbi@12345" | chpasswd && pwdadm -c sbiitam
+      register: password_change_output
+      changed_when: "'successful' in password_change_output.stderr"
+
+    - name: Display password change status
+      debug:
+       msg: "{{ password_change_output }}"
+
+======pwd_expire_info.yml=================================================>
+---
+- name: Collect user information in AIX
+  hosts: all
+  become: yes
+  tasks:
+   - name: Get User details
+     shell: lsuser -a minage unsuccessful_login_count lastupdate sbiitam
+     register: user_info
+   - name: Show User details
+     debug:
+      msg: "{{ user_info.stdout_lines }}"
+
+   - name: Get last password change date
+     shell: "lsuser -a lastupdate sbiitam | awk -F= '{print $2}'"
+     register: lastupdate_output
+   - name: Convert epoch time to human-readable format
+     shell: "perl -e 'print scalar localtime({{ lastupdate_output.stdout }}),\"\\n\";'"
+     register: last_password_change
+   - name: Show last Password change date
+     debug:
+      msg: "Last Password change: {{ last_password_change.stdout }}"
+
+============check_fs_usage.yml=========================================================>
+---
+- name: Check file systems for 80%+ usage
+  hosts: all
+  gather_facts: no
+  tasks:
+    - name: Get the filesystem usage
+      shell: hostname; oslevel -s
+      register: fs_usage
+
+    - name: Check if any filesystem has reached 80%
+      debug:
+        msg: "{{ fs_usage.stdout }}"
+      when: fs_usage.stdout != ""
+
+
+    - name: Check if any filesystem has reached
+      local_action:
+       module: lineinfile
+       path: "/tmp/output_UAT.txt"
+       line: "{{ fs_usage.stdout }}"
+       create: yes
+      delegate_to: localhost
+
+
+===========disksize_check.yml======================================================>
+---
+- name: Check rootvg size
+  hosts: all
+  gather_facts: no
+  tasks:
+    - name: Get the filesystem usage
+      shell: lsvg rootvg |egrep 'TOTAL PPs|PP SIZE' |awk 'NR==1{a=$6} NR==2{b=$6;print a*b/1024}';lsvg datavg |egrep 'TOTAL PPs|PP SIZE' |awk 'NR==1{a=$6} NR==2{b=$6;print a*b/1024}'
+      register: fs_usage
+
+    - name: Check disk size
+      debug:
+        msg: "{{ fs_usage.stdout }}"
+      when: fs_usage.stdout != ""
+
+
+
+==============check_fs_usage_all_mountpoints.yml=================================================>
+---
+- name: Check file systems for 80%+ usage
+  hosts: all
+  gather_facts: no
+  tasks:
+    - name: Get the filesystem usage
+      shell: df -gt | awk '$5+0 >= 80 {print $5,$6}'
+      register: fs_usage
+
+    - name: Check if any filesystem has reached 80%
+      debug:
+        msg: "{{ fs_usage.stdout }}"
+      when: fs_usage.stdout != ""
+
+==========lock_user_account.yml===========================================================>
+---
+- name: Lock multiple users on AIX servers
+  hosts: all
+  gather_facts: no
+  become: yes
+  tasks:
+   - name: Lock user accounts using chuser command
+     shell: "chuser account_locked=true {{ item }}"
+     loop:
+      - suganyaa
+      - kavithag
+      - chinnads
+      - sridharm
+      - sivanath
+      - sumitpal
+      - usr8
+#     when: ansible_os_family == 'AIX'
+
+==========check_list_daily_report2.yml==========================================================>
+---
+- name: Check file systems usage DC
+  hosts: DC_servers
+  gather_facts: no
+  tasks:
+
+    - name: Get the filesystem usage
+      shell: echo '+++DC_RMC_Doc-root++++'
+      register: fs_usage1
+
+    - name: Check if any filesystem in DC
+      debug:
+        msg: "{{ fs_usage1.stdout }}"
+      run_once: true
+      when: fs_usage1.stdout != ""
+
+    - name: Get the filesystem usage
+      shell:
+         echo  hostname; df -gt /doc-root | awk '$5+0 {print $6,$5}'
+      register: fs_usage2
+
+    - name: Check if any filesystem in DC
+      debug:
+        msg: "{{ fs_usage2.stdout }}"
+      when: fs_usage2.stdout != ""
+
+    - name: Get the filesystem usage
+      shell: echo '+++++DC_servers_common_mountpoints_utilization+++'
+      register: fs_usage3
+
+    - name: Check if any filesystem in DC
+      debug:
+        msg: "{{ fs_usage3.stdout }}"
+      when: fs_usage3.stdout != ""
+
+    - name: Get the filesystem usage
+      shell: hostname; df -gt /data /sysmonlogs /doc-root /mksysb_backup_UAT | awk '$5+0 {print $6,$5}'
+      register: fs_usage4
+
+    - name: Check if any filesystem in DC
+      debug:
+        msg: "{{ fs_usage4.stdout }}"
+      when: fs_usage4.stdout != ""
+
+
+    - name: Get the filesystem usage
+      shell: echo '+++++DC_servers_inode+++'
+      register: fs_usage5
+
+    - name: Check if any filesystem in DC
+      debug:
+        msg: "{{ fs_usage5.stdout }}"
+      when: fs_usage5.stdout != ""
+
+    - name: Get the filesystem inode
+      shell:  hostname; df -i /data /sysmonlogs /doc-root /mksysb_backup_UAT | awk '$5+0 {print $7,$6}'
+      register: fs_usage6
+
+    - name: Check if any filesystem inode in DC
+      debug:
+        msg: "{{ fs_usage6.stdout }}"
+      when: fs_usage6.stdout != ""
+
+    - name: Renove old data
+      local_action:
+       module: file
+       path: "/tmp/output_UAT.txt"
+       state: absent
+      delegate_to: localhost
+
+    - name: Check if any filesystem has reached
+      local_action:
+       module: lineinfile
+       path: "/tmp/output_UAT.txt"
+       line: "{{ fs_usage1.stdout }}:{{ fs_usage2.stdout }}:{{ fs_usage3.stdout }}:{{ fs_usage4.stdout }}:{{ fs_usage5.stdout }}:{{ fs_usage6.stdout }}"
+       create: yes
+      delegate_to: localhost
+
+
+- name: Check file systems usage DR
+  hosts: DR_servers
+  gather_facts: no
+  tasks:
+
+    - name: Get the filesystem usage
+      shell: echo '++++DR_RMC_doc-root+++'
+      register: fs_usage1
+
+    - name: Check if any filesystem in DR
+      debug:
+        msg: "{{ fs_usage1.stdout }}"
+      when: fs_usage1.stdout != ""
+
+    - name: Get the filesystem usage
+      shell:  hostname; df -gt /doc-root | awk '$5+0 {print $6,$5}'
+      register: fs_usage2
+
+    - name: Check if any filesystem in DR
+      debug:
+        msg: "{{ fs_usage2.stdout }}"
+      when: fs_usage2.stdout != ""
+
+    - name: Get the filesystem usage
+      shell: echo '++++DR_servers_common_mountpoints+++'
+      register: fs_usage3
+
+    - name: Check if any filesystem in DR
+      debug:
+        msg: "{{ fs_usage3.stdout }}"
+      when: fs_usage3.stdout != ""
+
+
+    - name: Get the filesystem usage
+      shell:  hostname; df -gt /data /sysmonlogs /mksysb_backup_UAT /yono-docroot | awk '$5+0 {print $6,$5}'
+      register: fs_usage4
+
+    - name: Check if any filesystem in DR
+      debug:
+        msg: "{{ fs_usage4.stdout }}"
+      when: fs_usage4.stdout != ""
+
+    - name: Get the filesystem usage
+      shell: echo '++++DR_servers_inode+++'
+      register: fs_usage5
+
+    - name: Check if any filesystem in DR
+      debug:
+        msg: "{{ fs_usage5.stdout }}"
+      when: fs_usage5.stdout != ""
+
+    - name: Get the filesystem inode
+      shell:  hostname; df -i /data /sysmonlogs /doc-root /mksysb_backup_UAT /yono-docroot | awk '$5+0 {print $7,$6}'
+      register: fs_usage6
+
+    - name: Check if any filesystem inode in DR
+      debug:
+        msg: "{{ fs_usage6.stdout }}"
+      when: fs_usage6.stdout != ""
+
+    - name: Check if any filesystem has reached
+
+      local_action:
+       module: lineinfile
+       path: "/tmp/output_UAT.txt"
+       line: "{{ fs_usage1.stdout }}:{{ fs_usage2.stdout }}:{{ fs_usage3.stdout }}}:{{ fs_usage4.stdout }}:{{ fs_usage5.stdout }}:{{ fs_usage6.stdout }} "
+       create: yes
+#      delegate_to: localhost
+
+
+====================================================================================>
+---
+- name: Gather file system and inode utilisation on DC and DR servers
+  hosts: dc_servers, dr_servers
+  tasks:
+
+    # Task 1: Get doc-root file system utilisation
+    - name: "Task 1: Get doc-root file system utilisation"
+      shell: "df -gt /doc-root | awk '$5+0 {print $6,$5}'"
+      register: docroot_fs_util
+      ignore_errors: true
+
+    - name: Print Task 1 Output Doc-root file system utilisation
+      .debug:
+        msg: |
+          ================================
+          Task 1: Doc-root File System Utilisation
+          ================================
+          {{ docroot_fs_util.stdout }}
+
+    # Task 2: Get var, sysmonlogs file system utilisation
+    - name: "Task 2: Get var, sysmonlogs file system utilisation"
+      shell: "df -gt /var /sysmonlogs | awk '$5+0 {print $6,$5}'"
+      register: var_sysmon_fs_util
+      ignore_errors: true
+
+    - name: Print Task 2 Output Var and Sysmonlogs file system utilisation
+      debug:
+        msg: |
+          ================================
+          Task 2: Var and Sysmonlogs File System Utilisation
+          ================================
+          {{ var_sysmon_fs_util.stdout }}
+
+    # Task 3: Get doc-root file system inode utilisation
+    - name: "Task 3: Get doc-root file system inode utilisation"
+      shell: "df -i /doc-root | awk '$5+0 {print $6,$5}'"
+      register: docroot_inode_util
+      ignore_errors: true
+
+    - name: Print Task 3 Output Doc-root file system inode utilisation
+      debug:
+        msg: |
+          ================================
+          Task 3: Doc-root File System Inode Utilisation
+          ================================
+          {{ docroot_inode_util.stdout }}
+
+    # Task 4: Get var, sysmonlogs file system inode utilisation
+    - name: "Task 4: Get var, sysmonlogs file system inode utilisation"
+      shell: "df -i /var /sysmonlogs | awk '$5+0 {print $6,$5}'"
+      register: var_sysmon_inode_util
+      ignore_errors: true
+
+    - name: Print Task 4 Output Var and Sysmonlogs inode utilisation
+      debug:
+        msg: |
+          ================================
+          Task 4: Var and Sysmonlogs Inode Utilisation
+          ================================
+          {{ var_sysmon_inode_util.stdout }}
+
+
+========check_list_daily_report.yml=======================================================>
+---
+- name: Check file systems usage DC
+  hosts: DC_servers
+  gather_facts: no
+  tasks:
+
+    - name: Get the filesystem usage
+      shell: echo '+++++DC_servers+++'; hostname; df -gt /data /sysmonlogs /doc-root /mksysb_backup_UAT | awk '$5+0 {print $6,$5}'
+      register: fs_usage1
+
+    - name: Check if any filesystem in DC
+      debug:
+        msg: "{{ fs_usage1.stdout }}"
+      when: fs_usage1.stdout != ""
+
+    - name: Get the filesystem inode
+      shell: echo '+++++DC_servers_inode+++'; hostname; df -i /data /sysmonlogs /doc-root /mksysb_backup_UAT | awk '$5+0 {print $7,$6}'
+      register: fs_usage2
+
+    - name: Check if any filesystem inode in DC
+      debug:
+        msg: "{{ fs_usage2.stdout }}"
+      when: fs_usage2.stdout != ""
+
+    - name: Renove old data
+      local_action:
+       module: file
+       path: "/tmp/output_UAT.txt"
+       state: absent
+      delegate_to: localhost
+
+    - name: Check if any filesystem has reached
+      local_action:
+       module: lineinfile
+       path: "/tmp/output_UAT.txt"
+       line: "{{ fs_usage1.stdout }}:{{ fs_usage2.stdout }}"
+       create: yes
+      delegate_to: localhost
+
+
+- name: Check file systems usage DR
+  hosts: DR_servers
+  gather_facts: no
+  tasks:
+    - name: Get the filesystem usage
+      shell: echo '++++DR_servers+++'; hostname; df -gt /data /sysmonlogs /doc-root /mksysb_backup_UAT /yono-docroot | awk '$5+0 {print $6,$5}'
+      register: fs_usage3
+
+    - name: Check if any filesystem in DR
+      debug:
+        msg: "{{ fs_usage3.stdout }}"
+      when: fs_usage3.stdout != ""
+
+    - name: Get the filesystem inode
+      shell: echo '++++DR_servers_inode+++'; hostname; df -i /data /sysmonlogs /doc-root /mksysb_backup_UAT /yono-docroot | awk '$5+0 {print $7,$6}'
+      register: fs_usage4
+
+    - name: Check if any filesystem inode in DR
+      debug:
+        msg: "{{ fs_usage4.stdout }}"
+      when: fs_usage4.stdout != ""
+
+    - name: Check if any filesystem has reached
+      local_action:
+       module: lineinfile
+       path: "/tmp/output_UAT.txt"
+       line: "{{ fs_usage3.stdout }}:{{ fs_usage4.stdout }}"
+       create: yes
+#      delegate_to: localhost
+
+
+==========splunk.yml======================================================>
+---
+- name: splunk
+  hosts: all
+  gather_facts: no
+  tasks:
+    - name: splunk-instalation
+      shell: /usr/bin/sh  /sysmonlogs/rakesh/splunk/splunk.sh
+      args:
+        executable: /usr/bin/sh
+      register: fs_usage
+
+    - name: splunk-latest-version
+      debug:
+        msg: "{{ fs_usage.stdout }}"
+      when: fs_usage.stdout != ""
+
+===============user_lock_status.yml==========================================================>
+---
+- name: Find locked users in aix
+  hosts: all
+  become: yes
+  gather_facts: no
+  tasks:
+    - name: Check for locked users
+      shell: lsuser -a account_locked ALL | grep -i 'true'
+      register: locked_users
+      changed_when: false
+    - name: Display locked users
+      debug:
+       msg: "{{locked_users.stdout_lines }}"
+#    - name: Save the file
+ #     copy:
+  #     content: "{{ locked_users.stdout }}"
+   #    dest: "/tmp/locked_users.txt"
+    #   mode: '0755'
+#- name: Save the file
+ #     local_action:
+  #     module: lineinfile
+   #    path: "/tmp/locked_users_1.txt"
+    #   line: "{{ locked_users.stdout }}"
+     #  create: yes
+#    - name: Write output to /tmp/locked_users.txt
+#      shell: " echo '{{ locked_users.stdout }}' >> /tmp/locked_users.txt"
+ #     when: locked_users.stdout != ""
+
+===========user_lock.yml============================================================>
+---
+- name: Lock Generic Users in AIX
+  hosts: all
+  become: yes
+  vars:
+    users_to_lock:
+     - trickle
+     - trickled
+     - socva
+     - unicon
+     - coretxn
+     - idsldap
+     - yono2imps
+     - svnadmin
+  tasks:
+   - name: Lock user accounts
+     shell: chuser account_locked=true {{ item }}
+     loop: "{{ users_to_lock }}"
+
+=============user_roles.yml========================================================>
+---
+- name: Get Aix User Details
+  hosts: all
+  become: yes
+  gather_facts: no
+  tasks:
+   - name: Get User List
+#     shell: "cat /etc/passwd | awk -F: '{print $1,$6}'"
+     shell: "lsuser ALL"
+     register: user_list
+   - name: Check lock status for each user
+     shell: "lsuser -a account_locked {{ item }}"
+     register: lock_status
+     loop: "{{ user_list.stdout_lines }}"
+     changed_when: false
+   - name: Display User Details
+     debug:
+      msg: "{{ item.stdout }}"
+     loop: "{{ lock_status.results }}"
+
+==========login_cfg.yml=========================================================>
+---
+- name: Lock Generic Users in AIX
+  hosts: all
+  become: yes
+  tasks:
+    - name: Create a copy
+      copy:
+       src: /tmp/login.cfg
+       dest: /tmp/login.cfg_bkp_07032025
+       remote_src: yes
+    - name: Replace a line
+      lineinfile:
+        path: /tmp/login.cfg
+        regexp: '^\s*shells = /bin/sh,/bin/bsh,/bin/csh,/bin/ksh,/bin/tsh,/bin/ksh93,/bin/bash,/usr/bin/sh,/usr/bin/bash,/usr/bin/csh,/usr/bin/ksh,/usr/bin/tsh,/usr/bin/ksh93,/usr/bin/rksh,/usr/bin/rksh93,/usr/sbin/uucp/uucico,/usr/sbin/sliplogin,/usr/sbin/snappd,/usr/bin/bash'
+        line: '        shells = /bin/sh,/bin/bsh,/bin/csh,/bin/ksh,/bin/tsh,/bin/ksh93,/bin/bash,/usr/bin/sh,/usr/bin/bash,/usr/bin/csh,/usr/bin/ksh,/usr/bin/tsh,/usr/bin/ksh93,/usr/bin/rksh,/usr/bin/rksh93,/usr/sbin/uucp/uucico,/usr/sbin/sliplogin,/usr/sbin/snappd,/usr/bin/bash,/usr/bin/false'
+#        backup: yes
+
+====================================================================================>
+---
+- name: Change shell for a user in AIX
+  hosts: all
+  become: true
+  tasks:
+    - name: Lock user accounts using chuser
+      ansible.builtin.command:
+        cmd: "chuser account_locked=true {{ item }}"
+      with_items:
+        - pons
+      changed_when: false
+#    - name: change all users shell
+#      ansible.builtin.command:
+#        cmd: "chuser shell=/usr/bin/false {{ item }}"
+#      changed_when: null
+#    - name: Verify if the account is locked
+      ansible.builtin.command:
+        cmd: "lsuser -a account_locked {{ item }}"
+        register: result
+      changed_when: false
+    - name: Display account status
+      ansible.builtin.debug:
+        var: result.stdout
+		
+		
+=================================================================>
+---
+- name: Backup file in the same location on AIX 
+  hosts: all
+  become: true
+  tasks:
+    - name: Backup first file in the same location on AIX 
+	  ansible.builtin.copy:
+	   src: /etc/security/login.cfg
+	   dest: /etc/security/login.cfg_bkp
+	   remote_src: yes
+	   backup: yes 
+=================================================================>
+---
+- name: Change shell for a user in AIX
+  hosts: all
+  become: true
+  tasks:
+    - name: Change shell to /usr/bin/false for the user in /etc/security/login.cfg
+      ansible.builtin.command:
+        cmd: "chsec -f /etc/security/login.cfg -s usw -a {{ item }}"
+        with_items:
+         - "shells= '/usr/bin/bash,/bin/sh,/bin/bsh,/bin/csh,/bin/ksh,/bin/tsh,/bin/ksh93,/bin/bash,/usr/bin/sh,/usr/bin/bsh,/usr/bin/csh,/usr/bin/ksh,/usr/bin/tsh,/usr/bin/ksh93,/usr/bin/rksh,/usr/bin/rksh93,/usr/sbin/uucp/uucico,/usr/sbin/sliplogin,/usr/sbin/snappd,/usr/bin/false'"
+      register: result
+    - name: Show the result of chsec command
+      ansible.builtin.debug:
+       var: result.stdout
+---------------------------------------------------------------------->
+---
+- name: 
+
+
+----------------------------------------------------------------------->
+---
+- name: Change shell for a user in AIX
+  hosts: all
+  gather_facts: no
+  become: true
+  tasks:
+   - name: Lock user accounts using chuser
+      cmd: "chuser account_locked=true {{ item }}"
+     with_items:
+      - inbitam
+      - addmitam
+      changed_when: false
+#   - name: change all users shell
+#      cmd: chuser shell=/usr/bin/false {{ item }}
+   - name: Verify if the account is locked
+      cmd: "lsuser -a account_locked {{ item }}"
+     register: result
+     changed_when: false
+   - name: Display account status
+     ansible.builtin.debug:
+      var: result.stdout
+[topsadm@sbiiretuata16:/home/topsadm]$ cat user_lock1.yml
+---
+- name: Change shell for a user in AIX
+  hosts: all
+  become: true
+  tasks:
+   - name: Change shell to /usr/bin/false for the user in /etc/security/login.cfg
+     ansible.builtin.command:
+        shell: "chsec -f /etc/security/login.cfg -s usw -a {{ config }}"
+     loop:
+#    with_items:
+      - "shells='/usr/bin/bash,/bin/sh,/bin/bsh,/bin/csh,/bin/ksh,/bin/tsh,/bin/ksh93,/bin/bash,/usr/bin/sh,/usr/bin/bsh,/usr/bin/csh,/usr/bin/ksh,/usr/bin/tsh,/usr/bin/ksh93,/usr/bin/rksh,/usr/bin/rksh93,/usr/sbin/uucp/uucico,/usr/sbin/sliplogin,/usr/sbin/snappd,/usr/bin/false'"
+#      - "another_setting='value'"
+     loop_control:
+      loop_var: config
+     register: result
+
+   - name: Show the result of chsec command
+     ansible.builtin.debug:
+       var: result.stdout
+=====================================================================================>
+---
+- name: Lock Generic Users in AIX
+  hosts: all
+  become: yes
+  vars:
+    users_to_lock:
+     - trickle
+     - trickled
+     - socva
+     - unicon
+     - coretxn
+     - idsldap
+     - yono2imps
+     - svnadmin
+  tasks:
+   - name: Lock user accounts
+     shell: chuser account_locked=true {{ item }}
+     loop: "{{ users_to_lock }}"
+~
+=====================================================================================>
+---
+- name: Lock Generic Users in AIX
+  hosts: any
+  become: yes
+  vars:
+    users_to_lock:
+      - trickle 
+      - trickled 
+      - socva 
+      - unicon 
+      - coretxn 
+      - idsldap 
+      - yono2imps 
+svnadmin 
+ 
+  tasks:
+    - name: Lock user accounts
+      commamd: chuser account_locked = true {{ item }}
+      loop: "{{ users_to_lock }}"
+	  
+====================================================================================>
+
+---
+- name: Get Aix User Details
+  hosts: all
+  become: yes
+  gather_facts: no
+  tasks:
+   - name: Get User List
+#     shell: "cat /etc/passwd | awk -F: '{print $1,$6}'"
+     shell: "lsuser ALL"
+     register: user_list
+   - name: Check lock status for each user
+     shell: "lsuser -a account_locked {{ item }}"
+     register: lock_status
+     loop: "{{ user_list.stdout_lines }}"
+#     changed_when: false
+   - name: Display User Details
+     debug:
+      msg: "{{ item.stdout }}"
+     loop: "{{ lock_status.results }}"
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
+====================================================================================>
