@@ -1,0 +1,1458 @@
+=~=~=~=~=~=~=~=~=~=~=~= PuTTY log 2016.09.13 15:32:23 =~=~=~=~=~=~=~=~=~=~=~=
+login as: hscroot
+hscroot@10.192.248.250's password: 
+Last login: Tue Sep 13 15:06:59 2016 from 172.18.193.110
+
+[?1034hhscroot@localhost:~> 
+[Khscroot@localhost:~> vtmenu
+
+
+
+
+ Retrieving name of managed system(s) . . . AF5-2_Server-8231-E2D-SN21BBDCT   AF3-4_Server-8231-E2D-SN21BBEBT   AH9-2_Server-8233-E8B-SN06603AP   AF6-3_Server-8231-E2D-SN21BBDDT   AH9-3_Server-8233-E8B-SN0615CEP   AF4-4_Server-8231-E2D-SN06BBE9T   AH8-1_Server-8205-E6B-SN066032P   AH9-1_Server-8203-E4A-SN0699355   AD13-6_Ser-8231-E2C-SN06E0CER   AF6-2_Server-8231-E2D-SN21BBEDT   AF6-4_Server-8231-E2D-SN06BBF9T   AF3-3_Server-8231-E2D-SN06BBF7T   AF3-1_Server-8231-E2D-SN06BBFAT   AF5-5_Server-8231-E2D-SN06BBF1T   AH8-2_Server-8233-E8B-SN06602EP   AF5-4_Server-8231-E2D-SN06BBE8T   AF5-6_Server-8231-E2D-SN21BBEET   AH8-3_Server-8233-E8B-SN0615CDP   AF5-7_Server-8231-E2D-SN06BBF5T   AD12-10_Ser-8231-E2C-SN06E0D0R   AF4-6_Server-8231-E2D-SN06BBF8T   AF6-6_Server-8231-E2D-SN06BBF6T   AF4-2_Server-8231-E2D-SN21BBDFT   AF3-6_Server-8231-E2D-SN21BC15T   AF4-3_Server-8231-E2D-SN21BBE2T   AF5-3_Server-8231-E2D-SN06BBE0T   AF5-1_Server-8231-E2D-SN21BBF0T   AF4-7_Server-8231-E2D-SN21BBE5T   AF3-2_Server-8231-E2D-SN06BBEFT   Server-8231-E2D-SN06BBE3T   AF6-7_Server-8231-E2D-SN21BBEAT   AF6-5_Server-8231-E2D-SN06BBF3T   AF4-5_Server-8231-E2D-SN21BBE4T   AF4-1_Server-8231-E2D-SN06BBF2T   AF6-1_Server-8231-E2D-SN21BBE7T   [H[2J
+
+ ----------------------------------------------------------
+  Managed Systems:
+ ----------------------------------------------------------
+   1) AF5-2_Server-8231-E2D-SN21BBDCT
+   2) AF3-4_Server-8231-E2D-SN21BBEBT
+   3) AH9-2_Server-8233-E8B-SN06603AP
+   4) AF6-3_Server-8231-E2D-SN21BBDDT
+   5) AH9-3_Server-8233-E8B-SN0615CEP
+   6) AF4-4_Server-8231-E2D-SN06BBE9T
+   7) AH8-1_Server-8205-E6B-SN066032P
+   8) AH9-1_Server-8203-E4A-SN0699355
+   9) AD13-6_Ser-8231-E2C-SN06E0CER
+   10) AF6-2_Server-8231-E2D-SN21BBEDT
+   11) AF6-4_Server-8231-E2D-SN06BBF9T
+   12) AF3-3_Server-8231-E2D-SN06BBF7T
+   13) AF3-1_Server-8231-E2D-SN06BBFAT
+   14) AF5-5_Server-8231-E2D-SN06BBF1T
+   15) AH8-2_Server-8233-E8B-SN06602EP
+   16) AF5-4_Server-8231-E2D-SN06BBE8T
+   17) AF5-6_Server-8231-E2D-SN21BBEET
+   18) AH8-3_Server-8233-E8B-SN0615CDP
+   19) AF5-7_Server-8231-E2D-SN06BBF5T
+   20) AD12-10_Ser-8231-E2C-SN06E0D0R
+   21) AF4-6_Server-8231-E2D-SN06BBF8T
+   22) AF6-6_Server-8231-E2D-SN06BBF6T
+   23) AF4-2_Server-8231-E2D-SN21BBDFT
+   24) AF3-6_Server-8231-E2D-SN21BC15T
+   25) AF4-3_Server-8231-E2D-SN21BBE2T
+   26) AF5-3_Server-8231-E2D-SN06BBE0T
+   27) AF5-1_Server-8231-E2D-SN21BBF0T
+   28) AF4-7_Server-8231-E2D-SN21BBE5T
+   29) AF3-2_Server-8231-E2D-SN06BBEFT
+   30) Server-8231-E2D-SN06BBE3T
+   31) AF6-7_Server-8231-E2D-SN21BBEAT
+   32) AF6-5_Server-8231-E2D-SN06BBF3T
+   33) AF4-5_Server-8231-E2D-SN21BBE4T
+   34) AF4-1_Server-8231-E2D-SN06BBF2T
+   35) AF6-1_Server-8231-E2D-SN21BBE7T
+
+ Enter Number of Managed System.   (q to quit): 24
+[H[2J
+
+ ----------------------------------------------------------
+  Partitions On Managed System:  AF3-6_Server-8231-E2D-SN21BC15T
+  OS/400 Partitions not listed
+ ----------------------------------------------------------
+   1)    AIX                                  Running
+   2)    IOR Collection LP                    Not Activated
+
+
+ Enter Number of Running Partition (q to quit): 1
+1
+    Opening Virtual Terminal On Partition AIX . . .
+
+
+ Open in progress  
+ 
+ Open Completed. 
+  Unauthorized use of this system is prohibited.
+login:ramji
+ramji's Password: 
+3004-007 You entered an invalid login name or password.
+
+login: ramji
+ramji's Password: 
+3004-007 You entered an invalid login name or password.
+
+login: ramji
+ramji's Password: 
+
+******************************************************************************************************************
+*       This system is a restricted access system. All the activity on this system is                            *
+*       subject to monitoring. If information collected reveals possible criminal activity or                    *
+*       activity that exceeds privileges, evidences of such activity may be provided to the                      *
+*       relevant authorities for further action. By continuing past this point, you consent                      *
+*       to this monitoring.                                                                                      *
+*                                                                                                                *
+******************************************************************************************************************
+
+2 unsuccessful login attempts since last login.
+Last unsuccessful login: Tue Sep 13 15:33:08 IST 2016 on /dev/vty0
+Last login: Tue Sep 13 15:15:45 IST 2016 on /dev/vty0
+
+$ bash
+bash-4.2$ clear
+[H[2Jbash-4.2$ 
+bash-4.2$ 
+bash-4.2$ 
+bash-4.2$ 
+bash-4.2$ 
+bash-4.2$ uptime
+  03:33PM   up 3 mins,  1 user,  load average: 0.10, 0.19, 0.10
+bash-4.2$ 
+bash-4.2$ 
+bash-4.2$ 
+bash-4.2$ 
+bash-4.2$ 
+bash-4.2$ 
+bash-4.2$ 
+bash-4.2$ 
+bash-4.2$ 
+!!! 00E0806  Fcode, Copyright (c) 2000-2012 Emulex !!!  Version 3.10x2
+
+
+!!! 00E0806  Fcode, Copyright (c) 2000-2012 Emulex !!!  Version 3.10x2
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM 
+IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM 
+IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM 
+IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM 
+IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM 
+IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM 
+IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM 
+IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM 
+IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM 
+IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM 
+IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM 
+IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM 
+IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM 
+IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM 
+IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM 
+IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM 
+IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM 
+IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM 
+
+          1 = SMS Menu                          5 = Default Boot List
+          8 = Open Firmware Prompt              6 = Stored Boot List
+
+
+     Memory      Keyboard     Network     SCSI     Speaker 
+
+ PowerPC Firmware
+ Version AL770_052 
+ SMS 1.7 (c) Copyright IBM Corp. 2000,2008 All rights reserved.
+-------------------------------------------------------------------------------
+ Main Menu
+ 1.   Select Language
+ 2.   Setup Remote IPL (Initial Program Load)
+ 3.   Change SCSI Settings
+ 4.   Select Console
+ 5.   Select Boot Options
+
+
+
+
+
+
+
+
+
+ -------------------------------------------------------------------------------
+ Navigation Keys:
+ 
+                                             X = eXit System Management Services
+ -------------------------------------------------------------------------------
+ Type menu item number and press Enter or select Navigation key:111
+
+
+
+
+
+
+
+
+
+                    .--------------------------------------.
+                    |  INVALID ENTRY !                     |
+                    |  Press any key to continue.......... |
+                    `--------------------------------------'
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ PowerPC Firmware
+ Version AL770_052 
+ SMS 1.7 (c) Copyright IBM Corp. 2000,2008 All rights reserved.
+-------------------------------------------------------------------------------
+ Main Menu
+ 1.   Select Language
+ 2.   Setup Remote IPL (Initial Program Load)
+ 3.   Change SCSI Settings
+ 4.   Select Console
+ 5.   Select Boot Options
+
+
+
+
+
+
+
+
+
+ -------------------------------------------------------------------------------
+ Navigation Keys:
+ 
+                                             X = eXit System Management Services
+ -------------------------------------------------------------------------------
+ Type menu item number and press Enter or select Navigation key:5
+
+ PowerPC Firmware
+ Version AL770_052 
+ SMS 1.7 (c) Copyright IBM Corp. 2000,2008 All rights reserved.
+-------------------------------------------------------------------------------
+ Multiboot
+ 1.   Select Install/Boot Device
+ 2.   Configure Boot Device Order
+ 3.   Multiboot Startup <OFF>
+ 4.   SAN Zoning Support
+
+
+
+
+
+
+
+
+
+
+ -------------------------------------------------------------------------------
+ Navigation keys:
+ M = return to Main Menu
+ ESC key = return to previous screen         X = eXit System Management Services
+ -------------------------------------------------------------------------------
+ Type menu item number and press Enter or select Navigation key:1
+
+
+
+
+
+
+
+
+
+                              .------------------.
+                              |  PLEASE WAIT.... |
+                              `------------------'
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ PowerPC Firmware
+ Version AL770_052 
+ SMS 1.7 (c) Copyright IBM Corp. 2000,2008 All rights reserved.
+-------------------------------------------------------------------------------
+ Select Device Type
+ 1.   Diskette
+ 2.   Tape
+ 3.   CD/DVD
+ 4.   IDE
+ 5.   Hard Drive
+ 6.   Network
+ 7.   List all Devices
+
+
+
+
+
+
+
+ -------------------------------------------------------------------------------
+ Navigation keys:
+ M = return to Main Menu
+ ESC key = return to previous screen         X = eXit System Management Services
+ -------------------------------------------------------------------------------
+ Type menu item number and press Enter or select Navigation key:3
+
+ PowerPC Firmware
+ Version AL770_052 
+ SMS 1.7 (c) Copyright IBM Corp. 2000,2008 All rights reserved.
+-------------------------------------------------------------------------------
+ Select Media Type
+ 1.   SCSI
+ 2.   SSA 
+ 3.   SAN 
+ 4.   SAS 
+ 5.   SATA
+ 6.   USB 
+ 7.   IDE 
+ 8.   ISA 
+ 9.   List All Devices
+
+
+
+
+
+ -------------------------------------------------------------------------------
+ Navigation keys:
+ M = return to Main Menu
+ ESC key = return to previous screen         X = eXit System Management Services
+ -------------------------------------------------------------------------------
+ Type menu item number and press Enter or select Navigation key:9
+
+
+
+
+
+
+
+
+
+                              .------------------.
+                              |  PLEASE WAIT.... |
+                              `------------------'
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                                                                
+scan /pci@80000002000000a/pci1014,0339@0/sas/disk
+                                                                                
+check /pci@80000002000000a/pci1014,0339@0/sas/disk@0
+                                                                                
+check /pci@80000002000000a/pci1014,0339@0/sas/disk@10000
+                                                                                
+scan /pci@80000002000000a/pci1014,0339@0/sas/tape
+                                                                                
+check /pci@80000002000000a/pci1014,0339@0/sas/disk@0
+                                                                                
+check /pci@80000002000000a/pci1014,0339@0/sas/disk@10000
+                                                                                
+scan /pci@80000002000000a/pci1014,0339@0/sata/disk
+                                                                                
+check /pci@80000002000000a/pci1014,0339@0/sata/disk@60000
+                                                                                                    
+scan /pci@800000020000201/fibre-channel@0
+                                                                                                    
+scan /pci@800000020000201/fibre-channel@0,1Cannot Init Link.
+
+
+ PowerPC Firmware
+ Version AL770_052 
+ SMS 1.7 (c) Copyright IBM Corp. 2000,2008 All rights reserved.
+-------------------------------------------------------------------------------
+ Select Device
+ Device  Current  Device
+ Number  Position  Name
+ 1.        -      PCIe2 4-port 1GbE Adapter
+        ( loc=U78AB.001.WZSJXPF-P1-C7-T1 )
+ 2.        -      PCIe2 4-port 1GbE Adapter
+        ( loc=U78AB.001.WZSJXPF-P1-C7-T2 )
+ 3.        -      PCIe2 4-port 1GbE Adapter
+        ( loc=U78AB.001.WZSJXPF-P1-C7-T3 )
+ 4.        -      PCIe2 4-port 1GbE Adapter
+        ( loc=U78AB.001.WZSJXPF-P1-C7-T4 )
+ 5.        -      Port 1 - IBM 2 PORT PCIe Gigabit Ethernet-SX Adapter
+        ( loc=U78AB.001.WZSJXPF-P1-C3-T1 )
+ 6.        -      Port 2 - IBM 2 PORT PCIe Gigabit Ethernet-SX Adapter
+        ( loc=U78AB.001.WZSJXPF-P1-C3-T2 )
+ -------------------------------------------------------------------------------
+ Navigation keys:
+ M = return to Main Menu      N = Next page of list
+ ESC key = return to previous screen         X = eXit System Management Services
+ -------------------------------------------------------------------------------
+ Type menu item number and press Enter or select Navigation key:<esc>
+
+ PowerPC Firmware
+ Version AL770_052 
+ SMS 1.7 (c) Copyright IBM Corp. 2000,2008 All rights reserved.
+-------------------------------------------------------------------------------
+ Select Media Type
+ 1.   SCSI
+ 2.   SSA 
+ 3.   SAN 
+ 4.   SAS 
+ 5.   SATA
+ 6.   USB 
+ 7.   IDE 
+ 8.   ISA 
+ 9.   List All Devices
+
+
+
+
+
+ -------------------------------------------------------------------------------
+ Navigation keys:
+ M = return to Main Menu
+ ESC key = return to previous screen         X = eXit System Management Services
+ -------------------------------------------------------------------------------
+ Type menu item number and press Enter or select Navigation key:9
+
+
+
+
+
+
+
+
+
+                              .------------------.
+                              |  PLEASE WAIT.... |
+                              `------------------'
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ PowerPC Firmware
+ Version AL770_052 
+ SMS 1.7 (c) Copyright IBM Corp. 2000,2008 All rights reserved.
+-------------------------------------------------------------------------------
+ Select Device
+ Device  Current  Device
+ Number  Position  Name
+ 1.        -      PCIe2 4-port 1GbE Adapter
+        ( loc=U78AB.001.WZSJXPF-P1-C7-T1 )
+ 2.        -      PCIe2 4-port 1GbE Adapter
+        ( loc=U78AB.001.WZSJXPF-P1-C7-T2 )
+ 3.        -      PCIe2 4-port 1GbE Adapter
+        ( loc=U78AB.001.WZSJXPF-P1-C7-T3 )
+ 4.        -      PCIe2 4-port 1GbE Adapter
+        ( loc=U78AB.001.WZSJXPF-P1-C7-T4 )
+ 5.        -      Port 1 - IBM 2 PORT PCIe Gigabit Ethernet-SX Adapter
+        ( loc=U78AB.001.WZSJXPF-P1-C3-T1 )
+ 6.        -      Port 2 - IBM 2 PORT PCIe Gigabit Ethernet-SX Adapter
+        ( loc=U78AB.001.WZSJXPF-P1-C3-T2 )
+ -------------------------------------------------------------------------------
+ Navigation keys:
+ M = return to Main Menu      N = Next page of list
+ ESC key = return to previous screen         X = eXit System Management Services
+ -------------------------------------------------------------------------------
+ Type menu item number and press Enter or select Navigation key:N
+
+ PowerPC Firmware
+ Version AL770_052 
+ SMS 1.7 (c) Copyright IBM Corp. 2000,2008 All rights reserved.
+-------------------------------------------------------------------------------
+ Select Device
+ 7.        1      SAS 558 GB Harddisk
+        ( loc=U78AB.001.WZSJXPF-P3-D1 )
+ 8.        2      SAS 558 GB Harddisk
+        ( loc=U78AB.001.WZSJXPF-P3-D2 )
+ 9.        -      SATA CD-ROM
+        ( loc=U78AB.001.WZSJXPF-P3-D7 )
+
+
+
+
+
+
+
+
+ -------------------------------------------------------------------------------
+ Navigation keys:
+ M = return to Main Menu                               P = Previous page of list
+ ESC key = return to previous screen         X = eXit System Management Services
+ -------------------------------------------------------------------------------
+ Type menu item number and press Enter or select Navigation key:9
+
+ PowerPC Firmware
+ Version AL770_052 
+ SMS 1.7 (c) Copyright IBM Corp. 2000,2008 All rights reserved.
+-------------------------------------------------------------------------------
+ Select Task
+
+SATA CD-ROM
+    ( loc=U78AB.001.WZSJXPF-P3-D7 )
+
+ 1.   Information
+ 2.   Normal Mode Boot
+ 3.   Service Mode Boot
+
+
+
+
+
+
+
+
+ -------------------------------------------------------------------------------
+ Navigation keys:
+ M = return to Main Menu
+ ESC key = return to previous screen         X = eXit System Management Services
+ -------------------------------------------------------------------------------
+ Type menu item number and press Enter or select Navigation key:2
+
+ PowerPC Firmware
+ Version AL770_052 
+ SMS 1.7 (c) Copyright IBM Corp. 2000,2008 All rights reserved.
+-------------------------------------------------------------------------------
+ Are you sure you want to exit System Management Services?
+ 1.   Yes
+ 2.   No
+
+
+
+
+
+
+
+
+
+
+
+
+ -------------------------------------------------------------------------------
+ Navigation Keys:
+ 
+                                             X = eXit System Management Services
+ -------------------------------------------------------------------------------
+ Type menu item number and press Enter or select Navigation key:1
+IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM 
+IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM 
+IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM 
+IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM 
+IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM 
+IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM 
+IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM 
+IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM 
+IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM 
+IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM 
+IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM 
+IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM 
+IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM 
+IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM 
+IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM 
+IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM 
+IBM IBM IBM IBM IBM IBM                             IBM IBM IBM IBM IBM IBM
+IBM IBM IBM IBM IBM IBM     STARTING SOFTWARE       IBM IBM IBM IBM IBM IBM
+IBM IBM IBM IBM IBM IBM        PLEASE WAIT...       IBM IBM IBM IBM IBM IBM
+IBM IBM IBM IBM IBM IBM                             IBM IBM IBM IBM IBM IBM
+IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM 
+IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM 
+IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM 
+IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM 
+IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM 
+IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM 
+IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM 
+IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM 
+IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM 
+IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM 
+IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM 
+-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|
+Elapsed time since release of system processors: 18 mins 24 secs
+
+
+
+
+
+
+
+-------------------------------------------------------------------------------
+                                Welcome to AIX.
+                   boot image timestamp: 18:26:13 10/15/2014
+                 The current time and date: 10:14:06 09/13/2016
+       processor count: 8;  memory size: 257792MB;  kernel size: 36343685
+boot device: /pci@80000002000000a/pci1014,0339@0/sata/disk@60000:\ppc\chrp\bootfile.exe
+                       kernel debugger setting: enabled
+-------------------------------------------------------------------------------
+
+AIX Version 7.1
+Starting NODE#000 physical CPU#001 as logical CPU#001... done.
+Starting NODE#000 physical CPU#002 as logical CPU#002... done.
+Starting NODE#000 physical CPU#003 as logical CPU#003... done.
+Starting NODE#000 physical CPU#004 as logical CPU#004... done.
+Starting NODE#000 physical CPU#005 as logical CPU#005... done.
+Starting NODE#000 physical CPU#006 as logical CPU#006... done.
+Starting NODE#000 physical CPU#007 as logical CPU#007... done.
+Starting NODE#000 physical CPU#008 as logical CPU#008... done.
+Starting NODE#000 physical CPU#009 as logical CPU#009... done.
+Starting NODE#000 physical CPU#010 as logical CPU#010... done.
+Starting NODE#000 physical CPU#011 as logical CPU#011... done.
+Starting NODE#000 physical CPU#012 as logical CPU#012... done.
+Starting NODE#000 physical CPU#013 as logical CPU#013... done.
+Starting NODE#000 physical CPU#014 as logical CPU#014... done.
+Starting NODE#000 physical CPU#015 as logical CPU#015... done.
+Starting NODE#001 physical CPU#016 as logical CPU#016... done.
+Starting NODE#001 physical CPU#017 as logical CPU#017... done.
+Starting NODE#001 physical CPU#018 as logical CPU#018... done.
+Starting NODE#001 physical CPU#019 as logical CPU#019... done.
+Starting NODE#001 physical CPU#020 as logical CPU#020... done.
+Starting NODE#001 physical CPU#021 as logical CPU#021... done.
+Starting NODE#001 physical CPU#022 as logical CPU#022... done.
+Starting NODE#001 physical CPU#023 as logical CPU#023... done.
+Starting NODE#001 physical CPU#024 as logical CPU#024... done.
+Starting NODE#001 physical CPU#025 as logical CPU#025... done.
+Starting NODE#001 physical CPU#026 as logical CPU#026... done.
+Starting NODE#001 physical CPU#027 as logical CPU#027... done.
+Starting NODE#001 physical CPU#028 as logical CPU#028... done.
+Starting NODE#001 physical CPU#029 as logical CPU#029... done.
+Starting NODE#001 physical CPU#030 as logical CPU#030... done.
+Starting NODE#001 physical CPU#031 as logical CPU#031... done.
+Preserving 18185 bytes of symbol table [/usr/lib/drivers/pci/efcdd]
+Preserving 42084 bytes of symbol table [/etc/drivers/pci/efcddpin]
+Preserving 30676 bytes of symbol table [/usr/lib/drivers/scsidisk]
+Preserving 42959 bytes of symbol table [/etc/drivers/scsidiskpin]
+Preserving 29503 bytes of symbol table [/usr/lib/drivers/pci/goentdd]
+Preserving 29111 bytes of symbol table [/usr/lib/drivers/efscsidd]
+Preserving 45483 bytes of symbol table [/etc/drivers/efscsiddpin]
+Preserving 141541 bytes of symbol table [/usr/lib/drivers/hd_pin]
+Preserving 232790 bytes of symbol table [/usr/lib/drivers/hd_pin_bot]
+
+
+
+ ******* Please define the System Console. *******
+
+
+Type a 1 and press Enter to use this terminal as the
+  system console.
+Pour definir ce terminal comme console systeme, appuyez
+  sur 1 puis sur Entree.
+Taste 1 und anschliessend die Eingabetaste druecken, um
+  diese Datenstation als Systemkonsole zu verwenden.
+Premere il tasto 1 ed Invio per usare questo terminal
+  come console.
+Escriba 1 y pulse Intro para utilizar esta terminal como
+  consola del sistema.
+Escriviu 1 1 i premeu Intro per utilitzar aquest
+  terminal com a consola del sistema.
+Digite um 1 e pressione Enter para utilizar este terminal
+  como console do sistema.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ HARDWARE SYSTEM MICROCODE
+
+ Licensed Internal Code - Property of IBM 
+
+ (C) Copyright IBM Corp. 1990, 1994.
+
+ All rights reserved.
+
+
+ US Government Users Restricted Rights -
+
+ Use, duplication or disclosure restricted
+
+ by GSA ADP Schedule Contract with IBM Corp.
+
+
+
+\|/-\1|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|
+   
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+>>>  1 Type 1 and press Enter to have English during install.
+     2 Entreu 2 i premeu Intro per veure la instal·lació en català.
+     3 Entrez 3 pour effectuer l'installation en français.
+     4 Für Installation in deutscher Sprache 4 eingeben
+        und die Eingabetaste drücken.
+     5 Immettere 5 e premere Invio per l'installazione in Italiano.
+     6 Digite 6 e pressione Enter para usar Português na instalação.
+     7 Escriba 7 y pulse Intro para la instalación en español.
+
+
+
+
+
+
+
+
+
+
+
+    88  Help ?
+
+
+>>> Choice [1]:    1
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                      Welcome to Base Operating System
+                      Installation and Maintenance
+
+Type the number of your choice and press Enter.  Choice is indicated by >>>.
+
+>>> 1 Start Install Now with Default Settings
+
+    2 Change/Show Installation Settings and Install
+
+    3 Start Maintenance Mode for System Recovery
+
+    4 Make Additional Disks Available
+
+    5 Select Storage Adapters
+
+
+
+
+
+
+    88  Help ?
+    99  Previous Menu
+
+>>> Choice [1]:    3
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                    Maintenance 
+
+Type the number of your choice and press Enter.
+
+>>> 1 Access a Root Volume Group 
+    2 Copy a System Dump to Removable Media
+    3 Access Advanced Maintenance Functions
+    4 Erase Disks
+    5 Configure Network Disks (iSCSI)
+    6 Select Storage Adapters
+    7 Install from a System Backup
+
+
+
+
+
+
+
+
+
+    88  Help ?
+    99  Previous Menu
+
+>>> Choice [1]:    1
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                  Warning:
+
+If you choose to access a root volume group, you will not be able to return
+to the Base Operating System Installation menus without rebooting.
+
+
+Type the number of your choice and press Enter.
+
+    0 Continue
+
+
+
+
+
+
+
+
+
+
+
+    88  Help ?
+>>> 99  Previous Menu
+
+>>> Choice [99]:    0
+
+
+
+
+                           Access a Root Volume Group
+
+Type the number for a volume group to display the logical volume information
+and press Enter.
+
+   1)   Volume Group 00f8bc1500004c0000000145dbcbe705 contains these disks:
+          hdisk0 572325     02-00-00
+   2)   Volume Group 00f8bc1500004c0000000152df836e99 contains these disks:
+          hdisk1 572325     02-00-00
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   Choice: 1
+
+
+
+
+                           Volume Group Information
+
+ ------------------------------------------------------------------------------
+    Volume Group ID 00f8bc1500004c0000000145dbcbe705 includes the following
+    logical volumes:
+
+         hd5         hd6         hd8         hd4         hd2      hd9var
+         hd3         hd1     hd10opt   hd11admin   lg_dumplv    livedump
+    paging00
+ ------------------------------------------------------------------------------
+
+
+
+
+
+
+
+Type the number of your choice and press Enter.
+
+   1) Access this Volume Group and start a shell
+   2) Access this Volume Group and start a shell before mounting filesystems
+
+  99) Previous Menu
+
+    Choice [99]: 1
+Importing Volume Group...
+sh: /usr/sbin/savebase:  not found
+
+rootvg
+Checking the / filesystem.
+
+
+
+The current volume is: /dev/hd4
+Primary superblock is valid.
+J2_LOGREDO:log redo processing for /dev/hd4                         
+Primary superblock is valid.
+Checking the /usr filesystem.
+
+
+
+The current volume is: /dev/hd2
+Primary superblock is valid.
+Saving special files and device configuration information.
+Unable to stat /dev directory on disk
+Recreating /dev directory on disk
+Changed: console
+Changed: error
+Changed: errorctl
+Changed: kmem
+Changed: mem
+Changed: pmem
+Changed: null
+Changed: nvram
+Changed: sysdump
+Changed: sysdumpctl
+Changed: sysdumpfile
+Changed: sysdumpnull
+Changed: tty
+Changed: pci1
+Changed: pci0
+Changed: pci5
+Changed: pci4
+Changed: pci3
+Changed: pci2
+Changed: pci6
+Changed: pci7
+Changed: pci8
+Changed: vio0
+Changed: pci9
+Changed: sissas0
+Changed: usbhc0
+Changed: usbhc1
+Changed: usbhc2
+Changed: sas0
+Changed: sata0
+Changed: rcd0
+Changed: cd0
+Changed: usb0
+Changed: clone
+Changed: sad
+Changed: slog
+Changed: ses1
+Changed: ses0
+Changed: hdisk1
+Changed: hdisk0
+Changed: rhdisk1
+Changed: rhdisk0
+Changed: vty0
+Changed: fscsi0
+Changed: fscsi1
+Changed: rootvg
+Changed: IPL_rootvg
+Changed: __vg10
+Changed: rhd5
+Changed: hd5
+Changed: rhd6
+Changed: hd6
+Changed: rhd8
+Changed: hd8
+Changed: rhd4
+Changed: hd4
+Changed: rhd2
+Changed: hd2
+Changed: rhd9var
+Changed: hd9var
+Changed: rhd3
+Changed: hd3
+Changed: rhd1
+Changed: hd1
+Changed: rhd10opt
+Changed: hd10opt
+Changed: rhd11admin
+Changed: hd11admin
+Changed: rlg_dumplv
+Changed: lg_dumplv
+Changed: rlivedump
+Changed: livedump
+Changed: rpaging00
+Changed: paging00
+Changed: ipl_blv
+Changed: ipldevice
+mergedev replaced 76 files in the hardfile /dev directory
+Checking and mounting the /tmp filesystem.
+
+
+
+The current volume is: /dev/hd3
+Primary superblock is valid.
+Checking and mounting the /var filesystem.
+
+
+
+The current volume is: /dev/hd9var
+Primary superblock is valid.
+Checking and mounting the /opt filesystem.
+
+
+
+The current volume is: /dev/hd10opt
+Primary superblock is valid.
+Filesystems mounted for maintenance work.
+# # 
+# 
+# 
+# 
+# 
+# 
+# 
+# 
+# 
+# 
+# 
+# 
+# bash
+bash-4.2# clear
+bash-4.2# 
+bash-4.2# 
+bash-4.2# 
+bash-4.2# 
+bash-4.2# 
+bash-4.2# 
+bash-4.2# df -gt
+Filesystem    GB blocks      Used      Free %Used Mounted on
+/dev/ram0         20.00      0.34     19.66    2% /
+/proc             20.00      0.34     19.66    2% /proc
+/dev/cd0              -         -         -    -  /SPOT
+/dev/hd4          20.00      0.34     19.66    2% /
+/dev/hd2          30.00      4.40     25.60   15% /usr
+/dev/hd3          20.00      2.34     17.66   12% /tmp
+/dev/hd9var      100.00      5.17     94.83    6% /var
+/dev/hd10opt      50.00      5.26     44.74   11% /opt
+bash-4.2# 
+bash-4.2# 
+bash-4.2# 
+bash-4.2# 
+bash-4.2# passwd t   d root
+Changing password for "root"
+root's New password:
+Re-enter root's new password:
+bash-4.2# pwdadm -c root
+bash-4.2# sync:sync:sync:reboot:reboot ;reboot:sync;reboot ;sync;rebootsync;sync;reboot 
+bash-4.2# sync;sync;sync;reboot
+Rebooting . . .
+
+!!! 00E0806  Fcode, Copyright (c) 2000-2012 Emulex !!!  Version 3.10x2
+
+
+!!! 00E0806  Fcode, Copyright (c) 2000-2012 Emulex !!!  Version 3.10x2
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM 
+IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM 
+IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM 
+IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM 
+IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM 
+IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM 
+IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM 
+IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM 
+IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM 
+IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM 
+IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM 
+IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM 
+IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM 
+IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM 
+IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM 
+IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM 
+IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM 
+IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM 
+
+          1 = SMS Menu                          5 = Default Boot List
+          8 = Open Firmware Prompt              6 = Stored Boot List
+
+
+     Memory      Keyboard     Network     SCSI     Speaker 
+IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM 
+IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM 
+IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM 
+IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM 
+IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM 
+IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM 
+IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM 
+IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM 
+IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM 
+IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM 
+IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM 
+IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM 
+IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM 
+IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM 
+IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM 
+IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM 
+IBM IBM IBM IBM IBM IBM                             IBM IBM IBM IBM IBM IBM
+IBM IBM IBM IBM IBM IBM     STARTING SOFTWARE       IBM IBM IBM IBM IBM IBM
+IBM IBM IBM IBM IBM IBM        PLEASE WAIT...       IBM IBM IBM IBM IBM IBM
+IBM IBM IBM IBM IBM IBM                             IBM IBM IBM IBM IBM IBM
+IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM 
+IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM 
+IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM 
+IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM 
+IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM 
+IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM 
+IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM 
+IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM 
+IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM 
+IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM 
+IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM IBM 
+-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/
+Elapsed time since release of system processors: 39 mins 25 secs
+
+
+
+
+
+
+
+-------------------------------------------------------------------------------
+                                Welcome to AIX.
+                   boot image timestamp: 19:48:32 02/14/2016
+                 The current time and date: 10:35:07 09/13/2016
+       processor count: 8;  memory size: 257792MB;  kernel size: 36343685
+         boot device: /pci@80000002000000a/pci1014,0339@0/sas/disk@0:2
+-------------------------------------------------------------------------------
+
+Saving Base Customize Data to boot disk
+Starting the sync daemon
+Starting the error daemon
+System initialization completed.
+TE=OFF
+CHKEXEC=OFF
+CHKSHLIB=OFF
+CHKSCRIPT=OFF
+CHKKERNEXT=OFF
+STOP_UNTRUSTD=OFF
+STOP_ON_CHKFAIL=OFF
+LOCK_KERN_POLICIES=OFF
+TSD_FILES_LOCK=OFF
+TSD_LOCK=OFF
+TEP=OFF
+TLP=OFF
+Successfully updated the Kernel Authorization Table.
+Successfully updated the Kernel Role Table.
+Successfully updated the Kernel Command Table.
+Successfully updated the Kernel Device Table.
+Successfully updated the Kernel Object Domain Table.
+Successfully updated the Kernel Domains Table.
+OPERATIONAL MODE Security Flags
+ROOT                      :    ENABLED
+TRACEAUTH                 :   DISABLED
+System runtime mode is now OPERATIONAL MODE.
+Setting tunable parameters...complete
+Starting Multi-user Initialization
+ Performing auto-varyon of Volume Groups 
+ Activating all paging spaces 
+0517-075 swapon: Paging device /dev/paging00 is already active.
+swapon: Paging device /dev/hd6 activated.
+
+The current volume is: /dev/hd1
+Primary superblock is valid.
+
+The current volume is: /dev/hd10opt
+Primary superblock is valid.
+ Performing all automatic mounts 
+Multi-user initialization completed
+Checking for srcmstr active...complete
+Starting tcpip daemons:
+0513-059 The syslogd Subsystem has been started. Subsystem PID is 2032074.
+0513-059 The sendmail Subsystem has been started. Subsystem PID is 2556374.
+0513-059 The portmap Subsystem has been started. Subsystem PID is 2752520.
+0513-059 The inetd Subsystem has been started. Subsystem PID is 3473614.
+0513-059 The xntpd Subsystem has been started. Subsystem PID is 1573246.
+Finished starting tcpip daemons.
+Starting NFS services:
+exportfs: 1831-189 sbicmer1_17: unknown host
+exportfs: 1831-189 sbicmer1_17: unknown host
+exportfs: /nim/mksysb/aix71_2_2: A file or directory in the path name does not exist.
+exportfs: 1831-189 sbicmer1_17: unknown host
+exportfs: 1831-189 sbicmer1_17: unknown host
+exportfs: /nim/spot/spot_aix7_2_2/usr: A file or directory in the path name does not exist.
+0513-059 The hrd Subsystem has been started. Subsystem PID is 2294216.
+0513-059 The biod Subsystem has been started. Subsystem PID is 3211752.
+0513-059 The nfsd Subsystem has been started. Subsystem PID is 2949584.
+0513-059 The rpc.mountd Subsystem has been started. Subsystem PID is 3342538.
+09/13 16:08:15 tftpd: [00000001] EZZ7001I Starting.
+0513-059 The rpc.statd Subsystem has been started. Subsystem PID is 3080702.
+0513-059 The rpc.lockd Subsystem has been started. Subsystem PID is 3997914.
+Completed NFS services.
+Could not load host key: /etc/ssh/ssh_host_ecdsa_key
+
+Starting The LWI Nonstop Profile...
+0513-059 The ctrmc Subsystem has been started. Subsystem PID is 3604756.
+Unauthorized use of this system is prohibited.
+login:ramji
+ramji's Password: 
+
+******************************************************************************************************************
+*       This system is a restricted access system. All the activity on this system is                            *
+*       subject to monitoring. If information collected reveals possible criminal activity or                    *
+*       activity that exceeds privileges, evidences of such activity may be provided to the                      *
+*       relevant authorities for further action. By continuing past this point, you consent                      *
+*       to this monitoring.                                                                                      *
+*                                                                                                                *
+******************************************************************************************************************
+
+Last unsuccessful login: Tue Sep 13 15:33:08 IST 2016 on /dev/vty0
+Last login: Tue Sep 13 15:33:17 IST 2016 on /dev/vty0
+
+$ su -
+root's Password: 
+3004-501 Cannot su to "root" : Authentication is denied.
+$ su -sbiacr11: A remote host did not respond within the timeout period.
+0042-001 nimclient: processing error encountered on "master":
+   0042-006 nimclient: (To_Master) rcmd A remote host did not respond within the timeout period. 
+
+
+root's Password: 
+# bash
+clbash-4.2# clear
+[H[2Jbash-4.2# 
+bash-4.2# 
+bash-4.2# 
+bash-4.2# 
+bash-4.2# 
+bash-4.2# exit
+# 
+$ 
+Unauthorized use of this system is prohibited.
+login:~.
+~.'s Password: 
+3004-007 You entered an invalid login name or password.
+
+login: ~
+
+ Terminate session? [y/n]
+
+
+
+    Hit <Enter> To Continue, q to quit: 
+
+
+ ----------------------------------------------------------
+  Partitions On Managed System:  AF3-6_Server-8231-E2D-SN21BC15T
+  OS/400 Partitions not listed
+ ----------------------------------------------------------
+   1)    AIX                                  Running
+   2)    IOR Collection LP                    Not Activated
+
+
+ Enter Number of Running Partition (q to quit): q
+q[H[2J
+
+ ----------------------------------------------------------
+  Managed Systems:
+ ----------------------------------------------------------
+   1) AF5-2_Server-8231-E2D-SN21BBDCT
+   2) AF3-4_Server-8231-E2D-SN21BBEBT
+   3) AH9-2_Server-8233-E8B-SN06603AP
+   4) AF6-3_Server-8231-E2D-SN21BBDDT
+   5) AH9-3_Server-8233-E8B-SN0615CEP
+   6) AF4-4_Server-8231-E2D-SN06BBE9T
+   7) AH8-1_Server-8205-E6B-SN066032P
+   8) AH9-1_Server-8203-E4A-SN0699355
+   9) AD13-6_Ser-8231-E2C-SN06E0CER
+   10) AF6-2_Server-8231-E2D-SN21BBEDT
+   11) AF6-4_Server-8231-E2D-SN06BBF9T
+   12) AF3-3_Server-8231-E2D-SN06BBF7T
+   13) AF3-1_Server-8231-E2D-SN06BBFAT
+   14) AF5-5_Server-8231-E2D-SN06BBF1T
+   15) AH8-2_Server-8233-E8B-SN06602EP
+   16) AF5-4_Server-8231-E2D-SN06BBE8T
+   17) AF5-6_Server-8231-E2D-SN21BBEET
+   18) AH8-3_Server-8233-E8B-SN0615CDP
+   19) AF5-7_Server-8231-E2D-SN06BBF5T
+   20) AD12-10_Ser-8231-E2C-SN06E0D0R
+   21) AF4-6_Server-8231-E2D-SN06BBF8T
+   22) AF6-6_Server-8231-E2D-SN06BBF6T
+   23) AF4-2_Server-8231-E2D-SN21BBDFT
+   24) AF3-6_Server-8231-E2D-SN21BC15T
+   25) AF4-3_Server-8231-E2D-SN21BBE2T
+   26) AF5-3_Server-8231-E2D-SN06BBE0T
+   27) AF5-1_Server-8231-E2D-SN21BBF0T
+   28) AF4-7_Server-8231-E2D-SN21BBE5T
+   29) AF3-2_Server-8231-E2D-SN06BBEFT
+   30) Server-8231-E2D-SN06BBE3T
+   31) AF6-7_Server-8231-E2D-SN21BBEAT
+   32) AF6-5_Server-8231-E2D-SN06BBF3T
+   33) AF4-5_Server-8231-E2D-SN21BBE4T
+   34) AF4-1_Server-8231-E2D-SN06BBF2T
+   35) AF6-1_Server-8231-E2D-SN21BBE7T
+
+ Enter Number of Managed System.   (q to quit): ~.
+[H[2J
+
+    Invalid Managed System Number.  Enter a Number Between 1 and 35
+
+ ----------------------------------------------------------
+  Managed Systems:
+ ----------------------------------------------------------
+   1) AF5-2_Server-8231-E2D-SN21BBDCT
+   2) AF3-4_Server-8231-E2D-SN21BBEBT
+   3) AH9-2_Server-8233-E8B-SN06603AP
+   4) AF6-3_Server-8231-E2D-SN21BBDDT
+   5) AH9-3_Server-8233-E8B-SN0615CEP
+   6) AF4-4_Server-8231-E2D-SN06BBE9T
+   7) AH8-1_Server-8205-E6B-SN066032P
+   8) AH9-1_Server-8203-E4A-SN0699355
+   9) AD13-6_Ser-8231-E2C-SN06E0CER
+   10) AF6-2_Server-8231-E2D-SN21BBEDT
+   11) AF6-4_Server-8231-E2D-SN06BBF9T
+   12) AF3-3_Server-8231-E2D-SN06BBF7T
+   13) AF3-1_Server-8231-E2D-SN06BBFAT
+   14) AF5-5_Server-8231-E2D-SN06BBF1T
+   15) AH8-2_Server-8233-E8B-SN06602EP
+   16) AF5-4_Server-8231-E2D-SN06BBE8T
+   17) AF5-6_Server-8231-E2D-SN21BBEET
+   18) AH8-3_Server-8233-E8B-SN0615CDP
+   19) AF5-7_Server-8231-E2D-SN06BBF5T
+   20) AD12-10_Ser-8231-E2C-SN06E0D0R
+   21) AF4-6_Server-8231-E2D-SN06BBF8T
+   22) AF6-6_Server-8231-E2D-SN06BBF6T
+   23) AF4-2_Server-8231-E2D-SN21BBDFT
+   24) AF3-6_Server-8231-E2D-SN21BC15T
+   25) AF4-3_Server-8231-E2D-SN21BBE2T
+   26) AF5-3_Server-8231-E2D-SN06BBE0T
+   27) AF5-1_Server-8231-E2D-SN21BBF0T
+   28) AF4-7_Server-8231-E2D-SN21BBE5T
+   29) AF3-2_Server-8231-E2D-SN06BBEFT
+   30) Server-8231-E2D-SN06BBE3T
+   31) AF6-7_Server-8231-E2D-SN21BBEAT
+   32) AF6-5_Server-8231-E2D-SN06BBF3T
+   33) AF4-5_Server-8231-E2D-SN21BBE4T
+   34) AF4-1_Server-8231-E2D-SN06BBF2T
+   35) AF6-1_Server-8231-E2D-SN21BBE7T
+
+ Enter Number of Managed System.   (q to quit): q
+
+
+ Bye.
+
+hscroot@localhost:~> exit
+exit
