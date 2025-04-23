@@ -1,0 +1,51 @@
+How to upgrade TL and SP in AIX? 
+1. Ground work: 
+oslevel -s 			--> find out the current os level of the system. 
+instfix –i|grep –i ml 		--> check currently installed ML levels are consistent 
+lppchk –vm3			 --> check currently installed filesets are consistent 
+df -g 				--> check the system has the enough free space. 
+bootlist -m normal -o 	--> check the blv has been created on the rootvg disk 
+
+Ensure the latest "mksysb" has been taken. 
+
+Download the TL/SP package from iBM fix central and put it to nim server 
+
+2. Create the alt_disk (Consider we have hdisk0 & hdisk1 on the rootvg) 
+sysdumpdev –s /dev/sysdumpnull 		--> If secondary dump device resides on hdisk1. 
+rmlv dump_lv 					--> Remove the dump lv 
+unmirrorvg rootvg hdisk1 			--> unmirrror (Have to use the hdisk1 for alt_disk) 
+chpv –c hdisk1				 --> clear the boot image on the hard disk1. 
+reducevg rootvg hdisk1 			--> remove the hdisk1 from the rootvg disk. 
+alt_disk_copy -d hdisk1 			--> Take the alt disk clone on hdisk1 
+lspv						 --> confirm the "altinst_rootvg" created on hdisk1 
+
+3. Perform the TL upgrade 
+
+smitty commit 					--> commit all the old applied filesets 
+installp -s						 --> check if any os filesets in applied mode 
+mount <nim_server>:<package holding directory> /mnt --> mount directory which hold the TL pkg. 
+cd /mnt 
+smitty update_all 					-- > Do the preview first and commit next, once done follow below 
+oslevel -s						 --> Check the new TL level. 
+lppchk -v						 --> No output should displayed, only the prompt 
+bootlist -m normal hdisk0 				--> Change the bootlist to hdisk0 - remember alt_dsk reside on hdisk1 
+shutdown -Fr 						--> for fast reboot. 
+
+4. Validation 
+
+oslevel –s				 --> check the new TL level 
+instfix –i|grep ML 			--> confirm the new TL level are consistent. 
+lppchk –v				 --> No output should displayed, only the prompt 
+
+5. Remove the alt_disk and re-mirror 
+
+alt_disk_install -X hdisk1 			--> Remove the alt_disk 
+extendvg -f rootvg hdisk1			--> extend the hdisk1 to the rootvg 
+mirrorvg rootvg hdisk1 			--> To mirror with the hdisk1 
+bosboot –ad /dev/hdisk1 			--> Create the boot image 
+bootlist –m normal hdisk0 hdisk1 		--> Set the boot sequence 
+bootlist –m normal –o 			--> check the boot sequence order 
+mklv –y <lvname> -t sysdump rootvg <num of LP’s> hdisk1   --> Create the dump lv on hdisk1 if you have removed during the alt disk clone 
+sysdumpdev –s /dev/<lv name>		 --> Create the secondary dump device on hdisk1 
+sysdumpdev –l 				--> confirm the dumplv 
+
