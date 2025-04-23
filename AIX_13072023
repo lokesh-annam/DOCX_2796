@@ -1,0 +1,70 @@
+oslevel -s
+errpt | more 
+
+===========================MKSYSB==================================
+
+mkdir /mksysb_backup/OS_Migration_mksysb_bkp_`date +%d%m%y`
+nohup mksysb -ieX /mksysb_backup/OS_Migration_mksysb_bkp_`date +%d%m%y`/$(hostname)_`date +%d%m%y-%H%M`.mksysb &
+
+mksysb -ie /mksysb_backup/OS_Migration_mksysb_bkp_`date +%d%m%y`/$(hostname)_`date +%d%m%y-%H%M`.mksysb
+
+===========================ALT_DISK=================================
+lspv | grep rootvg
+bootinfo -b ==========last boot disk 
+lsvg -p rootvg ===========to check active disk
+unmirrorvg rootvg hdisk# ======to unmirror 
+lspv -l hdisk# 
+migratepv hdisk# hdisk##
+lsvg -l rootvg
+reducevg rootvg hdisk#
+lspv | grep -w hdisk#
+bosboot -a
+nohup alt_disk_copy -d hdisk# & ===========copy old disk
+======================================================
+alt_rootvg_op -X old_rootvg =============use only if disk is not in mirror so no need to unmirror directly we can make it none.
+======================================================
+
+
+alt_rootvg_op -W -d hdisk# ======= wakeup disk
+lspv | grep rootvg
+
+===========================UPGARDE===================================
+
+chroot /alt_inst /usr/bin/oslevel -s
+emgr -l
+vi /tmp/emgr.txt
+for i in `cat /tmp/emgr.txt`;do chroot /alt_inst /usr/sbin/emgr -r -L $i ;done
+
+chroot /alt_inst /usr/sbin/emgr -l
+chroot /alt_inst /usr/sbin/installp -c all
+ls -ld /mksysb_backup/prabha/AIX_7200-05-06-2320
+nohup alt_rootvg_op -C -b update_all -l /mksysb_backup/prabha/AIX_7200-05-06-2320 &
+
+chroot /alt_inst /usr/bin/oslevel -s
+
+cd /mksysb_backup/prabha/libxml2_fix4/
+cp -pr /mksysb_backup/prabha/libxml2_fix4/IJ45056m6a.230504.epkg.Z /alt_inst/tmp/
+
+chroot /alt_inst /usr/bin/oslevel -s
+chroot /alt_inst /usr/sbin/emgr -e /alt_inst/tmp/IJ45056m6a.230504.epkg.Z
+
+chroot /alt_inst /usr/sbin/emgr -l
+chroot /alt_inst /usr/bin/oslevel -s
+
+bosboot -a
+alt_rootvg_op -St
+lspv|grep -i rootvg
+bootlist -om normal
+bootlist -m normal
+
+tar -cvf java8_64_11072023.tar java8_64
+/sysmonlogs/ankitaaa/sbiimerprdsms30
+/sysmonlogs/ankitaaa/sbiimerprdwac28
+
+
+
+viosbr -backup -file /home/padmin/`hostname`
+backupios -exclude -file /home/padmin/`hostname`.mksysb -mksysb
+
+^./home/padmin/VIOS2B-48E8_vios_07June23.mksysb
+^./home/padmin/VIO_3.1.4.10_iso
