@@ -1,0 +1,54 @@
+
+
+
+==================================================>
+/var reached 100% 
+
+df -gt
+cd /var
+du -sm * |sort -nr | head
+cd /var/spool
+>root
+du -sm * |sort -nr | head
+cd /var/spool/mail
+du -sm * |sort -nr | head
+>root
+>wasadmin
+>bvadmin
+
+
+==================================================>
+
+Host entry:
+
+   cat /etc/hosts -->Check host is available are not
+   cd /etc 
+   vi hosts	
+   Host entry
+   :wq!
+   
+===================================================>
+
+Passwdord Reset:
+
+ useradd <user_name>
+ passwd <user_name>
+ pwdadm -c <user_name>
+ 
+====================================================>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
