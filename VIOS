@@ -1,0 +1,899 @@
+==========================
+VIOS:- VIRTUAL I/O SYSTEMS
+==========================
+VIO ADVANTAGES:
+1) In VIO we can share the Physical ethernet adapters between LPARs by implementiong the 
+	Shared Ethernet Adapters (SEA).
+2) In VIO we can share the Physical fiber channel adapters by using vscsi disk mapping or NPIV 
+	disk mapping.
+3) VIO OS is combination of virtualization and Aix environment commands.
+4) In Single managed System max we can configure 4 VIOS that to depends on Licence from IBM.
+
+TO ADD I/O DEVICES TO LPARS
+	Click on MS --> Select LPAR --> Configuration -> Manage Profiles -> Select Profile --> 
+	Actions --> Edit --> Click on I/O devices --> Select I/O device which is need to be add --> Select 
+	add as required/desired.
+TO CREATE VIRTUAL ADAPTERS:
+	Click on MS --> Select LPAR --> Configuration --> Manage Profiles --> Select Profile --> 
+	Actions --> Edit --> Click on Virtual adapters --> Actions --> Create --> then we can create 
+	below type of adapters
+	
+	a) Virtual Ethernet Adapters
+	b) Virtual SCSI Adapters
+	c) Virtual Fiber Channel adapters
+
+ETHERNET ADAPTERS: 
+	Ethernet adapters are two types we can 
+	1) Physical Ehternet adapter
+	2) Virutal Ethernet adapter
+		1) Physical Ethernet Adapter: By using physical ethernet adapter we can configure IP address, 
+		it having capability to communicating another physical servers also.
+		2) Virtual Ethernet Adapter: By using virtual ethernet adapter we can configure IP address but 
+		this IP address can communicate only inter LPARs within the managed system this is also called 
+		inter partition communication. VEA adapter don't have capability of external network communication.
+	VLAN: 
+	VLAN stands for Virtual Local Area Network, by using VLAN we can make communication between the LPARs Internally.
+	VLAN IDs range will be 0 to 4095 = 4096 total
+	0, 4095 --> Reserved
+	4094 we can use.
+	1002 - 1005 --> sometimes these VLANs will be reserved for token ring adapters.
+
+INTER-PARTITION COMMUNICATION:
+	If LPAR are communicating with each other by using virtual Ethernet adapters through VLAN 
+	IDs within the Managed system this is called Inter-partition communication.
+	$oem_setup_env or $r oem --> To move from VIO environment to AIX
+
+SEA CONFIGURATION IN SINGLE VIO SETUP:
+	1) Create one Virtual Ethernet adapter on VIO side and on each lpar with same VLAN ID, which 
+		are LPARs required external access
+	NOTE: while creating VEA on VIO side select "Access External Network" and if it is Dual VIO 
+		servers we have to select Trunk Priority.
+	2) Add the Physical adapters to VIO Server.
+	3) Shutdown & Activate the VIO and LPARS after created adapters
+	4) Create the SEA on VIO Server By using below command
+	NOTE: Which are adapters we are using to create SEA, on those adapters should not configured 
+	any IP address, should be free, once created SEA then we can create/add IP to SEA adapter.
+	SYN: $mkvdev -sea <PEA> -vadapter <VEA> -default <VEA> -defaultid <VLANID>
+	EX:  $mkvdev -sea ent1 -vadapter ent0 -default ent0 -defaultid 10
+	PEA - Physical Ethernet Adapter
+	VEA - Virtual Ethernet Adapter
+
+DUAL VIO SETUP SEA/SEA FAILOVER SETUP:
+	1) Create two VIO servers in Frame and install same VIO os version on both servers.
+		$ioslevel
+		1.5 (or) 2.2.2.3
+	2) Create two virtual Ethernet adapters on each VIO server with different VLAN ids. one for to 
+		create SEA adapter which is communicating with client servers and another one for control 
+		channel adapter to communicate with another VIO server.
+	3) Add minimum one physical ehternet adapter on each VIO server, if we need etherchannel 
+		minimum two physical ethernet adapters required on each VIO
+	VIO1
+	EX: ent0 (to create SEA) VLAN = 40 - VEA
+		ent1 (Control channel adapter ) VLAN=99 - VEA
+		ent2 (Physical adapter) - PEA
+	Note: while creating ent0 adapter need to select access external network and trunk priority 1
+	
+	VIO2
+	EX: ent0 (To create SEA) VLAN = 40 - VEA
+		ent1 (Control channel adapter) VLAN=99 - VEA
+		ent2 (Physical adapter) -PEA
+	NOTE: while creating ent0 adapter need to select access external network and trunk priority 2
+	4) Activate (if down), Shutdown/Activate (if running), both VIO servers.
+	5) login to the VIO1 
+		$ lsdev -type adapter|grep ent
+		$ entstat -all ent0 |grep -i vlan -> To check 40 VLAN id status
+		$ entstat -all ent1 |grep -i vlan -> To check 99 VLAN id status
+	6) Create SEA adapter on VIO1 by using below command
+	SYN: $ mkvdev -sea <PEA> -vadapter <VEA> -default <VEA> -defaultid <VLAN ID> -attr 
+           ha_mode=auto ctl_chan=<CCVEA>-netaddr=<router IP>
+	EX: $ mkvdev -sea ent2 -vadapter ent0 -default ent0 -defaultid 40 -attr ha_mode=auto 
+		  ctl_chan=ent1 -netaddr=10.3.1.6
+	O/P: ent3 available - SEA adapter
+		 en3 available - SEA Interface
+         et3 available
+	7) Login to second VIO (VIO2)
+		$ lsdev -type adapter|grep ent
+		$ entstat -all ent0 |grep -i vlan -> To check 40 VLAN id status
+		$ entstat -all ent1 |grep -i vlan -> To check 99 VLAN id status
+	8) Create SEA adapter on VIO1 by using below command
+	SYN: $ mkvdev -sea <PEA> -vadapter <VEA> -default <VEA> -defaultid <VLAN ID> -attr 
+           ha_mode=auto ctl_chan=<CCVEA>-netaddr=<router IP>
+    EX:  $ mkvdev -sea ent2 -vadapter ent0 -default ent0 -defaultid 40 -attrha_mode=auto 
+           ctl_chan=ent1 -netaddr=10.3.1.6
+	O/P: ent3 available - SEA adapter
+		 en3 available - SEA Interface, If we need we can configure IP
+		 et3 available 
+	9) Create the VEA adapter on all LPARs with VLAN id 40, which are LPARs/Servers required 
+		external network.
+	10) After create VEA on LPARs login to each LPAR and configure the IP
+	
+SEA COMMANDS
+	$ mkvdev --> To create SEA.
+	$ lsdev -type adapter |grep -i shared --> To list SEA adapter
+		EX: $ lsdev -type adapter |grep -i shared
+		ent5 Available Shared Ethernet Adapter
+	$ entstat -d <SEA>|grep -i active --> To check the active VIO 
+		If Active=True -> It is active VIO server
+		If Active=False -> It is Inactive VIO server
+		EX: $ entstat -all ent5 |grep -i active 
+		Active channel: primary channel
+		Priority: 1 Active: True
+		$ entstat -all ent5 |grep -i priority --> To check the VIO priority.
+        $ chdev -dev <SEA> -attr ha_mode=standby -> To move/switch to SEA service access from 
+		active VIO to standby VIO. 
+		EX: chdev -dev ent5 -attr ha_mode=standby 
+		$ entstat -all ent5|grep -i active
+		Active channel: primary channel
+		Priority: 1 Active: False
+	GO TO VIO2:
+		$ entstat -all ent5 |grep -i active
+		Active channel: Secondary channel
+		Priority: 2 Active: True
+	GO TO VIO1:
+		$ chdev -dev ent5 -attr ha_mode=auto --> To bring the the SEA service access from Active VIO 
+		  to standby VIO.
+		  
+DISK MAPPING:
+	In Virtualization one of the advanced technology disk mapping. The disk mapping will be 2 
+	types from VIO to client servers.
+	1) VSCSI Disk Mapping
+	2) NPIV Disk Mapping
+		1) VSCSI Disk Mapping
+		In VSCSI disk mapping we can assign disks in two ways
+			a) Entire disk mapping to single client.
+			b) Single disk can be shared between multible LPARs/Servers.
+		2) NPIV Disk Mapping 
+	1) VSCSI Disk Mapping Configuration Single VIO:
+		a) Create Virtual SCSI adapters on VIO side (VIOS1) one and client (nimserver) side one with 
+			correct Mapping IDs.
+			Ex:VIOS1 Side vscsi details:
+				Adapter ID : 4
+				Type of adapter : Server
+				Selecte LPAR : nimserver 
+				Client ID : 6
+				nimserver side vscsi details
+				Adapter ID : 6
+				Type of adapter : Client
+				Server Partition : VIOS1
+				Server ID : 4
+	2) Once created VSCSI Adapters on VIO & client side, Shutdown/Activate the both servers if we 
+		are not created by using DLPAR operation.
+	NOTE: If we create VSCSI adapters via DLPAR just create the adapters in profile also.	
+	3) Once both servers are up, login to the VIOS1 Server, check the vscsi adapter slot ID (4) in vio 
+		server, which vhost adapter having slot ID4 by using below command
+		$ lsdev -slots
+    EX: $ lsdev -slots |grep vhost
+	U9117.570.65B9DBE-V2-C4 Virtual I/O Slot vhost0
+	4) Find the free disks in VIO to add to the vhost adapter
+		$ lspv -free
+		hdisk2
+		hdisk3
+	5) Add the free disk to vhost adapter by using below command.
+	SYN: $ mkvdev -vdev <freedisk/baking Device> -vadapter <vhostname> -dev <VTD Name>
+	EX:  $ mkvdev -vdev hdisk2 -vdapter vhost0 -dev aix1disk
+		 $ lsmap -all -> To list the mapping
+		 $ lsmap -vadapter vhostname--> to list the particular vhost mappings.
+	EX:  $ lsmap -vadapter vhost0 --> To list vhost0 adapter mappings
+	6) Go to the client side (aix1) and scan new disks.
+		 # lspv --> Take lspv output
+         # cfgmgr --> Scan new disks
+		 # lspv --> verity latest disk
+		 # bootinfo -s hdiskX --> Verify the disk size.
+
+B) SINGLE DISK CAN BE SHARED BETWEEN MULTIPLE LPARS/SERVERS IN DISK MAPPING.
+	1) Create VSCSI adapters on VIO & Client sides with correct mapping IDs.
+	2) Loging to the VIO server.
+	3) Find the correct slots number of vhosts, which is mapped to required lpar.
+	4) Find the free disk
+	5) Create VG on free disk
+		$ mkvg -vg <vgname><pvname>
+	6) Create LV with required disk size
+		$ mklv -lv <lvname><vgname><lvsize>
+	EX: $ mklv -lv nimdisklv sapsharevg 10G
+	7) Map the LV to vhost adapter by using $mkvdev command
+		$ mkvdev -vdev <lvname> -vdaper <vhostname> -dev <vtname>
+		$ mkvdev -vdev nimdisklv -vdapter vhost0 -dev nimdisk1
+	8) Go to client side and scan the new disk.
+		# lspv
+		# cfgmgr
+		# lspv
+		# bootinfo -s hdiskX
+		
+UNMAPPING/REMOVE THE MAPPINGS:
+	1) Remove VG/FS and disks from the clients.
+	2) Go to VIO side
+	3) list VTDS mapping by adapter wise $lsmap -vadaper vhostX
+	4) remove the VTDs for all vhosts
+		$ rmvdev -vtd <vtdname>
+	5) remove the vhost adapters from VIO
+	6) remove all VSCSI adapters in VIO and Clients profiles
+	7) Shutdown VIO server.
+	
+FIBER CHANNEL SCSI (FCS) ADAPTER OR HOST BUS ADAPTER (HBA):
+	Fiber channel adapter is advanced adapter to receive the disks from Storage to Managed System. 
+	Each Physical Fiber channel adapter contains the two unique numbers.
+	1) WWNN (World Wide Node Name or Number)
+	2) WWPN or WWN (World Wide Port Name or Number).
+	NOTE: WWPN is the main number to receive the disks from storage.
+		# lsdev -Cc adapter |grep -i fcs
+		fcs0 - Model number
+		fcs1 - Virtual I/O adapter
+		# lscfg -vpl <FCS>|grep -i network --> To find the wwn or wwpn number of FCS adapter
+		EX: # lscfg -vpl fcs0 |grep -i network
+
+
+
+		
+
+
+
+
+
+
+
+
+
+
+
+
+VIO INSTALLATION WITH HMC:-
+
+1.CREATE PARTITION.
+	System Name:
+	Partition ID:
+	Partition Name:
+	
+	PATITION MIGRATION:
+		Mover server partition.
+		Allow this partition to be vTPM capable.
+2.PARTITION PROFILE.
+	Profile Name: 
+3.PROCESSORS
+	shared: Assign partition processer unit from the shared processer pool. 
+		Ex: .50 to 1.50 processers units can be assigned to the partition.
+	Dedicated: Assign entire processers that can be used by the partition. If the LPAR does not use the processor, the unused CPU cycles are lost.
+			You can control this value using the ded_cpu_donate_thresh setting that you can change with the schedo command from the operating system.
+4.PROCESSING SETTINGS.
+	TOTAL VISIBLE PROCESSING UNITS: 
+	Minimum processing units:	The minimum number of processors with which the LPAR can boot.
+	Desired processing uints:	An LPAR always starts with the number of processors specified here.
+	Maximum processing units:	The maximum number of processors that you can allocate to the LPAR without a restart. 
+	Shared processing pool:
+	
+	VIRTUAL PROCESSERS:
+	Minumum Virtual processers 
+	Desired virtual processers 
+	Maximum virtual processers 
+	
+Uncapped weight
+	
+5.MEMORY SETTINGS:
+	Physical Memory 
+	Installed Memory
+	Current Memory available for partition usage 
+	Minimum Memory 
+	Dedicated Memory
+	Maximum Memory
+6.I/O:
+	NIC (Eathernet cable)
+	Disk (SAN Disk)
+	FC (
+7.VIRTUAL ADAPTORS
+	Maximum virtual adapters
+	Number of virtual adapters 
+8.HCA (HOST CHANNEL ADAPTOR)
+9.OPERATIONAL SETTINGS 
+	BOOT MODES:
+	Normal
+	System Management Services (SMS)
+	Diagnestic with default boot list (DIAG_DEFAULT)
+	Diagnestic with stored boot list (DIAG_STORED)
+	Open Firmware OK prompt
+10.PROFILE SUMMARY
+
+	1.Then Open console one press 1 (SMS Menu)
+	2.2, Setup Remote IPL (Initial Program Loader).
+	3.Selecting the network adapter for remote IPL.
+	4.Choose option 1 for IP Parameters, then go through each of the options and
+		supply the IP address,
+	5.Press Esc to go one level up for the Ping test (IP settings)
+	6.Select 3 to execute a ping test and, provided it is successful(Ping test)
+	7.Press M to get back to the main menu.
+	8.Select 5 to verify that boot is set to the correct network adapter.
+	9.Select 2 for boot order.
+	10.Select the first boot device, option 1.
+	11.It is useful to list all devices with option 8. In Figure 13-21 you can see that no
+		device is listed in Current Position.(Setting the install device)
+	12.Select option 1. We want the Interpartition Logical LAN to be our boot device.
+	13.Select option 2 to Set Boot Sequence.
+	14.Click X to exit from SMS and confirm with 1 to start the network boot.
+
+CONFIGURING THE SOFTWARE REPOSITORY ON THE VIOS:
+	$ mkrep -sp rootvg -size 4G		--> We create a 4 GB repository in the rootvg group.
+	$ lsrep		--> We verify the repository.
+	$ df -k | grep VMLibrary	--> 
+	$ mkvopt -name AIX72TL0SP2DVD1OF2 -file /home/padmin/AIX_V7.2_TL_72002_DVD1OF2.iso -ro	-->to create a virtual disk from AIX 7.2 in the repository. 
+													Create a .iso file from the physical media and copy it to the VIOS. Then, create a virtual disk.
+	$ chrep -size 1G	--> Enlarges the repository by 1 GB.
+MAPPING THE IMAGE FROM THE REPOSITORY TO THE LPAR:
+	$ mkvdev -fbo -vadapter vhost7		--> Create a virtual optical device for the LPAR identified by the vhost7.
+	$ lsmap -vadapter vhost7	-->
+	$ loadopt -vtd vtopt0 -disk AIX72TL0SP2DVD1OF2	--> Load the AIX 7.2 installation image to the virtual device.
+	$ lsmap -vadapter vhost7	--> 
+	$ lsvopt	--> 
+
+COMMANDS: 
+$ oem_setup_env		--> Switch to non-restricted shell root (Installed IBM softwares)
+$ ioslevel	--> To display VIO Server level.
+# oslevel -s 
+$ chkdev -dev hdisk4 -verbose	--> o verify if a device that is attached to a Virtual I/O Server can be migrated from a physical adapter to using virtual adapter.
+	NAME: hdisk4
+	IDENTIFIER: 200B75BALB1101207210790003IBMfcp
+	PHYS2VIRT_CAPABLE: YES
+	VIRT2NPIV_CAPABLE: NA
+	VIRT2PHYS_CAPABLE: NA
+	PVID: 00f61aa66682ec680000000000000000
+	UDID: 200B75BALB1101207210790003IBMfcp
+	IEEE:
+	VTD:
+# errpt		--> Errors when virtual disk becomes unavailable.
+# varyonvg -n rootvg	--> 
+To display the current license :
+# license –view		 
+# license –accept	--> 
+
+SET THE FIBRE CHANNEL ADAPTERS PARAMETERS AS FOLLOWS:
+# chdev -dev fscsi0 -attr dyntrk=yes -perm
+# chdev -dev fscsi0 -attr fc_err_recov=fast_fail -perm
+
+ADDRESS RESOLUTION PROTOCOL (ARP):
+	# arp -a	--> Virtual Ethernet MAC addresses of virtual Ethernet adapters are visible to outside systems
+	
+	# lsdev -Cc adapter -l fcs*
+	# lscfg -vl fcs0
+	# lscfg -vl vscsi0		--> Find out which parent belongs to which path
+	# lsattr -El fcs0 | grep max_xfer_size	--> The destination Virtual I/O Server must have physical Fibre Channel adapters 
+		with max_xfer_size set greater than or equal to the source Virtual I/O Server 
+		physical Fibre Channel adapters.
+	# lsattr -El hdisk0		--> To check for the attribute setting.
+	$ lsdev -virtual	--> list virtual SCSI server adapters
+	$ lsdev -vpd | grep vhost		--> List virtual device mappings
+	$ lsdev -type adapter	--> 
+	$ lsmap -all	--> command to check slot numbers and vhost adapter numbers.
+	$ lsmap -vadapter vhost1	--> 
+	$ rmdev -dev vhost0 -recursive	--> command for each device and then reboot the Virtual I/O Server if needed.
+	
+	$ lssp
+	$ mksp -f rootvg_clients hdisk2
+	$ mksp -fb clients_fsp -sp rootvg_clients -size 80G
+	$ mkbdsp -sp clients_fsp 20G -bd vdbsrv_rvg -vadapter vhost1
+	
+CREATE A VOLUME GROUP ROOTVG_CLIENTS ON HDISK2
+$ lsvg -lv amspaging
+$ mkvg -f -vg rootvg_clients hdisk2		--> Creating the rootvg_clients volume group.
+$ mklv -lv dbsrv_rvg rootvg_clients 10G		--> Define all the logical volumes that are going to be presented to the client partitions
+
+
+LINK AGGREGATION ON THE VIRTUAL I/O SERVER:
+The main benefit of a Link Aggregation is that it has the network bandwidth of all of its adapters in a single network presence. If an adapter fails, the packets are 
+automatically sent to the next available adapter without disruption to existing user connections. The adapter is automatically returned to service on the Link Aggregation when it recovers.
+
+PHYSICAL VOLUME COMMANDS:
+ lspv  
+	# lspv		--> To display all physical volumes in the system
+	# lspv hdisk03		--> To display the status and characteristics of hdisk03
+	# lspv –avail	--> To list all the available PVs used as virtual SCSI backing devices
+	# lspv –free	--> To list PVs that can be used as virtual SCSI backing devices and are not currently a backing device
+ migratepv 
+	# migratepv hdisk1 hdisk2	--> To move physical partitions from hdisk1 to hdisk2
+	# migratepv –lv lv01 hdisk1 hdisk2	--> To move physical partitions in lv01 from hdisk1 to hdisk2
+
+VOLUME GROUP COMMANDS:
+ activatevg 
+	# activatevg vg03	--> To activate a vg
+	
+ chvg
+	$ chvg -factor 6 rootvg
+	# chvg -suspend vg03	--> To drain I/O's for a vg and suspends future I/O's.
+	# chvg -resume vg03	--> To resume normal I/O operations for a vg.
+	# chvg -unlock vg03	--> Unlock a VG if left in a locked state by abnormal termination of another lvm operation.
+ deactivatevg    
+	# deactivatevg vg03	--> To deactivate a vg
+ exportvg 
+	# exportvg vg3	--> To export a VG
+ extendvg  
+	$ extendvg -f rootvg hdisk2		--> With given characteristics rootvg can include upto 5 physical volumes with 6096 physical partitions each.
+	# extendvg rootvg hdisk1
+	# extendvg vg3 hdisk3	--> To add a physical volume to a volume group.
+ importvg
+	# importvg –vg vg001 hdisk07	--> To import a VG from hdisk07
+ lsvg 
+	$ lsvg -lv rootvg	--> Logical partitions are mapped to two physical partitions.
+ mirrorios
+	$ mirrorios -f hdisk2	--> Mirroring the Virtual I/O Server rootvg volume group.
+	# mirrorios –force hdisk4	--> To mirror the VIO Server’s rootvg to hdisk4 and reboots VIO Server.
+	# mirrorios –defer hdisk4	--> To mirror the VIO Server’s rootvg to hdisk4 but don’t reboot the server
+ mkvg   
+	# mkvg -vg newvg hdisk1		--> To create a vg on hdisk1.
+ redefvg  
+	# redefvg –dev hdisk04	--> To redefine a VG based on the VGDA from hdisk04.
+
+ reducevg  
+	# reducevg vg01 hdisk1	--> To remove a PV from a VG
+	# reducevg –rmlv –f vg01	--> To remove a PV and all residing LVs from a VG with no confirmation.
+ syncvg 
+	$  syncvg -v rootvg		--> the synchronization manually.
+	# syncvg –vg vg01	--> To sync a VG
+	# syncvg –lv lv001	--> To sync a LV
+	# syncvg –pv hdisk4 hdisk5	--> To sync a PV
+ unmirrorios 
+	# unmirrorios hdisk4	--> To remove the rootvg mirror from hdisk4
+
+LOGICAL VOLUME COMMANDS:
+ chlv                  
+ cplv  
+	# cplv lv01 lv02	--> To copy the contents of lv01 to lv02
+	# cplv –vg vg01 lv01	--> To copy the contents of lv01 to a new lv in vg01
+	# chlv –lv newlv oldlv		--> To change the name of oldlv to newlv
+ extendlv 
+	# extendlv lv01 3M	--> To extend an LV by 3MB
+	# extendlv lv01 1G hdisk5	--> To extend an LV by 1GB with space taken from hdisk5
+ lslv  
+	# lslv lv03	--> To display the properties of a logical volume
+	# lslv –pv lv03		--> To display info about LV by Physical volume
+	# lslv –free	--> To display LVs that can be used as backing devices
+ mklv  
+	# mklv –lv lv001 vg01 1M hdisk1		--> To create a logical volume of size 1MB in vg01 
+	# mklv –mirror vg01 1G		--> To create a logical volume with mirror in place in vg01 of size 1GB
+ mklvcopy
+	# mklvcopy lv01 hdisk03		--> To make a copy for lv01 in hdisk03 
+ rmlv    
+	# rmlv lv05	--> To remove a logical volume
+ rmlvcopy    
+	# rmlvcopy lv01 hdisk03		--> To remove lv01’s copy from hdisk03
+
+MAINTENANCE COMMANDS:
+ alt_root_vg
+ artexdiff
+ artexget
+ artexlist
+ artexmerge
+ artexset
+ backup
+ backupios
+	# backupios –cd /dev/cd1 -cdformat	--> To take the OS backup in a CD ROM
+	# backupios –cd /dev/cd1 -udf	--> To take the OS backup in a DVD-RAM
+	To take the OS backup in a tape drive :
+	# backupios –tape /dev/rmt0	--> Just verifies the backup available in a tape :
+	# backupios –tape /dev/rmt0 -verify
+	Generates backup to a file. No user VGs are -nosvg back’d up :
+	# backupios –file /opt/file1
+	To display the underlying AIX OS version: 
+	# oem_platform_level	--> To open a non-restricted root shell :
+	# oem_setup_env	--> This shell is used mainly for the installation of vendor software such as device drivers.
+ bootlist
+	$ bootlist -mode normal -ls		--> 
+	# bootlist -mode service –rm	--> To invalidate the boot list for service mode
+	# bootlist -mode service –ls	--> To display the boot list for service mode
+	# bootlist –more normal hdisk0	--> To set the boot list for normal mode
+ cattracerpt
+ cfgassist
+	# cfgassist	--> To do the initial configuration of VIO Server 
+ chdate
+	$ chdate mmddhhmmyy
+	# chdate -day 12 -month 10 -year 2004 -hour 16 -minute 30	--> To change the system date and time 
+ chlang
+	# chlang -lang fr_CA	--> To change the language for the entire system to French Canadian
+	# chlang –ls	--> To display available languages
+ cl_snmp
+ cpvdi
+ diagmenu
+	# diagmenu	--> To perform hardware problem determination and maintenance
+ dsmc
+ errlog
+	# errlog –ls	--> To display the complete detailed error report 
+	# errlog –rm 0	--> To remove all the error log entries
+	# errlog –rm 5	--> To remove the error log entries older than 5 days
+ fsck
+	# fsck /dev/lv01	--> To do filesystem scan
+ invscout
+	# invscout –report	--> To generate report on microcode levels of all the devices
+	# invscout –vpd		--> To display the vpd survey of the partition
+ ldfware
+ loginmsg
+ lsfware
+	# lsfware –all		--> To display microcode levels of all devices
+ lslparinfo
+ motd
+	# motd –append “Message”	--> To append the current MOTD [Message Of The Day] :
+	# motd –overwrite -file filename	--> To overwrite MOTD
+ mount
+ pdump
+ replphyvol
+ restore
+ restorevgstruct
+ save_base
+ savevgstruct
+ showmount
+	# showmount hostname	--> To display exported (nfs) directories on a remote server
+ shutdown
+	# shutdown	--> To halt the operating system
+	# shutdown –force	--> To halt the operating system forcibly
+	# shutdown –restart	--> To reboot the vio server
+ snap
+	# snap -general -dev /dev/rfd0		--> To gather system info and to store it in the floppy disk 
+ snmp_info
+ snmp_trap
+ startsysdump
+	# startsysdump	--> To start system dump on the primary device 
+ starttrace
+ stoptrace
+ svmon
+ sysstat
+	# sysstat	--> To display the summary of current system activity
+ topas
+	# topas		--> To display the system statistics
+ uname
+ unmount
+ viosbr
+ viososmon
+ viostat
+	# viostat -disk disk1 2		--> To display continuous disk report on disk1 at 2sec interval 
+	# viostat –adapter	--> To display adapter throughput reports
+	# viostat –sys –adapter		--> To display system and adapter throughput reports
+ vmstat
+ wkldagent
+ wkldmgr
+ wkldout
+ nmon
+
+LAN COMMANDS:
+ cfglnagg   
+ cfgnamesrv 
+	# cfgnamesrv -add -dname abc.aus.century.com	--> To add a domain entry
+	# cfgnamesrv –add -ipaddr 192.9.201.1	--> To add a name server entry
+	# cfgnamesrv -ls	--> To display all the DNS entries
+ chtcpip    
+ entstat 
+	$ entstat -all ent4 | grep Active	--> check whether the primary adapter is active using.
+	$ entstat -all ent	--> Statistics for adapters in the Shared Ethernet Adapter.
+	# entstat ent0	--> To display all the statistics, including the device- specific statistics
+	# entstat –reset ent0	--> To reset all the statistics back to their initial values
+ fcstat     
+ hostmap
+	# hostmap -addr 192.100.1.7 -host alpha		--> To add IP address-to-host name mapping entry
+	# hostmap –ls	--> To list all IP address-to-host name mapping entries.
+	# hostmap-rm 192.100.1.7	--> To delete the IP address-to-host name mapping entry 
+ hostname   
+ lsnetsvc  
+	# lsnetsvc ftp	--> To display the status of ftp network service
+ lstcpip
+	# lstcpip –stored	--> To display the stored tcp/ip configuration in the system
+	# lstcpip –adapters	--> To display ethernet adapters on the system
+	# lstcpip –hostname	--> To display the system hostname
+	# lstcpip –namesrv	--> To display DNS name servers in search order and domain name
+	# lstcpip –routtable	--> To display the routing table
+	# lsctpip –num –routtable	--> To display routing table in numeric output instead of hostname
+	# lstcpip –sockets –family inet		--> To display all the open inet sockets
+	# lstcpip –state	--> To display the status of all configured interfaces 
+ mktcpip
+	# mktcpip -hostname sys01vio2 -inetaddr 9.47.90.113 -interface en2 -netmask 255.255.255.0 -gateway 9.47.90.1 -nsrvdomain yahoo.com -start	--> To configure tcpip on a network interface		
+ netstat    
+ optimizenet
+	# optimizenet –get thewall	--> To display the maximum size of the mbuf pool
+	# optimizenet –set ipforwarding=1	--> To set a machine as internet work router over TCP/IP networks
+	# optimizenet –h udp_recvspace		--> To display information on udp_recvspace 
+
+ ping       
+ prepdev    
+ rmtcpip
+	# rmtcpip –all		--> To remove all TCP/IP configuration
+	# rmtcpip –interface en0	--> To unconfigure tcpip in en0
+	# rmtcpip –f -routing		--> To cleanup static routing table
+	# rmtcpip –f –interface en0 -nextboot	--> To remove IP information from en0 after reboot
+	# rmcpip –namesrv	--> To remove DNS information and clears the hosts file
+ seastat    
+ startnetsvc
+	$ startnetsvc xntpd		--> Start of the xntpd deamon.
+	# startnetsvc ALL	--> To enable all the network services
+	# startnetsvc telnet	--> To enable the telnet daemon
+	# startnetsvc ftp	--> To enable the ftp daemon
+	# startnetsvc ssh	--> To enable the ssh daemon
+	# startnetsvc ldap	--> To enable the ldap daemon
+	# startnetsvc cimserver		--> To enable the cimserver daemon
+	# startnetsvc xntpd	--> To enable the xntpd daemon 
+	# startnetsvc tracelog	--> To send CLI tracing details to the system log
+	# startnetsvc errorlog	--> To send system error to the system log
+ stopnetsvc 
+	$ stopnetsvc telnet		--> Stopping network services
+	# stopnetsvc ALL	--> To disable all the network services 
+	# stopnetsvc telnet	--> To disable the telnet daemon
+	# stopnetsvc ftp	--> To disable the ftp daemon
+	# stopnetsvc ssh	--> To disable the ssh daemon
+	# stopnetsvc ldap	--> To disable the ldap daemon
+	# stopnetsvc cimserver	--> To disable the cimserver daemon
+	# stopnetsvc xntpd	--> To disable the xntpd daemon
+	# stopnetsvc tracelog	--> To stop sending CLI tracing details to system log 
+	# stopnetsvc errorlog -	--> To stop sending system error log to the system log
+ traceroute 
+	# traceroute nis.nsf.net	--> To display the route to a particular host
+ vasistat   
+
+SECURITY COMMANDS:
+ chauth
+ chrole
+ ldapadd
+ ldapsearch
+	$ ldapsearch -b o=ibm -h NIM_server -D cn=admin -w passw0rd -s base -p 636 -K /etc/ldap/ldap_server.kdb -N ldap_server -P passw0rd objectclass=*	--> Searching the LDAP server.
+ lsauth
+ lsfailedlogin
+	# lsfailedlogin		--> To display all failed logins
+ lsgcl
+	# lsgcl		--> To display the contents of global command log
+ lsrole
+ lssecattr
+ mkauth
+ mkkrb5clnt
+	# mkkrb5clnt -c KDC -r realm -a admin -s server -d domain -A -i database -K -T
+ mkldap
+ mkrole
+ rmauth
+ rmrole                        
+ rmsecattr                                
+ rolelist                                 
+ setkst                            
+ setsecattr                                    
+ snmpv3_ssw                      
+ swrole                       
+ tracepriv                               
+ viosecure  
+	$ viosecure -firewall on -reload	--> 
+	$ viosecure -firewall view		--> Displaying the current rules.
+	$ viosecure -undo	--> To undo all security policies.
+	$ viosecure -view	--> To view the current security rules.
+	$ viosecure -firewall off	--> Turn off the firewall first so you do not accidentally lock yourself out.
+	$ viosecure -firewall on	--> Turn on your firewall and test connections.
+	$ viosecure -firewall deny -port 0	--> Remove any existing allow rules.
+	$ viosecure -firewall allow -port 657 -address 172.16.20.111
+	$ viosecure -firewall allow -port 22 -address 172.16.20.41
+	$ viosecure -firewall allow -port 657 -address 172.16.254.38
+	$ viosecure -level low -apply	--> 
+	# viosecure -level high		--> To displays high system settings
+	# viosecure -level high –apply	--> To apply all of the high system settings to the syste
+	# viosecure –view	--> To displays the current system settings
+	# viosecure –firewall on	--> To allow IP activity on the ftp-data, ftp, ssh, www, https, rmc, and cimon ports, and to deny other IP activity
+	# viosecure –firewall off	--> To enable IP activity on all ports
+	# viosecure -firewall view	--> To display the list of allowed ports
+
+INSTALL COMMANDS:
+ ioslevel
+ ioslevel
+ lpar_netboot
+ lssw	--> To list all the installed software
+	# lssw –hist	--> To list all the installed software and their history.
+ oem_platform_level
+ remote_management
+	To enable remote_management using NIM master :
+	# remote_management nim1	--> To disable remote management :
+	# remote_management –disable	--> License Management:
+ updateios
+	# updateios –dev /update -
+	# updateios –dev /cd0 -install -accept		--> To installs a new filesets (mainly used for TL updates).
+	To commit all applied :
+	# updateios –commit	--> To rejects all uncommitted updates :
+	# updateios –reject	--> To clean all incomplete pieces of the previous installation :
+	# updateios –clean
+	To remove a fileset :
+	# updateios –remove fileset_name
+ 
+DEVICE COMMANDS:									
+ chdev 
+	$ chdev -l hdisk0 -a hcheck_interval=60 -a hcheck_mode=nonactive -P
+	# chdev -l hdisk0 -a hcheck_interval=50 -P		--> Changing the health check interval.
+	# chdev -l vscsi0 -a vscsi_path_to=30 -P	--> Configuring the virtual SCSI client adapter path timeout feature.
+	# chdev -l vscsi0 -a vscsi_err_recov=fast_fail -P	--> Configuring the virtual client adapter error recovery feature.
+	$ chdev -dev ent4 -attr ha_mode=standby		--> Perform a manual SEA failover using the following chdev command to switch to the standby adapter.
+	$ chdev -dev ent4 -attr ha_mode=auto	--> switch back to the primary adapter and verify that the primary adapter is active using these commands.
+	$ chdev -dev ent6 -attr virt_adapters=ent4,ent7		--> 
+	$ chdev -dev ent6 -attr ha_mode=sharing		--> 
+	$ chdev -dev hdisk65 -attr queue_depth=20 -->Commands to change attributes and settings.
+	$ chdev -dev hdisk4 -attr reserve_policy=no_reserve	--> 
+	$ chdev -dev hdisk4 -attr pv=yes	--> 
+	# chdev -dev scsi0 -attr id=6 -perm		--> To change the attribute of a device permanently.
+ chkdev        										
+ chpath   
+	# chpath -l hdisk0 -p vscsi0 -a priority=2		--> Changing the priority of a path.
+	# chpath -dev hdisk1 -pdev scsi0 -op disable	--> To disable the path between hdisk1 and scsi0.
+	# chpath -l hdisk1 -p vscsi0 -a priority=10
+ cfgdev  
+	# cfgdev	--> To configures the devices in the VIO server
+	# cfgdev –dev	--> To configures the devices attached to scsi0 adapter.
+ lsdev 
+	$ lsdev -dev hdisk6 -vpd	--> Finding the LUN number
+	$ lsdev -vpd	-->  list the virtual slot numbers corresponding to vhost numbers.
+	$ lsdev -dev vfchost*	-->  to list all available Virtual Fibre Channel server adapters in the Virtual I/O Server partition.
+	$ lsdev -dev fcs*	--> lists all available physical Fibre Channel server adapters in the Virtual I/O Server partition.
+	$ lsdev -dev hdisk30 -attr
+	$ lsdev -dev hdisk4 -attr | grep reserve_policy
+	# lsdev -Cc disk	-->
+	# lsdev -Cc disk
+	# lsdev -p vscsi0
+	$ lsdev -dev ent7 -attr		--> 
+	$ lsdev -dev hdisk65	-->The -dev flag is used to name the device, and it's the usual flag used for VIOS commands that identify a device.
+	# lsdev		--> To display all the devices.
+	# lsdev –virtual	--> To display all the virtual devices.
+	# lsdev –type adapter –virtual		--> To display all the virtual adapters.
+	# lsdev –slot s		--> To display all the slots.
+	# lsdev –type adapter
+	# lsdev –type ent4sea	--> To list all physical Ethernet adapters and Etherchannel available for creating a SEA.
+	# lsdev –type ven4sea	--> To list all virtual Ethernet adapters available for creating a SEA
+	# lsdev –type ent4ip	--> To list all adapters over which ip address can be configured
+	# lsdev –dev hdisk0 –	--> To display parent device of a device.
+	# lsdev -type disk -field name physloc	--> To list disks names and physical location alone
+
+ lsmap 
+	$ lsmap -all -->To list the mapping between physical, logical, and virtual devices, use the lsmap command.
+	$ lsmap -all | grep cd	--> 
+	$ lsmap -vadapter vhost6 -->
+	
+ lsnports	--> command to check the virtual Fibre Channel adapter readiness of the adapter and the SAN switch.     										
+ lspath		--> Displaying MPIO path status in the client partition 
+	# lspath -AHE -l hdisk0 -p vscsi0		--> 
+	# lspath | egrep "hdisk1|hdisk2" 
+	# lspath -AE -l hdisk1 -p vscsi1 -w `lspath -l hdisk1 -p vscsi1 -F'connection'`
+ mkpath        										
+ mkvdev: This command manages the virtual devices that you create and serve up to the VIO client LPARs.
+	$ mkvdev -vdev tape_drive -vadapter vhostn -dev device_name
+	$ mkvdev -vdev nimsrv_rvg -vadapter vhost0 -dev vnimsrv_rvg		--> Create virtual device mappings.
+	$ mkvdev -vdev hdisk10 -vadapter vhost4 -dev vIBMi_LS		--> 
+	$ mkvdev -sea ent0 -vadapter ent1 -default ent1 -defaultid 199	--> the Virtual I/O Server to create the Shared Ethernet Adapter.
+	$ mkvdev -vlan ent2 -tagid 10	-->  configure the newly created Shared Ethernet Adapter.
+	$ mkvdev -sea ent0 -vadapter ent2 -default ent2 -defaultid 1 -attr ha_mode=auto ctl_chan=ent3 netaddr=9.3.4.1 largesend=1	--> Shared Ethernet Adapter with failover creation
+	$ mkvdev -sea ent1 -vadapter ent4,ent5 -default ent4 -defaultid 10 -attr ha_mode=sharing	--> Creating an SEA (ent7) with Load Sharing mode.
+	$ mkvdev ‑vadapter vhost6 ‑fbo ‑dev crm_cd0 -->Commands that add or make something generally start with mk
+	# mkvdev -vdev lv20 -vadapter vhost0	--> To create a virtual target device that maps lv20 as a virtual disk for a client partition hosted by the vhost0 virtual server adapter.
+	# mkvdev -vdev hdisk6 -vadapter vhost2	--> Same as above except here hdisk is used instead of a logical volume.
+	# mkvdev -sea ent4 -vadapter ent6,ent7 -default ent6 -defaultid 8	--> To create a SEA that maps the physical Ethernet adapter ent4 as a virtual adapter for the client partitions served by the virtual Ethernet adapters ent6 and ent7, using ent6 as the default adapter and 8 as the default id.
+	$ mkvdev -vdev hdisk4 -vadapter vhost10 -dev aix72_data
+ mkvt   
+	# mkvt –id	--> To open a virtual terminal for partition with id 2
+	
+ rendev        										
+ rmdev  
+	# rmdev –dev cd0	--> To unconfigure the cd-rom device
+	# rmdev –recursive –dev scsi1	--> To unconfigure scsi adapter and its child devices.
+	# rmdev –pdev pci1	--> To unconfigures the children of pci1 but not the PCI bus pci1
+	 
+ rmpath        										
+ rmvdev 
+	# rmvdev –vdev vtscsi9 –	--> To remove a virtual target device vtscsi9 along with its backing lv.
+	# rmvdev –vdev lv001	--> To remove all virtual target device associated with backing device lv001.
+	# rmvdev –vtd vtscsi10	--> To remove a specific virtual target device.
+	$ rmvdev -vdev cd0	-->
+	
+ rmvt  
+	# rmvt –id 2	--> To close a virtual terminal for a partition with id 2.
+ vfcctrl                                            
+ vfcmap
+	$ vfcmap -vadapter vfchost0 -fcp fcs0	--> To map the virtual Fibre Channel server adapter vfchost0 to the physical Fibre Channel adapter fcs0
+ virtadapinfo  
+				                         
+ USERID COMMANDS:                       
+ chuser		--> Change a user’s attributes  
+	# chuser	--> To change an attribute of a user
+ lsuser		--> List a user’s attributes   
+	# lsuser	--> To display the properties of a user
+ mkuser		--> Create a system administrator user ID
+	# mkuser	--> To create a user
+	$ mkuser -sr	--> Create a service representative (SR) user ID
+	$ mkuser -de 	--> Create a development engineer (DE) user ID
+	$ mkuser -ldap	--> Create a LDAP user
+ passwd 
+	# passwd	--> To set/reset password for a user
+ rmuser                         
+     # rmuser	--> To remove a user from the system                   
+STORAGE POOL COMMANDS:                         
+ chbdsp                                       
+ chsp 
+	# chsp –default client_data	--> To set client_data storage pool as default
+ lsmap 
+	$ lsmap -all	-->To list the mapping between physical, logical, and virtual devices, use the lsmap command.
+	$ lsmap -vadapter vhost4	--> 
+	# lsmap -vadapter vhost2	--> To list all virtual target devices and backing devices mapped to virtual server adapter vhost2.
+	# lsmap -vadapter ent4 –net	--> To list SEA and physical device mapped to virtual Ethernet Adapter ent4
+	# lsmap -all -type lv	--> To list all virtual target devices and backing devices where backing devices are of type LV.
+	# lsmap –all –net	--> To list all network mapping.
+ lssp  
+	# lssp		--> To list all storage pools
+	# lssp –default		--> To list the default storage pool
+	# lssp –bd –sp rootvg	--> To list the backing device in rootvg storage pool 
+ mkbdsp  
+	# mkbdsp -bd lv001 -vadapter vthost2 -tn vtscsi9	--> To attach a storage from a storage pool to a Virtual SCSI adapter
+ mksp 
+	# mksp -f client_data	--> To create storage pool “client_data” using hdisk3 hdisk4 hdisk3 and hdisk4.
+ rmbdsp  
+	# rmbdsp –bd lv001	--> To removes storage from a Virtual SCSI adapter, and removes the backing device
+	# rmbdsp –bd lv001 -savebd	--> To remove storage from a Virtual SCSI adapter, And makes sure backing device is not deleted
+	# rmbdsp –vtd vtscsi9	--> To removes storage from a Virtual SCSI adapter, and removes the backing device
+	# rmbdsp –vtd vtscsi8 -savebd	--> To removes storage from a Virtual SCSI adapter. and makes sure backing device is not deleted
+ rmsp                                         
+                         
+SHARED STORAGE POOL COMMANDS                         
+ alert                      						
+ cluster										
+ failgrp                    										
+ lsmap                                                              
+ lssp                       										
+ lu                         										
+ pv                         										
+ snapshot                   										
+ sspcache                   										
+ tier                       										
+
+VIRTUAL MEDIA COMMANDS										
+ chrep                										
+ chvopt               										
+ loadopt                                                      
+ lsrep                										
+ lsvopt               										
+ mkrep                										
+ mkvopt               										
+ rmrep                										
+ rmvopt               										
+ unloadopt            										
+										
+SHARED FS COMMANDS 										
+ mkfbdisk          										
+ shfsclustnode     										
+										
+MONITORING COMMANDS										
+ cfgsvc	
+	# cfgsvc –ls ITM_base	--> To display the attributes associated with ITSM_base agent
+	# cfgsvc -key ITM_base		--> To display the ITM_base agent ssh public key 
+ lssvc 
+	# lssvc agent_name	--> To display an agent's configuration information
+	# lssvc		--> To display all the available agents
+ postprocesssvc									    
+ startsvc
+	# startsvc agent_name	--> To start an agent
+ stopsvc									    
+	# stopsvc agent_name	--> To stop an agent							    
+SHELL COMMANDS									    
+ awk					                    
+ cat									    
+ chmod									    
+ clear									   	
+ cp                                        
+ crontab										
+ date										
+ ftp							             
+ grep										 
+ head										 
+ ls										 
+ man										 
+ mkdir										 
+ more										 
+ mv										 
+ oem_setup_env	--> This command is the equivalent of running su – root but without the need to enter a password. Again, you will rarely have to become root on a VIO server.									 
+ rm                                         
+ sed										 
+ stty										 
+ tail										 
+ tee										 
+ vi										 
+ wall										 
+ wc										 
+ who										 
+										 
+										 
+										 
+                                         
+										 
+										 
+										 
+                                         
+                                         
+
+$
+$ cat config/ntp.log	--> 
+$ vi /home/padmin/config/ntp.conf	--> Network Time Protocol configuration
