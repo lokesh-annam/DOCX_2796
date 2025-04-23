@@ -1,0 +1,166 @@
+CHAPTER 5 : BOOT PROCESS IN AIX
+
+Power ON
+POST (Power On Self Test) --> Here it will configure the base devices.
+
+Find the AIX Boot Image
+Locate the AIX Boot Image
+Load the AIX Boot Image 
+Inital Program Load (IPL) Start Normal mode.
+Finally system will boot from default run level 2.
+
+Phase 1:-
+	The init process start from the RAMFS or Temporary RAM.
+	The rc.boot script will run first time.
+	Then "restbase" command will call the ODM partial image from BLV and it will copy into the RAMFS.
+	cfgmgr -f command will read "config_rules" file,
+	This file contains base devices information, which are required to access the rootvg.
+	bootinfo -b will run and it will identify the last booted device.
+Phase 2:-
+	rc.boot script execute the 2nd time on this phase.
+	ipl_varyonvg will active the rootvg.
+	then "/" root file system will verify by the fsck -y command and It'll temporarly mounted on RAMFS as /mnt
+	Default Paging Space /dev/hd6 will be activated.
+	At the end of second phase all rootvg file systems will mounted permanently.
+Phase 3:- 
+	rc.boot script file will execute 3rd time.
+	/etc/init process will be started and it'll read the /etc/inittab configuration file.
+	/tmp file system will activated or mounted
+	syncvg cmd sill synchronize the rootvg.
+	Then errdaemon and syncd daemon will start.
+	Finally system will boot from the default run level 2.
+
+Runlevels,
+0,1 	--> These run levels will not use by the users, This runlevels are reserved may be future purpose.
+2 		--> It default run level, and this run level multiuser run level.
+3-9		--> These run levels users related run levels, users can use depends on their requirement.
+a,b,c,h --> These are not original run levels. 
+M,m 	--> Maintanance mode run levels (OS currepted, OS file systems issues, ODM currpted)
+S,s 	--> Service mode run levels
+
+# cat /etc/.init.state		--> To display current running run level.
+# who -r 		-->	To display current running run level
+# lsitab init		--> To list the default run level. 
+
+# telinit <runlevel>		--> To change the run level.
+# telinit -q		--> To refresh the /etc/inittab file.
+NOTE: Every 60 seconds /etc/inittab file will refresh by init process.
+
+# mkitab		--> To add entry in inittab file.
+	Identifier:Runlevel:Action:Command/Script 
+	# mkitab "javasrpt:2:respawn:/tmp/javascript"
+	# mkitab "audit:2:boot:audit start > /dev/console 2>&1 # Start audit"
+# lsitab <idName>		--> To list the entries in the inittab
+# chitab		--> To chgange/modify the entries in the inittab file.
+# rmitab <idName>		--> To remove entries in the initab file.
+
+The numeric 1 key (F1 on graphical display), when pressed during POST (double beep), starts the SMS interface.
+The numeric 5 key (F5 on graphical display), when pressed during POST, initiates a system boot in service mode using the default service mode boot list. 
+Sequence: 1. diskette (if installed), 2. CD-ROM (if installed), 3. hard disk, 4. tape drive (if installed), 5. network (a. Token ring, b. Ethernet).
+The numeric 6 key (F6 on graphical display) works like the numeric 5 key, but uses the customized service mode bootlist. 
+This is the preferred method of loading AIX diagnostics from the boot hard disk.
+ipl_varyon *	Used to vary on the root volume group during system boot processing.
+ipl_varyon -i : Inquiry mode - skips ipl device processing. Checks which disks are already bootable.
+
+bosboot					 	<--Creates boot image. It does not update the bootlist in the NVRAM.
+								bosboot -a -d /dev/hdisk0 : Re-create boot image on hdisk0.
+								bosboot -a -d /dev/ipldevice -D : creates a boot image with the KDB debugger enabled.
+	
+mklv						<--Creates a logical volume.
+								mklv -y hd5 -t boot rootvg 1 : re-create boot LV (BLV) hd5.
+	
+lslv						<--Displays information about a logical volume.
+								lslv -l hd5 : determines the boot disk.
+	
+mkboot						<--Creates the boot image, the boot record, and the service record.
+								mkboot -c -d /dev/hdisk0 : clears the boot record of PV hdisk0.
+	
+chpv						<--Changes the characteristics of a physical volume in a volume group.
+								chpv -c hdisk1 : clears the boot record of PV hdisk1.
+								
+bootinfo					<--Determines and displays various boot information, including boot device type and boot device name (NOT supported in AIX 4.2 or later).
+								bootinfo -b : returns the last boot device.
+								bootinfo -B hdisk0 : returns 1 if disk is bootable, 0 if not.
+	
+bootlist					<--Displays or alters the list or ordering of boot devices available to the system.
+								Normal boot list: possible boot devices for normal mode.
+								Service boot list: possible boot devices for service mode.
+								Previous boot device: last device from which the system booted.
+								Support of these boot lists is model dependent.
+								bootlist -m normal -o : displays the normal boot list.
+								bootlist -m service -o : displays the service boot list (if available).
+								bootlist -m normal cd0 hdisk0 hdisk1 : makes changes to the normal boot list.
+								bootlist -m prevboot : invalidates the last device from which the system booted.
+
+halt or fasthalt			<--Writes data to disk (sync) and then stops the system. The system does not restart. Do not use this command if other users are logged into the system.
+
+reboot or fastboot			<--Restarts the system. Can be used if no other users are logged into the system.
+
+shutdown					<--Halts the operating system. Checks the existence of the executable /etc/rc.shutdown file (added by the administrator) that specifies all the applications and other user processes to close down.
+								By default the shutdown command powers down the system (if supported and issued).
+								shutdown -Fr : fast system shutdown and restart.
+								shutdown -m +1 : brings the system down to maintenance (single user) mode after waiting one minute.
+								shutdown -l : logs the output during the shutdown to /etc/shutdown.log.
+
+last						<--Displays information about previous logins using the /var/adm/wtmp file.
+								last reboot : displays the time between reboots.
+								last shutdown : lists last shutdowns of the system.
+
+uptime						<--Shows how long the system has been up.
+								uptime : displays the current time, the length of time the system has been up, the number of users online, and the load average.
+
+sync						<--Updates the i-node table and writes buffered files to the hard disk.
+								sync;sync;sync;reboot : writes everything from the buffer to the hard disk and reboots the system.
+
+lsfont						<--Lists the fonts available for use by the display.
+
+chfont						<--Changes the default font selected at boot time.
+
+mkfont						<--Adds the font code associated with a display to the system.
+
+mkfontdir					<--Creates a fonts.dir file from a directory of font files.
+
+chlang						<--Sets LANG environment variable in the /etc/environment file for next login.
+
+chtz						<--Changes the system time zone information in the /etc/environment file.
+
+chhwkbd						<--Changes the low-function terminal (LFT) keyboard attributes stored in the Object Data Manager (ODM) database.
+
+lskbd						<--Lists the keyboard maps currently available to the low-function terminal (LFT) subsystem.
+
+chkbd						<--Changes the default keyboard map used by the low-function terminal (LFT) at system startup.
+
+chkey						<--Changes your encryption key.
+
+lslicense					<--Displays the number of fixed licenses and the status of floating licensing. There are two types of user licensing, fixed and floating. Fixed licensing is always enabled. Floating licensing can be enabled or disabled.
+								lslicense -A : displays the number of available fixed licences on the system.
+
+chlicense					<--Changes the number of fixed licenses and the status of the floating licensing (updates login.cfg).
+								chlicense -I -u 50I -u 50 : changes the fixed license number immediately to 50 (without rebooting).
+								chlicense -f on : enables the floating licensing.
+
+lsitab						<--Lists records in the /etc/inittab file.
+
+chitab						<--Changes records in the /etc/inittab file.
+
+mkitab						<--Adds records to the /etc/inittab file.
+
+rmitab						<--Removes records from the /etc/inittab file.
+
+telinit or init				<--nitializes and controls processes.
+								0-9 Tells the init process to put the system in one of the run levels 0-9. S,s,M,m Tells the init process to enter the maintenance mode. a,b,c Tells the init process to examine only those records in the /etc/inittab file with a, b, or c in the run-level field. Q,q Tells the init process to re-examine the entire /etc/inittab file. N Sends a signal that stops processes from being respawned.
+								telinit q : requests the init command to re-examine the /etc/inittab file.
+
+who						    <--Identifies the users currently logged in.
+								who -r : displays the runlevel.
+								who /var/adm/wtmp : displays a history of logins, logouts, system startups, and system shutdowns.
+
+restbase					<--Restores customized information from the boot image. Attention: The command is executed only during system boot phase 1. Do not execute it in a run-time environment.
+
+savebase					<--Saves base customized device data in the ODM onto the boot device.
+								savebase -d /dev/hdisk0 : save the ODM to the boot logical volume.
+								
+								
+	
+	
+
