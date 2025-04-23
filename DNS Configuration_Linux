@@ -1,0 +1,51 @@
+1>> First we will check the static IP address 
+#ifconfig -a
+2>> Static hostname of the server
+#hostnamectl
+3>> Then we need to install the (bind , bind-utils) filesets by using yum .
+#yum install bind vind-utils 
+4>> edit the /etc/named.conf file.
+options -->listen-on port 53 {127.0.0.1;ipaddress};
+		   allow-query		 {localhost;any; }
+5>> start the named services .
+#systemctl start named
+6>>check the status the named services.
+#systemctl status named
+7>> Then start the firewall for ctp and udp protocal with 53 port number.
+#firewall-cmd --permanent --add-port=53/tcp
+#firewall-cmd --permanent --add-port=53/udp
+8>> Reload the firewall
+#firewall-cmd --reload
+9>> Check the status of firewall
+#firewall-cmd --list -allow-all
+10>> Add the zones in named file .
+zone "example.com" IN {
+type master;
+file "forward.example.com";
+allow-update { none };
+};
+
+zone "ip with 3 entrys.in-addr.arpa" IN {
+type master;
+file "reverse.example.com";
+allow-update { none; };
+};
+11>> Here we have to configure the forward file and reverse file.
+12>> change the owner ship for both file and restart the named services 
+13>> Check the named configuration status .
+#named-checkconf -z /etc/named.conf
+here it should show loaded serial=0 then it will be fine.
+14>> Check the zone file status also.
+#named-checkzone forward /var/named/forward.example.conf
+same like reverse also. it should show the loaded serial=0
+15>> Then restart the service (systemctl restart named)
+16>> server said completd .
+17>> Check the hostname of the client
+18>> Edit he resolve.conf file.
+search example.com
+nameserver server-ipaddress
+19>> Then restart the networkmanager ip.
+#systemctl restart networkmanager
+20>> 
+
+
