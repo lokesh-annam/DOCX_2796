@@ -1,0 +1,28 @@
+Problem determination
+sysdumpdev
+Changes the primary or secondary dump device designation in a running system. The default primary dump device is LV /dev/hd6 and the default secondary dump device is /dev/sysdumpnull. A dedicated primary dump device LV /dev/lg_dumplv is created (if sufficient disk space is available) in systems with at least 4 Gigabytes of real memory.
+sysdumpdev -l : displays current dump device settings.
+sysdumpdev -P -p /dev/hd7 : changes the primary dump device permanently from the default to LV /dev/hd7.
+sysdumpdev -e : estimates the dump size (in bytes) for the current running system.
+sysdumpdev -L : displays statistical information about the last dump.
+chdev -l sys0 -a autostart=true : automatically reboot after a crash (default is false).
+dumpcheck
+Checks the disk resources used by the system dump and logs in the system error log. Run default by cron at 3:00 pm local time each day.
+/usr/lib/ras/dumpcheck -p : requests a dumpcheck. The result is printed to stdout (-p).
+/usr/lib/ras/dumpcheck -r : discontinues running dumpcheck (removes the crontab entry).
+kdb
+Displays system images for examining a dump.
+kdb /var/adm/ras/vmcore.0 /unix : starts kdb using the uncompressed dump file /var/adm/ras/vmcore.0 and kernel file /unix.
+snap
+Gathers system configuration information and compresses the information into a pax file.
+snap -a -o /dev/rmt0 : gathers all system configuration information (needs approximately 8 MB space in directory /tmp/ibmsupt) and creates a compressed pax image (snap.pax.Z) of directory /tmp/ibmsupt.
+snapcore
+Gathers the core file, program, and libraries used by a program to directory /tmp/snapcore (default) and compresses the information into a pax image. The collected information allows debugging and resolving problems within an application.
+snapcore -d /tmp/snapcore2 core.xx : gathers all needed information for core dump file core.xx and writes it to directory /tmp/snapcore2/snapcore_32811.pax.Z, where 32811 is the process id ($pid) of the snapcore command.
+uncompress -c snapcore_32811.pax.Z | pax : displays the contents of the pax archive.
+check_core	Used by snapcore to gather all information about a core dump. The bos.rte.serv_aid fileset must be installed.
+/usr/lib/ras/check_core core.xx : displays a list containing the program that caused core dump core.xx and the used libraries.
+shconf
+Manages the system hang detection parameters for the system hang daemon shdaemon.
+shconf -d : displays if priority problem detection and lost I/O detection are enabled or not.
+shconf -E -l prio -H : displays the current shdaemon settings.
