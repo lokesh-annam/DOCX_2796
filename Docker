@@ -1,0 +1,13 @@
+# docker run -it --name count ubuntu	-->Create a container 
+# Ctrl p + q	-->Container up and exit
+# exit 			-->Container down and exit 
+# docker ps 	-->
+# docker ps -a	-->running containers
+# docker ps -f 	-->"status=exited"
+# docker image	-->List of images. 
+# docker stop Container_name	-->To stop the container 
+# docker rm Container_name		-->remove the container 
+# 49.131
+
+
+Outstanding:- (4,57,000/-)
