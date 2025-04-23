@@ -1,0 +1,205 @@
+ 
+PERFORMANCE MANAGEMENT:-
+
+The base priority of a thread is 40. The nice value defaults to 20 for foreground processes and 24 for background processes.
+The CPUs on a system are shared among all of the threads by giving each thread a time slice of one clock tick (10 ms).
+Install the bos.perf.tools (base tools), bos.sysmgt.trace, bos.perf.perfstat and perfagent.tools filesets. Commands no longer supported: bf (bigfoot), bfrpt, lockstat, stem, and syscalls.
+
+topas						<--Reports selected local system statistics.
+								topas, -P is useful # similar to top
+								
+schedo						<--Manages CPU scheduler tunable parameters.
+								schedo -o 15 : changes the time slice of one clock tick to 15 ms.
+
+bindprocessor				<--Binds or unbinds the kernel threads of a process to a processor.
+								bindprocessor 22358 2 : binds the threads in process 22358 to processor 2.
+
+perfpmr						<--A set of tools and instructions for collecting the data needed to analyze a AIX performance problem.
+
+fdpr						<--A performance tuning utility for improving execution time and real memory utilization of user-level application programs.
+
+iostat						<--Reports CPU statistics and input/output statistics for the entire system, adapters, tty devices, disks and CD-ROMs.
+								iostat -s 2 4 : displays four reports at two second intervals starting with the sum of all activities (-s).
+								iostat -a : generates an adapter throughput report for all of the disk adapters.
+								lsattr -E -l sys0 -a iostat : displays the current iostat settings.
+								chdev -l sys0 -a iostat=false : disable the collection of iostat data.
+
+lvmstat						<--Reports input/output statistics for LPs, LVs and VGs for hot-spot management.
+								lvmstat -v rootvg -e : enables statistics collection for all the LVs in VG rootvg.
+								lvmstat -v rootvg : reports statistics for all the LVs in VG rootvg.
+								lvmstat -v rootvg -C : clears the counter for VG rootvg.
+								lvmstat -l hd6 : reports statistics for LV hd6 (paging).
+								See migratelp to move LPs from one PP to another on a different PV.
+
+svmon						<--use can user svmon command to monitor memory usage as follows;
+								svmon -P <pid>
+								(A) #svmon -P -v -t 10 | more         (will give top ten processes)
+								(B) #svmon -U -v -t 10 | more         ( will give top ten user)
+
+Generally, system performance depends on 5 key resources such as
+	1) Processor/CPU
+	2) Memory
+	3) I/O Devices (Disks/Adapters/Cd-rom/tape)
+	4) Network
+	5) File systems
+
+1) Processor/CPU (or) #sar:- CPU we can analyze by using #sar command, 
+	SYN: #sar <seconds><lines>
+	Ex: #sar 2 10 	--> To list CPU performance status every 2 seconds 10 lines.
+	In sar command it will list 4 fields such as%usr, %sys, %wio %idle
+	
+	EX: [root@sbiiretuata16:/]# sar 2 10
+	AIX sbiiretuata16 3 7 00CC56974C00    03/24/25
+	System configuration: lcpu=64 ent=8.00 mode=Capped
+	14:19:22    %usr    %sys    %wio   %idle   physc   %entc
+	14:19:24       0       1       0      99    0.40     5.1
+ %usr: if we see more CPU usage under %usr, nothing but some users are using more CPU in the system we have find the which user using more CPU by using below command.
+	# ps aux -> To list the users which are using more CPU/Memory
+	NOTE: if applications (apache/java/tomcat/sas/pega) or Databases (oracle/DB2) guys are using more CPU. 
+	We have to inform to them, if root/admin users are using more CPU we have to fix the issue.
+ %sys: if we see more CPU usage under %sys nothing but kernel may be using more CPU means in the system may be Zombie/Defunct/Dead processes are running in the system. 
+	  if any zombie processes are running in the system we can kill them.
+	ZOMBIE PROCESS: This process also we can call defunct or dead process means after process work completed still it is listed in processing table and it may be using more CPU/Memory in 
+	system. Because of zombie processes sometimes system performance will become low. 
+	# ps -ef |grep -i defunct --> To list zombie/defunct processes in processing table.
+	NOTE: if we see any zombie process in server first we can try to kill them PID, if PID not killing 
+	we can PPID (Parent PID) if still zombie process not killing finally we can reboot the system.
+ %wio: if we see more CPU usage under %wio means some I/O devices may be using more CPU so we have to find the which are I/O devices are using more CPU by using 
+	  #iostat command and take required action.
+ %idle: In the idle field, we can see percentage CPU is free in the system. under idle field if we see above 30% we dont have any CPU related issues in the system 
+	   if we see below 30% the server having CPU bound related issues.
+
+2) Memory Analysis:-	We can perform memory analysis by using below commands.
+#vmastat
+#svmon
+#lsps 
+	In the system we have two types or memories one is real memory another one is paging space.
+	Both memories we can analyze by using vmstat command.
+	EX: # vmstat 2 10 		--> To list memory statistics every 2 seconds one line upto 10 lines.
+	[root@sbiiretuata16:/]# vmstat 2 5
+	System configuration: lcpu=64 mem=196608MB ent=8.00
+	kthr    memory              page              faults              cpu
+	----- ----------- ------------------------ ------------ -----------------------
+	r  b   avm   fre  re  pi  po  fr   sr  cy  in   sy  cs us sy id wa    pc    ec
+	53  0 18414437 535541   0   0   0   0    0   0  70 37166 7769  3  2 95  0  0.67   8.4
+
+	In vmstat command 5 columns will be listed such as
+	1) kthr (Kernel Thread)
+	2) Memory
+	3) Page
+	4) faults
+	5) CPU
+ 1) kthr:
+	under Kthr we can see two fields (r, b) under "r" field we can value of processes how many are currently running in the system.
+	Under "b" field we can see how many value of processes how many are waiting for the memory. 
+	NOTE: if we see any value under "b" field does't mean we have memory related issues in the system. if "b" having value is zero we dont have any memory related issues in the system
+ 2) Memory:
+	under memory we see below fields
+	a) avm
+	b) fre
+	avm: this field contains the value of pages, means how many pages are free in paging space we can list.
+	fre: this field contains the value of frames, means how many frame are free in real memory we can list.
+ 3) Page:
+	Under page column we can below 3 important fields
+	a) pi - Page In
+	b) po - Page out
+	c) re - Replacement
+	The above 3 fields having any value doesn't mean we have memory related issues in the system, if 3 values are zero value we don't have any memory related issues in the system.
+	replacement means if any process is moved from real memory to paging space and when real memory become free the same process is moving paging space to real memory is called replacement.
+ 4) Faults:
+	under faults column we can analyze one important field such as "in" in means interruption, if we see any value under interruption doesn't mean while doing read/write operations on I/O devies 
+	server is facing performance related issues in this situation we have to analyze the I/O devices again by using #iostat command.
+ 5) CPU: 
+	This column contains same attributes which are listed by #sar command. we have to analyze them as discussed in #sar command.
+3) I/O Devices:- I/O Devices we can analyze by using #iostat command. 
+	# iostat command will list the below fields
+	[root@sbiiretuata16:/]# iostat
+	System configuration: lcpu=64 drives=8 ent=8.00 paths=10 vdisks=2
+	tty:      tin         tout    avg-cpu: % user % sys % idle % iowait physc % entc
+			0.1        252.6                0.1   0.0   99.8      0.0   0.0    0.2
+	Disks:         % tm_act     Kbps      tps    Kb_read   Kb_wrtn
+	cd0               0.0       0.0       0.0          0         0
+	hdisk3            0.2     361.8      12.8   372567436  7397308692
+
+	1) tm_act
+	2) Kbps (Kilo bits per second)
+	3) tps (Transfer per second)
+	4) Kb_read (Kilo bit read operations)
+	5) Kb_write (Kilo bit write operations)
+	1) tm_act:
+	under this field we can see how usage of I/O devices if we see any I/O device having more percentage usage we have analyze whats going in the I/O device 
+	Ex: hdisk10 is using more usage then we have to analyze in hdisk10 performance by using below commands.
+	# lspv -l hdisk10 -> To find the content of hdisk10, if we Application/Database related file systems we have to inform to them on your file systems more I/O operation going please check them.
+	# lsdev -Cc disk |grep -i hdisk10 -> To find disk available status
+	# errpt |grep -i hdisk10 -> To find hdisk10 errors if anything listed in errorlog.
+	2) Kbps: This field will list the value of (read & write) operations per second.
+	3) tps: This field will list the value of only transfer I/O operations per second
+	4) Kb_read: This field will list the value of only read operations.
+	5) Kb_write: This field will list the value of only write operations.
+4) Network Analysis:- By using #netstate command we can analyze the network statistics.
+	# netstate -i > This command will list the network data transactions information such as
+	1) Ipkts: Under Input packets we can see value of receiving packets means how much data server is receiving we can see.
+	2)Ierrors: Stands for Input errors, while receiving data if any packets (data) lose. we can missing packets value under Ierrors.
+	3)Opkts: Stands for Output packets. under this field we can see value of how many packets (data) the server sending in network.
+	4)Oerrors: Stands for Output errors. while sending data if any packets (data) lose. we can see missing packets value under Oerrors.
+	NOTE: Ierrors/Oerrors value if zero we dont have network related issues in the system.
+	if anyone/both are having any value, may be system having network related issues then we have to find the network issues.
+5) Topas/NMON: By using topas and nmon commands we can analyze the total system resources statistics at a time.
+	NOTE: topas by default available in system but NMOM will not be available if we need to use nmon on system we have to download NMON file from the google and copy the file into server 
+	under below location then only nmon will work.
+	NMON file copy location:
+	5) File system analysis/File system House keeping
+===============================Performance Monitoring and Diagnostics===============================
+CPU:-
+	topas -P
+	topas -L  (logical partitions)
+	mpstat
+	sar -c
+	w          (load average)
+	uptime   (load average)
+	lparstat
+	ps
+	iostat -tT 1
+	tprof
+	curt
+Memory:-
+	topas
+	vmstat
+	sar -b
+	svmon
+	ps
+	ipcs -a
+	lockstat (version 4)
+	rmss
+
+Network:-
+	[ent|tok|fddi|atm]stat
+	netstat
+	netpmon (trcstop to stop trace)
+
+Disk:-
+	topas -D   (disk)
+	topas -F   (filesystem)
+	iostat
+	sar -D
+	fcstat (fibre)
+	lvmstat
+	filemon (trcstop to stop)
+	fileplace
+	
+	# disk stat history
+	chdev -l sys0 -a iostat=true
+	lsattr -HEl sys0 -a iostat
+
+Application
+	topas
+	truss
+	sar
+	probevue
+	tprof
+	svmon -P <pid>
+
+NFS:-
+	nfsstat
+
+Process:- 
