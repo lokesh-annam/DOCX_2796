@@ -1,0 +1,1954 @@
+date
+
+exit or Ctrl + d 
+
+who -r													--> Determine the run level.
+
+uptime
+Server Release info:-
+oslevel													-->Reports the latest installed maintenance level of the system.
+oslevel -s												-->Find out the current OS level of the system.
+oslevel -qr												-->Checking on known maintenance levels:
+oslevel -r												-->determines the highest recommended maintenance level reached for the current version of AIX.
+oslevel -sq												-->
+oslevel -lr 											-->5100-04: lists which fileset updates are missing if after installing ML 04 on 5100-03 the command oslevel -r still shows 5100-03.
+
+uname													-->Displays the name of the current operating system.
+uname -x												-->displays the operating system in use, the host name, the machine ID number of the hardware, the release number of the operating system, the operating system version and the system model name.
+uname -s												-->Get the machine OS
+uname -a 												-->displays the machine ID and version banner.
+uname -M												-->Get the AIX machine name
+uname -m												-->Getting an AIX machine's serial number.
+uname -aMu												-->
+
+ifconfig -a 											-->
+ifconfig eno down										-->
+
+netstat -na |more										-->
+netstat -nr 											-->
+
+du -sg * |sort -nr |head								-->Check the occupied space in FS
+
+df -k
+
+pwdadm -c <user_name>									-->
+pwdadm -f ADMCHG username								-->Force a user to change their password on their next login
+															Note that this works with some sshd's and not others
+hostname
+hostname newhostname 									-->temprory change
+
+pwdadm -q user_name										-->check the last changed passwd
+
+perl -le "print scalar localtime "						-->Check the last pwd change in human readble formate
+
+lsuser user_name										-->check the user attributes
+lsuser -a account_locked user_name						-->check the user has been locked or not.
+lsuser -a time_last_login user_name						-->user last login 
+
+chuser attributes user_name								-->change the user attributes 
+chuser account_locked=false USERNAME					-->unlock the account with
+chuser loginretries=NUMBER USERNAME						-->This attribute would be set via the chuser command
+chuser maxage=0 USERNAME								-->
+
+passwd -c user_name										-->
+passwd user_name										-->change the passwd 
+
+pwdck -n ALL											-->ALL Check for empty passwords
+
+lsvg root												-->check the rootvg partitions.
+lsvg -M rootvg											-->
+lsvg													-->
+lsvg -p rootvg											-->
+lsvg -l rootvg											-->
+lsvg -l datavg											-->
+
+chfs -a size=+1G FS_NAME								-->Increase the FS space.
+chfs -a size=+1G /var (grow by additional 1GB)
+chfs -a size=1G /var (grow to 1GB in size)	
+
+tcpdump -i en1 -w /tmp/text.pcap host 10.177.151.5		-->
+tcpdump -w /tmp/text.pcap -i en1						-->Capture the tcpdump packetes.
+
+lslpp -h 												-->LPP history
+lslpp -L | grep -i openssl.base							-->To find out whether the affected filesets are installed on your systems,refer to the lslpp command found in the AIX user's guide.
+lslpp -la												-->
+
+tar xvf openssl_fix30.tar								-->untar the tar file.
+"openssl dgst -sha256 file" 							-->The checksums below were generated using the
+
+stopsrc -s syslogd;startsrc -s syslogd      			-->
+
+chhmcusr -u inbitam -t passwd							-->
+
+emgr -l													-->List of IFIXs
+emgr -F -R IJ25390s2a									-->Remove IFIX  
+emgr -e IJ45056m6a.230504.epkg.Z						-->Install IFIX   
+emgr -P 												-->
+
+crfs -v jfs2 -g datavg -a size=15G -A yes -m /opt/app	-->
+
+
+chps -a n paging00 (don't use after restart)
+	
+mount /opt/app											-->										
+
+df –g													-->Check the systemhas the enough free space.
+df -gt													-->
+df -Ik													-->
+df -gt | awk '$5 > 70 {print $0}'						--> To display the flesystem that are more than 70% full. 
+df -gt | awk '{x=$5;sub ("%","",x)}x>75'
+df -gt | awk '{sub(/%/,"")}$5>75'
+df -gt | awk '{if(NF==1){x=$0;getline;if(int($4)>75)print x,$0}else if($5>75) print}'
+df -h | awk '{if(NF==1){x=$0;getline;if(int($4)>75)print x,$0}else if(int($5)>75) print}'
+
+svmon													-->use can user svmon command to monitor memory usage as follows.
+svmon -P -v -t 10 | more         						-->will give top ten processes
+svmon -U -v -t 10 | more         						-->will give top ten user
+svmon -G -O unit=GB										-->
+svmon -Pgt 10											--> To list the top ten users of paging space in IBM AIX:  
+svmon -Put 10											--> To list the top ten users of realmem in IBM AIX:   
+svmon –p pid 											--> To see the memory usage of that process:  
+      
+ps aux | head -1; ps aux | sort -rn +2 | head -10		-->Displaying top CPU_consuming processes:
+ps aux | head -1; ps aux | sort -rn +3 | head			-->Displaying top 10 memory-consuming processes: 
+ps -eakl | head -1; ps -eakl | sort -rn +5				-->Displaying process in order of being penalized:
+ps -eakl | sort -n +6 | head							--> Displaying process in order of priority:
+ps -eakl | sort -n +7									-->Displaying process in order of nice value
+ps vx | head -1;ps vx | grep -v PID | sort -rn +3 | head -10		-->Displaying the process in order of time
+ps vx | head -1; ps vx | grep -v PID | sort -rn +6 | head -10		-->Displaying the process in order of real memory use
+ps vx | head -1; ps vx | grep -v PID | sort -rn +4 | head -10		-->Displaying the process in order of I/O
+ps -a -o pid, user, class, pcpu, pmem, args							-->Displaying WLM classes 
+ps vg | head -1; ps vg | grep -w wait								-->Determinimg process ID of wait processes: 
+ps -mo THREAD -p <PID>												-->Wait process bound to CPU
+
+
+topas -P 															-->Cpu usage with priority levels
+
+mach													-->Displays the processor architecture of the machine.
+
+entstat -d en1 |grep "Port VLAN ID"						-->Find the vlan id
+entstat -d <interface>									-->
+
+lsdev													-->Displays devices in the system and their characteristics.
+lsdev -Cc adapter										-->The lsdev command displays information about devices in the Device Configuration database. You can display information about all devices in the Customized Devices
+															object class using the -C flag.
+														-->"defined" means at one time the piece of hardware was on system - as opposed to "available".  A card which is being newly added should not
+															temporarily pass through "defined" state.  Hardware should be in the "available" state.
+lsdev -Cc disk											-->To list all avalable disks.
+lsdev -Cc processer										-->To ltst all avalable processers.
+lsdev -Cc if											-->To list all avalable interfaces.
+lsdev -Cc cdrom											-->To list all avalable cdrom.
+lsdev -Cc type											-->To list all avalable type.
+lsdev -Cc memory 										-->To list all avalable memory.
+lsdev -Cc sys0											-->To list all avalable sysplaner.
+lsdev -P -H												-->To list all of the devices in the Predefined Devices object class with column headers.
+lsdev -C												-->To list all of the devices in the Customized Devices object class.
+lsdev -C -c adapter -S a								-->To list the adapters that are in the Available state in the Customized Devices object class.
+lsdev -C -H												-->To list all customaized devices.
+lsdev -Pc disk											-->To list all supported predefined disks.
+lsdev -p vscsi0											-->To find the child device for vscsi0.
+lsdev -P -c tape										-->To list all of the tape devices in the Predefined Devices object class.
+lsdev -P -r class										-->To list the supported device classes from the Predefined Devices object class.
+lsdev -P -c disk -r subclass							-->To list the supported subclasses in the Predefined Devices object class for the disk class.
+lsdev -C -H -S a -F 'name class subclass type'			-->To list the name, class, subclass, and type of every device in the Available state in the Customized Devices object class with column headers.
+lsdev -C -c adapter -F 'name class location physloc'	-->To list the name, class, location, and physloc of all adapter devices in the Customized Devices object class with column headers.
+lsdev -p pci0											-->To list all of the children of the pci0 bus.
+lsdev -l hdisk0 -F parent								-->To find the parent device for hdisk0.
+lsdev -Cc disk -p scsi0
+lsdev -Cc disk -S [a|d|s] (available, defined, stopped)
+lsdev -Cc tcpip
+
+listdgrp												-->Displays devices in a device class.
+listdgrp disk											-->list the devices in the disk class.
+
+getdev													-->Lists devices that match the specified criteria.
+getdev type=proc_rspc									-->lists all devices of type proc_rspc.
+
+cat /tmp/f | lsdev -l -									-->To list the devices whose names are contained in the file /tmp/f, type:
+
+lsdev -c disk -x										-->To display the status of the devices that are exported to a WPAR as Exported.
+
+lsconf													-->Displays system configuration information.
+
+lparstat -i				<--To get the information about the partition, enter the following command.
+						The lparstat command provides a report of LPAR related information and utilization statistics.
+lparstat -m				<--
+
+bootinfo -b												-->reports last device the system booted from
+bootinfo -s hdiskxxx									-->reports size of disk drive
+bootinfo -K												-->reports if the kernel in memory is 32 bits or 64 bits
+bootinfo -y												-->
+bootinfo -r                    							-->reports amount of memory (/ by 1024)
+bootinfo -T                    							-->reports type of machine 
+															ie rspc,rs6ksmp,rspc or chrp
+bootinfo -y 							                -->reports your hardware arquitecture (32 bits or 64 bits)															
+
+prtconf 												-->config details
+prtconf -k												-->should now be 64	or displays the kernel type in use.											
+prtconf -c 												-->
+prtconf -s												-->displays the processor clock speed. 
+prtconf -m												-->displays memory.
+prtconf | grep -i 'System Model'
+prtconf |grep -i memory
+prtconf |grep -i processor
+prtconf |grep -i firmware
+
+getdgrp													-->Lists device classes that match the specified criteria.
+getdgrp													-->display all device classes.
+
+lspv 													-->disk name will display
+lspv hdiskXX    										-->as well is defined on a Volume Group. (here we can notify the hdd state failed / sync)
+
+lsattr													-->Displays attribute characteristics and possible values of attributes for devices in the system.
+lsattr -E -l sys0 -a maxuproc							-->Maximum number of processes a user can have.
+lsattr -El ent0											-->To list all attributes for ent0.
+lsattr -EHl sys0l sys0									-->displays system attributes (realmem ...)
+lsattr -EHl proc0										-->displays the state, type and frequency of processor proc0.
+lsattr -El rmt0											-->lists the current attribute values for the tape device rmt0.
+lsattr -El tty0 -a speed								-->lists the current value of the speed attribute for serial port tty0.
+lsattr -El sys0 -a realmem
+lsattr -EHl en0
+
+lppchk -v												-->
+lppchk -vm3 											-->Check currently installed filesets are consistent.
+lppchk -v												-->
+lppchk -m 3 -f											-->
+lppchk -m 3 -l											-->
+lppchk -m 3 -c											-->
+
+instfix -i |grep -i ML 									-->Check current ML levels are consistent
+instfix -i | grep SP
+lsslot -c pci											-->
+lsslot -c [pci|phb|port]
+lsslot -c pci -l ent0
+
+alt_disk_install										-->Installs an alternate disk with a mksysb install image or clones the currently running system to an alternate disk.
+															Note: install bos.alt_disk_install fileset to use alt_disk_install.
+alt_disk_install -C -b update_all -l /dev/cd0 hdisk4	-->Creates clone of the current rootvg on hdisk4, installs a ML on the clone and changes the bootlist to hdisk4.
+alt_disk_install -X old_rootvg							-->Removes the original rootvg from the ODM, after booting from the new alternate disk (you can still reboot from old_rootvg).
+alt_disk_install -C  hdisk1								-->you clone your current rootvg to hdisk1
+alt_disk_install -X										-->if you want to remove the alternate disk install.
+
+bootlist -m hdisk0 hdisk1 								-->(means you boot from hdisk0 first and hdisk1 second)
+bootlist -m normal -o									-->Check the blv has been created on the rootvg disk
+bootlist -m service -o									-->
+bootlist -m [normal|service] -o 						--> display bootable devices)
+bootlist -m normal hdisk0 hdisk1
+
+bosboot -ad /dev/hdisk##  								-->to update the boot image evey application installed need to change boot image . update is mandtory
+bosboot -a (uses default device)
+bosboot -ad hdisk1
+
+
+bindprocessor -q										-->will give you the number of proc.
+
+lscfg													-->Displays configuration, diagnostic and VPD information about the system.
+lscfg  -v 												-->Will give your system info. 
+lscfg -l hdisk0											-->To list the location of the disk
+lscfg -vp | grep -e "Memory DIMM" -e "Size"				-->
+lscfg -vl hdisk0   										-->display hdd details
+lscfg -vpl hdisk0										-->To list all attributes for hdisk0.
+lscfg -vpl ent0|grep -i network							-->To find the network/hardware/mac address.
+lscfg |grep proc   										-->to see processor
+lscfg -l ent0
+lscfg -vl fcs0 (find the WWN of HBA adapter)
+lscfg -vpl hdisk#
+lscfg -pv
+lscfg -v -l hdisk0
+
+istat	file_name
+
+getconf													-->Displays system configuration variable values.
+getconf HARDWARE_BITMODE								-->displays hardware bit mode (64 or 32 bit).
+getconf KERNEL_BITMODE									-->displays kernel bit mode (64 or 32 bit).
+getconf DISK_SIZE /dev/hdisk2							-->displays disk size in MB.
+getconf REAL_MEMORY										-->displays real memory size in MB.
+
+lsmcode -A  											-->will give you the proc. firmware + others 
+lsmcode -c 												-->for firmware version
+lssrc -a 												-->To see services are running
+
+nfso -o nfs_use_reserved_ports=1
+
+sysdumpdev												-->Changes the primary or secondary dump device designation in a running system. The default primary dump device is LV /dev/hd6 and the default secondary dump device is /dev/sysdumpnull. A dedicated primary dump device LV /dev/lg_dumplv is created (if sufficient disk space is available) in systems with at least 4 Gigabytes of real memory.
+sysdumpdev -l											-->Lists current dump destination.       
+sysdumpdev -e											-->Estimates dumpsize of the current system in bytes.
+sysdumpdev -L        									-->Displays information about the previous dump.
+sysdumpdev -c   	 									-->the system dump device will not be compressed when the next dump is taken
+sysdumpdev -p 											-->(dump device) -P Sets the default dump device, permanently
+sysdumpdev -P -p /dev/hd7								-->changes the primary dump device permanently from the default to LV /dev/hd7.
+sysdumpdev -P -s /dev/sysdumpnull       				-->makes the secondary dump device a bit bucket (recommended)
+sysdumpstart -p      									-->Starts a dump and writes to the primary dump device.
+sysdumpstart -s      									-->Starts a dump and writes to the secondary dump device.
+
+errpt  													-->to check error of h/w from OS. Generates a report of logged errors in the system error log.
+errpt -a 												-->displays a complete detailed report.
+errpt -c > /dev/console 								-->formats and displays each of the errors at logtime (concurrent error logging) on /dev/console.
+errpt -a -jE85C5C4C 									-->Detailed info about a specific error:															
+
+cfgmgr													-->Configures devices by running the programs in /etc/methods directory and optionally installs device software. To configure  device (like devfsadm in solaris)
+cfgmgr -l												-->To configure particular device.
+cfgmgr -v												-->makes devices available that where not powered on when the system started.
+cfgmgr													-->runs the Phase 2 configuration rules (second boot phase for normal boot) (same as using the -s flag).
+cfgmgr -l scsi1											-->configures detected devices attached to the scsi1 adapter.
+cfgmgr -i /usr/sys/inst.images							-->installs device software (using the directory /usr/sys/inst.images) automatically during configuration.
+
+snap													-->Gathers system configuration information and compresses the information into a pax file.
+snap -a -o /dev/rmt0									-->gathers all system configuration information (needs approximately 8 MB space in directory /tmp/ibmsupt) and creates a compressed pax image (snap.pax.Z) of directory /tmp/ibmsupt.
+snap -gbc 												-->collecting snap
+snap -r 												-->to remove previous snap output
+snap.pax.z  											-->encrypted file snap
+
+diag 													-->now any new h/w error is there it will give. Menu driven program to run a wide choice of tasks and service aids (diagnostics, hardware error report, format, microcode and bootlist management,  ...).
+															Diagnostics modes:
+															Concurrent mode: diag is used during normal operation (only devices not in use can be tested).
+															Single-user mode: run diag after shutdown -m.
+															Stand-alone mode: boot from Diagnostics CD (press F5 when acoustic beep is heard)
+															or boot and press F6 when acoustic beep is heard to load diag from hard disk.
+															if diag returns "diag is not supported on this model" use:
+															SMS mode: boot and press F1 when acoustic beep is heard, select "test the computer". Some older models use a SMS diskette.
+
+rmdev													-->Removes a device from the system.
+rmdev -dl interfacename   								-->(To remove the device / interface) -R is recursively
+rmdev -dl devicename									-->To remove the device from odm.
+rmdev -l devicename										-->To remove the device from system temporarily.
+rmdev -Rdl parentdevicename								-->To delete the parent and child devices at a time.
+rmdev -l tty0 -d										-->removes the tty0 device definition from the CuDv object class (ODM).
+rmdev -l hdisk1											-->unconfigures PV hdisk1 and changes its state from available to defined (definition is not removed from the CuDv object class (ODM).
+rmdev -l cd0											-->
+
+errinstall												-->Installs or replaces messages in the error logging message sets of the error log message catalog.
+errupdate												-->Updates the Error Record Template Repository (default file /var/adm/ras/errtmplt).
+nimadm					 								-->Performs Alternate Disk Migration (to a new version or release) of AIX using NIM resources.
+nimadm -c aix1 -s spot2 -l lpp2 -d "hdisk1 hdisk2" -Y 	-->migrates totarget NIM client aix1, using NIM SPOT resource spot2, the NIM lpp_source lpp2, and hdisk1 and hdisk2 target disks, and agreeing to all required software license agreements for the software being installed (-Y).
+nim -o alt_disk_install -a source=rootvg -a disk='hdisk2' -a phase=12 holland			-->clones a rootvg on client holland to hdisk1, but only run phase1 and phase2 (leaving the /alt_inst file systems mounted).
+dumpcheck												-->Checks the disk resources used by the system dump and logs in the system error log. Run default by cron at 3:00 pm local time each day.
+/usr/lib/ras/dumpcheck -p								-->requests a dumpcheck. The result is printed to stdout (-p).
+/usr/lib/ras/dumpcheck -r								-->discontinues running dumpcheck (removes the crontab entry).
+
+kdb														-->Displays system images for examining a dump.
+kdb /var/adm/ras/vmcore.0 /unix     					-->starts kdb using the uncompressed dump file /var/adm/ras/vmcore.0 and kernel file /unix.
+
+snapcore												-->Gathers the core file, program, and libraries used by a program to directory /tmp/snapcore (default) and compresses the information into a pax image. The collected information allows debugging and resolving problems within an application.
+snapcore -d /tmp/snapcore2 core.xx						-->gathers all needed information for core dump file core.xx and writes it to directory /tmp/snapcore2/snapcore_32811.pax.Z, where 32811 is the process id ($pid) of the snapcore command.
+															uncompress -c snapcore_32811.pax.Z | pax				-->displays the contents of the pax archive.
+															check_core	Used by snapcore to gather all information about a core dump. The bos.rte.serv_aid fileset must be installed.
+															/usr/lib/ras/check_core core.xx							-->displays a list containing the program that caused core dump core.xx and the used libraries.
+shconf													-->Manages the system hang detection parameters for the system hang daemon shdaemon.
+shconf -d												-->displays if priority problem detection and lost I/O detection are enabled or not.
+shconf -E -l prio -H									-->displays the current shdaemon settings.
+
+file													-->Determines the file type.
+file prog												-->displays user process bit mode of program prog. Returns:executable (RISC System/6000) or object module not stripped (32 bit program),
+															or 64-bit XCOFF executable or object module not stripped (64 bit program).
+file /unix												-->the returned link shows which kernel is running: unix_up = 32-bit uniprocessor kernel, unix_mp = 32-bit multiprocesssor kernel, unix_64 = 64-bit multiprocessor kernel.
+
+cfg2html												-->A system configuration to HTML converter (Open Source)
+
+chcons													-->Redirects the system console to device or file, effective next startup.
+chcons -a login=enable /dev/tty0						-->changes the system console to device /dev/tty0. Use /dev/lft0 for the default LFT display.
+chcons /tmp/console.out									-->redirects the system console to file /tmp/console.out.
+
+lsdisp													-->Lists the displays and the default display currently available on the system.
+
+chdisp													-->Changes the display used by the LFT subsystem.
+chdisp -p gda1											-->changes the default display permanently to gda1.
+chdev													-->Changes a device's characteristics.
+chdev -l hdisk2 -a pv=yes								-->assigns a PVID to hdisk2.
+chdev -l rmt0 -a ret=no									-->
+
+mkdev													-->Adds a device to the system.
+mkdev -l hdisk2											-->make the already defined disk device hdisk2 available to use.
+mkdev -l hdisk1 -a pv=yes								-->makes an available disk a PV (assigning a PVID), if it does not already have one.
+mkdev -c tty -t tty -s rs232 -p sa0 -w s1 -a login=enable -a term=ibm3151	-->adds an ibm3151 RS232 terminal using adapter sa0 port s1 with login enabled.
+
+mklv -y rawVolume vg01 10								--> create a raw volume
+
+llctl -g reconfig - make loadleveler reread its config files
+
+pstat -a 
+
+lspath -l hdisk0										-->
+
+display swap:-
+lsps -a (detailed)
+lsps -s
+
+lsfs [<filesystem>]
+lsfs -q <filesystem> (detailed)
+
+crfs -v jfs2 -d data02lv -m /data02 -A yes				--> 
+	-v filesystem type
+	-d device or logical volume
+	-m mountpoint
+	-A mount after restart [yes|no]
+
+rmfs -ri /data02										--> 
+	-r remove the mountpoint
+	-i display warning before removing
+	
+lsvg -l rootvg
+
+lchangelv
+
+odmget -q "name=en0" CuAt
+
+adding swap:-
+mkps -a -s 4 -n <volume group>
+
+chlv -n <new name> <old old> (chang page space name)
+chlv -b [y|n] <lv>										--> Bad Blocks
+
+swapoff /dev/paging00
+
+rmps paging00
+
+format -d /dev/rfd0
+format -d /dev/fd0.18 (high format)
+
+mount -v cdrfs -r /dev/cd0 /cdrom
+mount -o remount,rw <filesystem>
+
+umount /cdrom
+
+smitty 													-->provides menu driven wizard
+smitty chgsys											-->Also allows one to change the max number of processes per user, among other things
+smitty chpv 											-->to check hotspare pool
+smitty mktcpip  										-->to config ip
+smitty hostname 										-->to change hostname
+smitty mksysb  											-->Taking OS Backup
+smitty savevg											-->
+smitty resetvg											-->
+smitty chlv
+smit
+
+page size (memory):-
+pagesize
+pagesize -a (display all supported pagesizes)
+	
+locale -a 												--> List locale 
+
+install_assist											--> initialize system
+
+Item Description
+/etc/passwd						<--Contains the basic attributes of users.
+/etc/group 						<--Contains the basic attributes of groups.
+/etc/inittab 
+/etc/filesystems 
+/etc/hosts
+/etc/security/user 				<--Contains the extended attributes of users.
+/etc/security/user.roles 		<--Contains the administrative role attributes of users.
+/etc/security/limits 			<--Defines resource quotas and limits for each user.
+/etc/security/environ 			<--Contains the environment attributes of users.
+/etc/security/audit/config 		<--Contains audit configuration information.
+/etc/security/lastlog 			<--Contains the last login attributes of users.
+/etc/security/group 			<--Contains the extended attributes of groups
+/etc/security/aixpert/bin/cronaudit
+/usr/bin/errclear
+/usr/lib/ras/dumpcheck
+/usr/sbin/dumpctrl
+/var/perf/pm/bin/pmcfg
+/etc/inetd.conf
+/etc/services
+/etc/rpc
+/etc/aixmibd.conf
+/etc/rc.tcpip
+/etc/rc.d
+/etc/rc.d/init.d	
+/etc/rc.d/rc2.d - rc9.d
+/etc/rc.* (config files for auto-starting)
+/etc/syslog.conf										-->
+/etc/services
+/etc/filesystems
+/etc/environment
+/etc/profile
+/etc/inittab
+/etc/passwd                  contains the basic attributes of users. (username, if pw set, uid, gid, GECOS, home dir, shell)
+                             (* means invalid or password is not set, ! means user has a password)   
+
+/etc/security/passwd         it contains the password (encrypted) and other information. (here is the ADMCHG flag...)
+
+grep -rin "word" PATH									--> This will search for "specific word" recursively in specific path
+-i : Case-insensitive
+-n : Display the line name 
+-l : list the file names 
+-w : Searches for the whole word 
+-r : Searches recursively
+
+init status:-
+0	0 - reserved
+1	1 - reserved
+2	2 - multiuser mode with NFS
+3	3 - user defined
+4	4 - user defined
+5	5 - user defined
+6	6 - user defined
+	7-9 - user defined
+			
+Abbreviations and Acronyms:-
+APAR	 Authorized Program Analysis Report
+CDE		 Common Desktop Environment
+CHRP	 Common Hardware Reference Platform
+CuDv	 Customized Devices object class (ODM)
+DHCP	 Dynamic Host Configuration Protocol
+ICMP	 Internet Control Message Protocol
+ISA	 	 Instrumentation Systems and Automation Society
+ISMP	 InstallShield Multi-Platform
+JFS	 	 Journaled File System
+JFS2	 Enhanced Journaled File System
+LFT	 	Low Function Terminal
+LTG	 	Logical Track Group
+LPP	  	Licensed Program Product
+LV	 	Logical Volume
+LVCB	Logical Volume Control Block
+MCA	 	Micro Channel Bus Architecture
+ML	 	Maintenance Level
+MWC	 	Mirror Write Consistency
+NIS	 	Network Information Service
+NVRAM	NonVolatile Random Access Memory
+ODM	 	Object Data Manager Database
+PB	 	PetaBytes (1 PB is equal to 1024 TB)
+PCI	 	Peripheral Component Interconnect
+PCMCIA	Personal Computer Memory Card International Association
+PdDv	Predefined Devices object class (ODM)
+PV	 	Physical Volume
+PVID	Physical Volume IDentifier
+PP	 	Physical Partition
+PTF	 	Program Temporary Fix
+RPC	 	Remote Procedure Call
+PReP	POWERPC Reference Platform
+RPM	 	Red Hat Package Manager
+SRC	 	System Resource Controler
+SWVPD	Software Vital Product Data
+TB	 	TeraBytes (1 TB is equal to 1024 GB)
+UDI	    Uniform Device Interface
+VG	 	Volume Group
+VGDA	Volume Group Description Area
+VGSA	Volume Group Status Area
+VPD	 	Vital Product Data
+
+PMR - Problem Management Record.
+PTF - Program Temporary Fix eg Unnnnnn
+APAR - Authorized Program Analysis Report, specific release of PTF.
+           eg IYnnnnn, IXnnnnn
+ML - Maintenance Level, grouping of APAR. eg 5300-04 is ML 4
+SP - Service Pack (starting aix 5.3 ML 3) eg 5300-03-01 is SP 1 on ML3
+TL -
+Fileset - group of files, eg bos.adt.libm
+VRMF - Version, Release, Modification/Maintenance level, and Fix.
+           eg 5.2.0.60
+=========================================================================================================================================================================>
+
+
+================================================================================================>
+
+
+================================================================================================>
+AIX Java Path settings:-
+
+For shell java path 
+
+About this task
+
+The PATH environment variable enables AIX to find programs and utilities, such as javac, java, and javadoc tool from any current directory. 
+Changing the path will override any existing Java launchers in your path.
+To display the current value of your PATH environment variable, type the following at a command prompt:
+
+echo $PATH
+
+To add the Java launchers to your path:
+
+    Edit the shell startup file in your home directory. The name of your startup file will depend on the shell you are using; for example:
+        The Korn shell startup file is .kshrc.
+        The C shell startup file is .cshrc.
+        The Bourne shell startup file is .profile.
+        The BASH shell startup file is .bashrc.
+    Add the absolute paths to the PATH environment variable; for example:
+
+    export PATH=/usr/java-ppc64-60-srt/jre/bin:/usr/java-ppc64-60-srt/bin:$PATH
+
+    Log on again or run the updated shell script to activate the new PATH environment variable.
+
+--------------------------------------
+
+for bash shell edit .profile file in user /home/<username>
+
+Append path 
+PATH
+
+
+#source profile 
+
+-------------------------
+================================================================================================>
+
+
+
+
+
+=========================================================================================================================================================================>
+find /var/spool/clientmqueue -name '*' -type f -mtime +250 -exec rm -rf {} \;
+find . -name index.html -type f -exec 1s -lrt {} \; sbiinbproductionsupport
+=========================================================================================================================================================================>
+root@SbiiMobAPre1:/#cat .profile
+stty erase ^?
+set -o vi
+export TERM=vt100
+export PS1=$(echo `whoami`@"\033[3;36m"`hostname`:"\033[0m"'$PWD'#)
+
+=========================================================================================================================================================================>
+
+Changing limit:-
+
+ulimit -a		<--Check the ulimit 
+ulimit -Ha
+vi /etc/security/limits			<--before changing need to take a backup.
+=========================================================================================================================================================================>
+Environment variable:-
+
+cat /etc/environment
+PATH=/usr/bin:/etc:/usr/sbin:/usr/ucb:/usr/bin/X11:/sbin:/usr/java8_64/jre/bin:/usr/java8_64/bin
+TZ=Asia/Calcutta				<--Anyway, set the timezone variable TZ in /etc/environment like this
+LANG=en_US
+LOCPATH=/usr/lib/nls/loc
+NLSPATH=/usr/lib/nls/msg/%L/%N:/usr/lib/nls/msg/%L/%N.cat:/usr/lib/nls/msg/%l.%c/%N:/usr/lib/nls/msg/%l.%c/%N.cat
+LC__FASTMSG=true
+
+# ODM routines use ODMDIR to determine which objects to operate on
+# the default is /etc/objrepos - this is where the device objects
+# reside, which are required for hardware configuration
+
+ODMDIR=/etc/objrepos
+# Clustering variable to allow commands to bypass clcmd checks.
+CLCMD_PASSTHRU=1
+
+=========================================================================================================================================================================>
+"svmon" will give u this output which give u the information regarding:- 
+ur memory.
+
+               size      inuse       free        pin    virtual
+memory      1310711    1298235      12476     103782     711466
+pg space    2097152     585219
+               work       pers       clnt      lpage
+pin          103782          0          0          0
+in use       438570      10130     849535          0
+
+=========================================================================================================================================================================>
+please check if your cd device is being used by some process by running:-
+
+fuser -c /dev/cd0
+
+you can also chack if cdromd is up and running by:
+
+lssrc -a | grep cd
+
+if cdromd is running, then try with the following commands:
+
+cdumount
+
+cdeject
+
+=========================================================================================================================================================================>
+If an ESMF node mostly falls off the net (strobe shows only about 5 ports open), then:
+
+1) Go down to the ESMF HMC
+2) Log in
+3) Locate the right window to use
+4) Log in to the trouble machine
+5) kill and restart srcmstr
+6) startsrc -s inetd
+7) startsrc -s sshd
+8) startsrc -s automountd
+9) /etc/nfs.clean
+10) /etc/rc.nfs
+
+There may be other things that need to be started up as well, but this has been sufficient so far.
+
+=========================================================================================================================================================================>
+Following the documentation if you issue the following command you will activate HMT or Hardware MultiThreading
+
+# bosdebug -H on
+Memory debugger           off
+Memory sizes              0
+Network memory sizes      0                                             
+Kernel debugger           off                                           
+Real Time Kernel          off
+HMT                       on
+
+...but only if your hardware -supports- HMT!
+
+=========================================================================================================================================================================>
+Checking if NFS is active:
+lssrc -a | egrep nfs
+ biod             nfs              20752   active
+ nfsd             nfs              21426   active
+ rpc.mountd       nfs              27888   active
+ rpc.statd        nfs              22730   active
+ rpc.lockd        nfs              24280   active
+
+=========================================================================================================================================================================>
+
+
+
+Changing prngd to listen on a socket, using chsys:-
+
+esmfcws-root> chssys -s prngd -a '-f /dev/egd-pool -m 666 tcp/localhost:708'
+0513-077 Subsystem has been changed.
+esmfcws-root> ps -ef | grep prng
+    root  303186 1015878   0 19:19:43  pts/2  0:00 grep prng
+    root 1007836  262212   0 19:04:42      -  0:01
+    /opt/freeware/sbin/prngd -f /dev/egd-pool -m 666
+esmfcws-root> stopsrc -s prngd
+0513-044 The prngd Subsystem was requested to stop.
+esmfcws-root> startsrc -s prngd
+0513-059 The prngd Subsystem has been started. Subsystem PID is 852062.
+esmfcws-root> ps -ef | grep prng
+    root  852062  262212   0 19:20:42      -  0:01
+    /opt/freeware/sbin/prngd -f /dev/egd-pool -m 666 tcp/localhost:708
+    root 1007846 1015878   0 19:20:54  pts/2  0:00 grep prng
+esmfcws-root> /usr/lo
+local       lost+found
+esmfcws-root> /usr/local/sbin/gen-pas
+Not bad, using prngd for entropy
+cf4b01142c33d9bd06f1e50d6968f4da
+esmfcws-root>
+
+=========================================================================================================================================================================>
+Or if prngd isn't already partially set up:
+
+esmf04m-root> mkssys -s prngd -p /opt/freeware/sbin/prngd -u root -a
+'-f /dev/egd-pool -m 666 tcp/localhost:708'
+0513-071 The prngd Subsystem has been added.
+esmf04m-root> lssrc -s prngd
+Subsystem         Group            PID     Status 
+ prngd                                     inoperative
+esmf04m-root> 
+
+esmf04m-root> for i in 1 2 3 4 5 6 7 8; do ssh esmf0${i}m "mkssys -s
+prngd -p /opt/freeware/sbin/prngd -u root -a '-f /dev/egd-pool -m 666
+tcp/localhost:708'"; done
+0513-071 The prngd Subsystem has been added.
+0513-071 The prngd Subsystem has been added.
+0513-071 The prngd Subsystem has been added.
+0513-075 The new subsystem name is already on file.
+0513-071 The prngd Subsystem has been added.
+0513-071 The prngd Subsystem has been added.
+0513-071 The prngd Subsystem has been added.
+0513-071 The prngd Subsystem has been added.
+esmf04m-root> for i in 1 2 3 4 5 6 7 8;
+do ssh esmf0${i}m "stopsrc -s prngd"; done
+0513-004 The Subsystem or Group, prngd, is currently inoperative.
+0513-004 The Subsystem or Group, prngd, is currently inoperative.
+0513-004 The Subsystem or Group, prngd, is currently inoperative.
+0513-044 The prngd Subsystem was requested to stop.
+0513-004 The Subsystem or Group, prngd, is currently inoperative.
+0513-004 The Subsystem or Group, prngd, is currently inoperative.
+0513-004 The Subsystem or Group, prngd, is currently inoperative.
+0513-004 The Subsystem or Group, prngd, is currently inoperative.
+esmf04m-root> for i in 1 2 3 4 5 6 7 8; do ssh esmf0${i}m "startsrc
+-s prngd"; done
+0513-059 The prngd Subsystem has been started. Subsystem PID is 25880.
+0513-059 The prngd Subsystem has been started. Subsystem PID is 34508.
+0513-059 The prngd Subsystem has been started. Subsystem PID is 30670.
+0513-029 The prngd Subsystem is already active.
+Multiple instances are not supported.
+0513-059 The prngd Subsystem has been started. Subsystem PID is 37450.
+0513-059 The prngd Subsystem has been started. Subsystem PID is 21266.
+0513-059 The prngd Subsystem has been started. Subsystem PID is 27662.
+0513-059 The prngd Subsystem has been started. Subsystem PID is 42666.
+esmf04m-root> 
+
+Don't forget /etc/prngd.conf
+
+=========================================================================================================================================================================>
+Linux, by default, requires any NFS mount to use a reserved port below 1024.AIX, by default, uses ports above 1024. 
+Use the following command to restrict AIX to the reserved port range:-
+
+# /usr/sbin/nfso -o nfs_use_reserved_ports=1
+
+=========================================================================================================================================================================>
+Creating a subsystem:-
+mkssys -s smbd -p /opt/freeware/sbin/smbd -u 0  -a "-D" -d -q -S -n 15
+-f 9 -G tcpip
+But it's useless since smbd make fork.
+Sincerely,
+Lev
+
+=========================================================================================================================================================================>
+Diagnostics can be ran against a single device while online
+
+use the
+diag -d devicename
+
+=========================================================================================================================================================================>
+Someone on AIX-L indicated that this was a good vmtune for a database system:
+/usr/samples/kernel/vmtune -p 5  -P 20    ( to set the max perm and min perm values)
+
+=========================================================================================================================================================================>
+From a post on AIX-L:
+
+IBM recommends the following formula to calculate the amount of paging
+space you need...
+
+For memories larger than 256 MB, the following is recommended:
+
+total paging space = 512 MB + (memory size - 256 MB) * 1.25
+
+For 1024MB RAM = 1600MB Paging Space
+
+1 LP = 64 MB = add 17 LP's to = 1600MB
+
+This is what we use while running AIX 5L.
+
+=========================================================================================================================================================================>
+Changing a forgotten root password on AIX:
+
+1.      Insert the product media for the same version and level as the
+current installation into the appropriate drive. 
+2.      Power on the machine. 
+3.      When the screen of icons appears, or when you hear a double
+beep, press the F1 key repeatedly until the System Management Services
+menu appears. 
+4.      Select Multiboot. 
+5.      Select Install From. 
+6.      Select the device that holds the product media and then select
+Install. 
+7.      Select the AIX version icon. 
+8.      Define your current system as the system console by pressing the
+F1 key and then press Enter. 
+9.      Select the number of your preferred language and press Enter. 
+10.     Choose Start Maintenance Mode for System Recovery by typing 3
+and press Enter. 
+11.     Select Access a Root Volume Group. A message displays explaining
+that you will not be able to return to the Installation menus without
+rebooting if you change the root volume group at this point. 
+12.     Type 0 and press Enter. 
+13.     Type the number of the appropriate volume group from the list
+and press Enter. 
+14.     Select Access this Volume Group and start a shell by typing 1
+and press Enter. 
+15.     At the # (number sign) prompt, type the passwd command at the
+command line prompt to reset the root password. For example: 
+
+16.       # passwd
+17.       Changing password for "root"
+18.       root's New password: 
+Enter the new password again:
+
+19.     To write everything from the buffer to the hard disk and reboot
+the system, type the following: 
+
+sync;sync;sync;reboot
+________________________________________
+
+turning off diagnostic lights:
+
+/usr/lpp/diagnostics/bin/usysfault -s normal
+
+=========================================================================================================================================================================>
+Like tcpdump/ethereal?
+
+iptrace -e -i lo0 /tmp/iptrace.out, ( let it run for 5 minutes, kill it)
+ipreport /tmp/iptrace.out 
+
+=========================================================================================================================================================================>
+Clipped from a message on AIX-L - outlines the procedure for replacing
+a bad disk in a logical volume:
+
+u must procee in tyhos order:
+1- unmirror the rootvg (unmirror rootvg hdisk1)
+2- extrcat hdisk1 from rootvg (reducevg rootvg hdisk1) hidsk1 should not 
+have any other data, if yes, move them first
+3- rmdev -dl hdisk1
+4- put the new pv
+5- cvrmgrl
+6- extendvg rootvg "the new pv"
+7-mirrorvg rootvg hdsikxxx
+
+/\/\/\/\/\
+And another:
+
+Use this redbook, page 182, section 6.5.1.
+
+http://www.redbooks.ibm.com/abstracts/SG245496.html?Open
+
+=========================================================================================================================================================================>
+
+
+
+OTHER:
+
+file <filename>              shows the type of a file
+
+diff file1 file2             compares only text files
+cmp file1 file2              compares all types of files
+dircmp dir1 dir2             compares directories
+
+time cp file1 /home          show the time to accomplish the command (godd for performance analysis)
+
+ps $$                        shows which shell is in use
+echo $SHELL                  shows the current shell
+printenv                     view environmental variables
+
+cat -vet file                shows tabs, enters... as viewable characters
+    -v                       displays non-printing characters as visible characters
+    -t                       displays tab as ^I
+    -e                       displays enter as $
+
+!!! sh -xv <command...>      for troubleshooting, if a command fails, you can see where exactly it failed in the command script!!!
+                             (sh -xv exportvg rootvg)
+
+dd if=/dev/zero of=/home/user/bb/4GB_file bs=1m count=4000  it creates a 4GB file
+lmktemp <filename> <size_in_bytes>   it creates a file with given size
+
+alias dir='ls'               creates an alias   
+unalias dir                  removes an alias
+set - unset
+
+df -g | awk '{sum = sum + $3} END {print sum}' it sums up the fs in gigabyte (by the 3rd column)
+for i in `ls -l | grep old | awk '{print $9}'` ;  do du -sk $i; done | awk '{sum = sum + $1} END {print sum}'
+
+generating random passwords:
+dd if=/dev/urandom bs=16 count=1 2>/dev/null | openssl base64 | sed "s/[=O/\]//g" | cut -b1-8
+=========================================================================================================================================================================>
+awk:
+
+awk '$0 >= "2024-11-05 12:00:00" && $0 <= "2024-11-05 14:00:00"' smsconfig.log
+df -gt | awk '{print $1,$6}'	<-- list the specific name 
+
+=========================================================================================================================================================================>
+
+
+AT:
+
+
+
+batch                       
+
+=========================================================================================================================================================================>
+
+
+
+
+
+
+
+
+Mail notification via errpt and errnotify
+
+AIX has an Error Notification object class in the Object Data Manager (ODM). An errnotify object is a "hook" into the error logging facility 
+that causes the execution of a program whenever an error message is recorded. By default, there are a number of predefined errnotify entries, 
+and each time an error is logged via errlog, it checks if that error entry matches the criteria of any of the Error Notification objects.
+
+0. make sure mail sending is working correctly from the server
+1. create a text file (i.e. /tmp/errnotify.txt), which will be added to ODM
+
+Add the below lines if you want notifications on all kind of errpt entries:
+
+errnotify:
+  en_name = "mail_all_errlog"
+  en_persistenceflg = 1
+  en_method = "/usr/bin/errpt -a -l $1 | mail -s \"errpt $9 on `hostname`\" aix4adm@gmail.com"        <--specify here the email addres
+
+
+Add the below lines if you want notifications on permanent hardware entries only:
+
+errnotify:
+  en_name = "mail_perm_hw"
+  en_class = H
+  en_persistenceflg = 1
+  en_type = PERM
+  en_method = "/usr/bin/errpt -a -l $1 | mail -s \"Permanent hardware errpt $9 on `hostname`\" aix4adm@gmail.com"
+
+
+2. root@bb_lpar: / # odmadd /tmp/errnotify.txt                                 <--add the content of the text file to ODM:
+3. root@bb_lpar: / # odmget -q en_name=mail_all_errlog errnotify               <--check if it is added successfully
+4. root@bb_lpar: / # errlogger "This is a test message"                        <--check mail notification with a test errpt entry
+
+You can delete the addded errnotify object if it is not needed anymore:
+root@bb_lpar: / # odmdelete -q 'en_name=mail_all_errlog' -o errnotify
+0518-307 odmdelete: 1 objects deleted.
+
+(source: http://www.kristijan.org/2012/06/error-report-mail-notifications-with-errnotify/)
+
+=========================================================================================================================================================================>
+
+
+
+
+
+
+
+AIX - STARTUP, SHUTDOWN
+Startup - Shutdown
+
+mkitab                     adds record to the /etc/inittab file (-i: insert the newline anywher in the inittab file)
+                           (without the -i parameter, the line wil be appended to the end of the file)
+lsitab                     lists record to the /etc/inittab file (lsitab -a -->lists all records of the inittab)
+chitab                     adds record to the /etc/inittab file
+
+uptime                     shows the time the server is up
+last reboot                shows the history when the server has been rebooted
+
+who -b                     info about the last boot
+
+/dev/ipldevice             it is a hardlink to the device which holds hd5 (check major minor numbers)
+ipl_varyon -i              shows the state of the bootrecord
+
+=========================================================================================================================================================================>
+
+Telinit:
+
+The telinit command sets the system at a specific run level. A run level is a software configuration that allows only a selected group of processes to exist.
+
+who -r                     shows what is the runlevel of the system
+cat /etc/.init.state       displays the current runlevel
+
+telinit M or shutdown -m   enter to maintenance mode (single user mode)
+telinit 2                  return to normal mode
+telinit q                  force the system to reread the etc/inittab file
+
+
+=========================================================================================================================================================================>
+
+System Management Services
+Another boot option is to boot machine specific code called the System Management Services (SMS) programs. These programs are not part of AIX. This code is shipped with the hardware and is built-in to the firmware. This can be used to examine the system configuration and set boot lists without dependency on an operating system. It is invoked using the F1 function key or the numeric 1 key.
+
+Maintenance Mode
+If your system will not boot or you have lost the root password, you will need to boot your machine using bootable media other than the hard drive (like an installation CD or NIM server). This will boot you into “maintenance” mode, which will give you “backdoor” access to your system.
+
+=========================================================================================================================================================================>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Facility:
+
+Facility is a category of a message. Basically it is a filter for a specific category from all the incoming messages. Using a facility we can select a type of message and do something with it.
+
+Available facilities:
+kern     Messages generated by the kernel.
+user     Messages generated by user processes.
+mail     Mesages generated by the mail system.
+daemon   Messages generated by system daemons, such as ftpd and the telnetd daemons.
+auth     Messages generated by the authorization system, including the sshd, login and su commands.
+syslog   Messages generated internally by the syslogd daemon.
+lpr      Messages genrated by the line printer, such as the lpr and lpc commands.
+news     Files reserved for the USENET network news system.
+uucp     (obsolete) The UNIX-to-UNIX copy (UUCP) system does not use the syslog function.
+local0-7 these local facilities (e.g. local0 or local1) can be used for user defined message handling
+*        all facilities
+
+=========================================================================================================================================================================>
+
+
+Severity:
+
+It specifies the importance or priority of a message. Keep in mind, that when selecting a level, it automatically includes all the levels above of that severity.
+(For example choosing "err" will handle at the same time "crit", "alert" and "emerg" messages as well.)
+
+Available severities (in order from top to down):
+emerg     Panic conditions that are normally broadcast to all users
+alert     Conditions that should be corrected immediately, such as a corrupted system database.
+crit      Warnings about critical conditions, such as hardware failures.
+err       any kind of errors (below critical level)
+warning   Warning messages, that generally does not interfere with normal operation.
+notice    Non-error conditions that might require special handling
+info      Purely informational messages (usually does not require any handling)
+debug     Messages that are used when debugging a program
+none      Messages are not sent from the indicated facility to the selected file
+
+=========================================================================================================================================================================>
+
+
+Action:
+
+It says what should be done with the message, like put it in a file or send it to a user's terminal
+
+Available actions:
+file        Output sent to the file specified
+@host       The @ sign denotes that messages must be forwarded to a host  The name should be defined in /etc/hosts and represent a remote logserver.
+user[,user] The user(s) receive messages if they are logged in.
+*           All logged in users will receive messages when they are logged in.
+
+=========================================================================================================================================================================>
+
+
+Rotation (optional):
+
+The rotation field identifies how rotation is used. If the action field is a file, then rotation can be based on size or time, or both. One can also compress and/or archive the rotated files.
+
+size     specifies that rotation is based on size, and it is followed by a number and either a k (kilobytes) or m(megabytes).
+time     specifies that rotation is based on time, followed by a number and either a h(hour) or d(day) or w(week) or m(month) or y(year).
+files       specifies the total number of rotated files, followed by a number. If not specified, then there is no limit of rotated files.
+compress    specifies that the saved rotated files will be compressed.
+archive     specifies that the saved rotated files will be copied to a directory. It is followed by the directory name.
+
+
+
+
+Local (local0-local7)
+
+local0-local7 are unused facilities that syslog provides, which can be defined/customized by any user. If a developer creates an application and wants to log that to syslog, or if you want to redirect the output of anything to syslog (for example, Apache logs), you can choose to send it to the local# facilities. Then, in /etc/syslog.conf that local# has to be added, so it will log to a file (or it will send it to a remote server).
+
+
+Changing sshd logging from auth to local7:
+
+1. in sshd_config file change:
+SyslogFacility AUTH to Syslogfacility local7
+
+2. in /etc/syslog.conf add local7 to log to a file:
+local7.* /var/log/sshd.log 
+
+3. restart syslogd and sshd:
+after that ssh daemon will use /var/log/sshd.log file via local7 facility
+
+=========================================================================================================================================================================>
+
+
+Enabling Oracle audit log (by a local facility)
+
+
+1. in Oracle these parameters have been set:
+
+SQL> show parameter AUDIT_FILE_DEST
+
+NAME                                 TYPE        VALUE
+------------------------------------ ----------- ------------------------------
+audit_file_dest                      string      /oracle/audit
+
+SQL> show parameter AUDIT_SYSLOG_LEVEL
+
+NAME                                 TYPE        VALUE
+------------------------------------ ----------- ------------------------------
+audit_syslog_level                   string      LOCAL1.WARNING
+
+
+2. in /etc/syslog.conf this has been added:
+local1.warn /oracle/audit/audit.log
+
+
+3. restart syslogd
+
+=========================================================================================================================================================================>
+
+
+
+Switch from 32 bit mode to 64 (and back):
+ln  -sf  /usr/lib/boot/unix_64  /unix
+ln  -sf  /usr/lib/boot/unix_64  /usr/lib/boot/unix
+bosboot  -ak  /usr/lib/boot/unix_64
+shutdown  -Fr
+The  kernel  mode  of  your  AIX  host  system  is  switched  to  64-bit  mode  after  the system  restarts.
+
+If  your  host  system  is  currently  running  in  64-bit  mode,  you  can  switch  it  to  32-bit mode  by  typing  the  following  commands  in  the  given  order:
+ln  -sf  /usr/lib/boot/unix_mp  /unix
+ln  -sf  /usr/lib/boot/unix_mp  /usr/lib/boot/unix
+bosboot  -ak  /usr/lib/boot/unix_mp
+shutdown  -Fr
+=========================================================================================================================================================================>
+
+
+
+
+
+
+
+
+---------------------------------
+
+
+
+=========================================================================================================================================================================>
+
+
+
+
+
+ 
+
+
+ 
+
+ 
+
+
+
+
+ 
+Miscellaneus
+ 	
+  
+Abbreviations and Acronyms
+APAR	 Authorized Program Analysis Report
+CDE	 Common Desktop Environment
+CHRP	 Common Hardware Reference Platform
+CuDv	 Customized Devices object class (ODM)
+DHCP	 Dynamic Host Configuration Protocol
+ICMP	 Internet Control Message Protocol
+ISA	 Instrumentation Systems and Automation Society
+ISMP	 InstallShield Multi-Platform
+JFS	 Journaled File System
+JFS2	 Enhanced Journaled File System
+LFT	 Low Function Terminal
+LTG	 Logical Track Group
+LPP	 Licensed Program Product
+LV	 Logical Volume
+LVCB	 Logical Volume Control Block
+MCA	 Micro Channel Bus Architecture
+ML	 Maintenance Level
+MWC	 Mirror Write Consistency
+NIS	 Network Information Service
+NVRAM	 NonVolatile Random Access Memory
+ODM	 Object Data Manager Database
+PB	 PetaBytes (1 PB is equal to 1024 TB)
+PCI	 Peripheral Component Interconnect
+PCMCIA	 Personal Computer Memory Card International Association
+PdDv	 Predefined Devices object class (ODM)
+PV	 Physical Volume
+PVID	 Physical Volume IDentifier
+PP	 Physical Partition
+PTF	 Program Temporary Fix
+RPC	 Remote Procedure Call
+PReP	 POWERPC Reference Platform
+RPM	 Red Hat Package Manager
+SRC	 System Resource Controler
+SWVPD	 Software Vital Product Data
+TB	 TeraBytes (1 TB is equal to 1024 GB)
+UDI	 Uniform Device Interface
+VG	 Volume Group
+VGDA	 Volume Group Description Area
+VGSA	 Volume Group Status Area
+VPD	 Vital Product Data
+Address Resolution Protocol (ARP), 
+Dynamic Host Configuration Protocol (DHCP), 
+Boot Protocol (BOOTP),  
+Neighbor Discovery Protocol (NDP) 
+Shared Ethernet Adapter (SEA).
+VLANs
+LPAR
+DLPAR
+Dead Gateway Detection (DGD)
+Network Interface Backup (NIB)
+virtual IP address (VIPA)
+Resource 
+Monitoring and Control (RMC) connections
+N_Port ID Virtualization (NPIV)
+ Dedicated Service Tools (DST)
+barrier-synchronization register (BSR)
+(AME) memory mode  Active Memory Expansion
+Active Memory Sharing (AMS)
+	
+
+
+=========================================================================================================================================================================>
+  
+
+ 
+
+
+
+=========================================================================================================================================================================>
+ 
+
+
+
+		
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+=========================================================================================================================================================================>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+----------------------------
+AIX To Solaris 
+Path : in both servers 
+
+10.0.252.11 to 192.168.25.167
+
+
+
+in  10.0.252.11---
+
+which rsync
+
+
+<AIX Path>					<Solaris>				
+ |||						 |||	
+/usr/bin/rsync -ltpvrog  -e ssh  --rsync-path=/opt/sfw/bin/rsync root@192.168.25.167:/batchdump/doc-root/*  /batchdump/doc-root/
+
+
+
+
+from Solaris to AIX
+
+192.168.25.167 to 10.0.252.11  
+
+   
+
+/opt/sfw/bin/rsync -ltpvrog  -e ssh  --rsync-path=/usr/bin/rsync  /preprod-doc-root/* root@10.0.252.112:/preprod-doc-root/
+
+
+
+
+----------------
+
+67  70
