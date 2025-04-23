@@ -1,0 +1,106 @@
+if (Repository.equals("Select")) {
+                    return ["Please select Repository name First:selected"]
+                  }
+		 else if (Repository.equals("apibankingfdservices")) {
+                    return ["ybfbcorpreg:selected"]
+		} else if (Repository.equals("ybbibranchci")) {
+                    return ["branchcorpcif", "branchcorpcao", "branchcorpoao"]
+		} else if (Repository.equals("oaorevamp")) {
+                    return ["cinbregsvn", "cinbregcao", "cinbreg", "cinbregcif", "oaorevamp"]
+		} else if (Repository.equals("corpuploaderci")) {
+                    return ["corpuploadredirect", "corpuprevamp"]
+		} else if (Repository.equals("saral")) {
+                    return ["saralprdsupport", "saralredirect", "saralrevamp", "saral", "saralpabl"]
+                  } else if (Repository.equals("corpadminci")) {
+                    return ["corpadmin"]
+                  } else if (Repository.equals("corpregci")) {
+                    return ["corpreg"]
+                  } 
+
+
+
+
+Jenkin
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+def readxml;
+node {
+    def mvnHome
+    def javaHome
+   
+   stage('GitLab Repo Clone') {
+       dir ('app_repo') {
+      git branch: '${Branch}', url: 'git@gitlabuat.inbdevops.sbi:inb/corporate_inb/application/${Repository}.git'
+      sh "ls -ltr"
+       }
+       
+       dir ('deployment_script') {
+           git branch: 'corp_pipeline', url: 'git@gitlabuat.inbdevops.sbi:devops/application_deployment.git'
+       }
+      }
+      
+   stage('ReadXML') { 
+      readxml = readMavenPom file: 'app_repo/pom.xml';
+      def appname = readxml.name;   
+      echo "The value of name is ${readxml.name}"
+      def war_name = readxml.build.finalName;
+      echo "The value of finalname is ${readxml.build.finalName}"
+      sh "echo my job name is $JOB_NAME"
+      sh "echo my job name is $BUILD_NUMBER"
+      sh "ls -ltr"
+      readxml = readMavenPom file: 'app_repo/pom.xml';
+      def final_name = readxml.build.finalName;
+      echo "The value of finalname is ${readxml.build.finalName}"
+    } 
+  
+    stage('Maven Build') { 
+        mvnHome = tool 'maven-inb'
+        javaHome = tool 'JDK1.8'
+         withEnv(["MVN_HOME=$mvnHome", "JAVA_HOME=$javaHome"]) {
+            sh 'cd app_repo;"$MVN_HOME/bin/mvn" clean deploy'  
+          
+        }    
+    }
+    stage('Maven Test') { 
+        mvnHome = tool 'maven-inb'
+        javaHome = tool 'JDK1.8'
+         withEnv(["MVN_HOME=$mvnHome", "JAVA_HOME=$javaHome"]) {
+            sh 'cd app_repo;"$MVN_HOME/bin/mvn" test'  
+          
+        }    
+    }	
+    stage('SonarQube') { 
+        MVN_HOME = tool 'maven-inb'
+        javaHome = tool 'JDK1.8'
+         withSonarQubeEnv('sonar') {
+            sh 'cd app_repo;"/devops/apache-maven-3.2.5/bin/mvn" sonar:sonar'  
+            
+        }    
+    }
+  
+   stage('Deployment') { 
+	 
+      sh "pwd; ls -ltr"
+	  readxml = readMavenPom file: 'app_repo/pom.xml';
+	  def final_name = readxml.build.finalName;
+	  echo "The value of finalname is ${final_name}"
+	  sh "final_nn=${final_name}"
+	  sh "echo my job name is $BUILD_NUMBER"
+	  sh 'sh deployment_script/run.sh "${Context}" "${DMGR}" "Corporate" "$JOB_NAME" "$final_nn" "$BUILD_NUMBER"'
+    }
+	
+}
