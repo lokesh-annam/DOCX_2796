@@ -1,0 +1,818 @@
+======================================================================
+Chapter 14 : Networking Concepts
+======================================================================
+What is TCP/IP, Networking Architecture, Protocol, Standard TCP/IP facilities, routes, Method to Configure the TCP/IP ,
+Basic TCP/IP Functions, Ethernet Naming Convention in AIX
+
+0) Ethernet adapter or NIC (Network Interface Card)
+1) Switch/Router
+2) IP Configuration/Deconfiguration
+3) IP Aliasing Configuration/Deconfiguration
+4) Media Speed and MTU Size
+5) Etherchannel/Link Aggregation/Teaming
+6) Network troubleshooting Part
+7) Routes Adding/Removing
+
+ETHERNET ADAPTER: By using ethernet adapter we can configure the network IP address of the 
+servers. Each ethernet adapter having two interfaces 
+EX: ent0 - Ethernet adapter 
+ en0 & et0 - Two interfaces for ent0
+NOTE: en0 Interface we will use to configure the IP address.
+Ethernet adapters we having two types 
+1) Physical Ethernet adapter
+2) Virtual Ethernet adapter
+ any adapter we can use to configure network.
+Aix Servers Network configuration:
+PRE-REQUIREMENTS:
+At least we need one Ethernet Adapter (Ex: ent0) to configure the IP address.
+NOTE:
+1) the adapter (ent0) should be free before configure ip address means any IP should not configured to ent0 adapter
+2) If we are configuring first IP address for the server we have to login via console to the server.
+
+
+TO CONFIGURE THE IP ADDRESS:
+# smit mktcpip
+2) Select the Ethernet Interface (Ex: enX
+* Hostname [server1] --> The name of the server
+* Internet Address [192.168.1.60] -> Server IP address
+* Internet Interface [en4] -> EAI
+Network Mask [255.255.255.0]
+Default Gateway [10.1.3.5]
+Start Now [yes] --> To start or up IP address.
+NOTE: if we have netmask & gateway we have to fill or else not required to fill them. Mostly netmask & gateway address Network team provide us.
+
+
+# export NSORDER=local,bind,nis
+
+The following order is set in the above example:
+• local - Search the /etc/hosts file. If the mapping is not found, then:
+• bind - Query the DNS server (its address and configuration are in /etc/resolv.conf). If the mapping is not found, then:
+• nis - Search for the mapping via the Network Information Service.
+
+USEFUL NETWORK COMMANDS:
+# ifconfig		--> Read the parameters of the network interfaces that exist within the system. 
+	# ifconfig -a
+	# ifconfig <Interface> 		--> To check the particular Interface or IP status.
+	YOU CAN OBTAIN SIMILAR INFORMATION USING THE LSATTR COMMAND:
+	# lsattr -El en0
+	YOU CAN CHANGE THE PARAMETERS AT THE INTERFACE LEVEL BY MODIFYING THEM USING THE CHDEV OR IFCONFIG COMMANDS:
+	# ifconfig en0 tcp_recvspace 65536 tcp_sendspace 65536 tcp_nodelay 1	-->Changes the parameters temporarily until system restart. 
+																				The change is not visible at the lsattr command level.
+	# chdev -l en0 -a tcp_recvspace=65536 -a tcp_sendspace=65536 -a tcp_nodelay=1	--> Changes the parameters permanently. 
+																						The change is visible at the lsattr command level.
+	# chdev -l inet0 -a hostname=newname 	--> To change the hostname permanently
+	NOTE: once configured IP address by using smitty mktcpip command. Server IP and hostname will update under /etc/hosts file automatically.
+	
+	TO REMOVE THE IP ADDRESS:
+	# ifconfig <Inteface><down>		--> Bring down the IP Address
+		EX: # ifconfig enX down
+	# ifconfig <Interface><delete>	--> Delete the IP Address from the ODM or Interface card.
+		EX: # ifconfig enX delete
+	# ifconfig <Interface><detach>	--> Detach the IP address from Interface card.
+		EX: # ifconfig enX detach			
+	# ifconfig <Interface><state>
+		EX: # ifconfig en3 down 	--> To bring down the IP Address.
+			# ifconfig en3 up 		--> To bring up the IP Addres
+
+# route
+	# route add 0 10.150.57.1
+	ADDING DETAILED ENTRIES TO THE ROUTING TABLE:
+	# route add -net 10.189.115.146 -netmask 255.255.255.128 10.176.243.1
+	# route add -net 10.140.100.0 10.150.57.2
+	10.150.57.2 net 10.140.100.0: gateway 10.150.57.2
+	DELETING ENTRIES FROM THE ROUTING TABLE:
+	# route delete -net 10.140.100.0 10.150.57.2
+	10.150.57.2 net 10.140.100.0: gateway 10.150.57.2
+	# route delete –host 10.140.100.23 10.150.57.3
+	10.150.57.3 host 10.140.100.23: gateway 10.150.57.
+	
+	PARAMETERS USED:
+	• add - Add an entry to the routing table.
+	• delete - Delete an entry from the routing table.
+	• net - Add an entry for the entire subnet.
+	• host - Add an entry for a single machine.
+	• 0 - “Zero” indicates the default routing.
+
+# traceroute	--> sends IP packets to the specified address.
+	# traceroute 10.160.34.32
+# ping		--> 
+	# ping 10.160.34.32
+# netstat	--> Displaying a routing table information.
+	# netstat -r
+	# netstat -nr 
+	# netstat -i	--> Displaying interface statistics
+	# netstat -Zi	--> reset the interface statistics
+	# netstat -p ip
+	# netstat -a	--> It displays the statistics for all the sockets in the server
+	MEANING OF INDIVIDUAL COLUMNS:
+	• Destination - The specific host or subnet to which the path goes.
+	• Gateway - The router through which the system sends packets to the destination (the address is in the Destination field).
+	• Flags - Parameters that describe the route. The most common parameters are:
+	o U - “Up” - The path is active.
+	o G - The path goes through the gateway (router).
+	o H - The path goes to a single system rather than to the whole subnet.
+	o S - The path was added manually.
+	o b - The path represents the broadcast address.
+	• Refs - The number of active connections on a given path.
+	• Use - The number of packets sent using a given path.
+	• If - An interface through which packets are sent on a given path.
+	• Exp - The time in minutes after which the path will become inactive.
+	• Groups - The list of groups associated with a given path (applies to multicast addressing).
+# entstat		--> displays the statistics gathered by the specified Ethernet device driver.
+	EX: # entstat -d <EA> |grep -i link 	--> To check the link status of the ethernet adapter between switch and server.
+		# entstat -d <EA> |grep -i hardware --> To display the EA hardware address or Media Access Control (MAC) address.
+# telnet
+# ssh 
+# ftp
+# sftp
+# scp
+# rync
+# tcpdump
+
+rc.tcpip
+Script that initializes selected TCP/IP daemons using SRC at each system restart: inetd, lpd, portmap, sendmail, 
+syslogd (started by default) and gated or routed, named, timed, xntpd,rwhod, snmpd, dhcpcd, mrouted, autoconf6 (not started by default unless they are uncommented).
+stopsrc -g tcpip : stops all running TCP/IP daemons. 
+stopsrc -s named : stops the named daemon. 
+/etc/rc.tcpip : starts all selected TCP/IP daemons. Don't use startsrc -g tcpip (would start all subsystems in the tcpip group).
+startsrc -s named : starts the named daemon.
+refresh -s inetd : refresh the inetd subsystem (re-reads /etc/inetd.conf).
+
+/etc/tcp.clean				<--sh /etc/tcp.clean : stops all running TCP/IP daemons (not portmap and nfsd) and removes all /etc/locks/lpd TCP/IP lock files.
+
+inetd daemon				<--Provides Internet service management for a network. Starts by default using the /etc/inetd.conf configuration file. 
+								Daemons controlled by the inetd daemon: ftpd, rlogind, rexecd, rshd, talkd,telnetd, and uucpd (started by default) and tftpd, 
+								fingerd, and comsat (not started by default unless they are uncommented).
+								resfresh -s inetd : informs the inetd daemon of the changes to its configuration file. 
+								The ports inetd listens on are in /etc/services (unless they are commented).
+
+lsdev						<--Displays devices in the system and their characteristics.
+								lsdev -Cc if : lists IP interfaces.
+
+lscfg						<--Displays configuration, diagnostic, and VPD.
+								lscfg -l ent0 -v : displays the VPD for ent0.
+
+lsattr						<--Displays attribute characteristics and possible attribute values for devices.
+								lsattr -HEl en0 : displays effective values for interface en0.
+
+netstat						<--Shows network status.
+								netstat -in : shows status of IP interfaces with numeric addresses.
+								netstat -rn : shows status of TCP/IP routes with numeric addresses.
+								netstat -C : shows routing table, user-configured and current costs of each route.
+								netstat -v : shows device driver statistics.
+
+arp							<--Displays and modifies address resolution.
+								arp -a : displays local ARP cache (ip to mac address table).
+
+no							<--Manages network tuning parameters. Changes are valid until the next reboot.
+								no -a : displays kernel variable values.
+								no -o ipforwarding : displays if ipforwarding is on (=1) or off (=0).
+								no -o ipforwarding=1 : specifies the kernel should forward packets (acting as an IP router).
+
+ifconfig					<--Configures or displays network interface parameters for TCP/IP.
+								ifconfig -a : displays information about all interfaces in the system.
+								ifconfig en0 : displays network interface parameters for en0.
+								ifconfig en0 inet 194.186.152.2 netmask 255.255.255.0 up : assigns IP-address 194.186.152.2 with network mask 255.255.255.0 to interface en0 of address family inet and turns on the network card.
+								ifconfig en0 down : turns off network card en0.
+
+route						<--Makes manual entries into the network routing tables until next reboot.
+								route -rn : displays route table.
+								route add -inet -net 9.19.98.1 9.19.99.10 : adds a network route to the routing table for destination host 9.19.98.1 through gateway 9.19.99.10.
+
+lsattr						<--Displays attribute characteristics and possible values of attributes for devices.
+								lsattr -El en0 : lists the current attribute values for en0.
+
+nslookup					<--Queries Internet domain name servers.
+								nslookup : enters interactive mode.
+								nslookup nserver1 : returns the domain name and Internet address of nserver1. 
+
+traceroute					<--Displays the route that IP packets take to a network host.
+								traceroute server2 : displays all the hops from local host to server2.
+
+iptrace daemon				<--Provides interface-level packet tracing for Internet protocols.
+
+ipreport					<--Generates a trace report from the specified trace file created by the iptrace command.
+
+ping						<--Sends an echo request to a network host.
+								ping -c 6 server1 : checks the network connection to host server1 by sending 6 echo requests.
+								ping -f server2 : invokes the flood-ping option to host server2.
+								ping -R : displays the full round trip route of a packet.
+
+spray						<--Sends a one-way stream of packets to a host and reports performance statistics using the RPC (default) or ICMP protocol (two-way stream).
+								spray server1 -c 1000 -d 4 : sends 1000 packets at intervals of 4 microseconds to server1.
+
+host						<--Resolves a host name into an Internet address or an Internet address into a host name. System files: /etc/hosts (local hosts table).
+								host server1 : displays the Internet address and name aliases of host server1.
+								host 192.186.154.3 : displays the host whose address is 192.186.154.3.
+
+hostid						<--Sets or displays the identifier of the current local host.
+
+hostname					<--Sets or displays the name of the current host system.
+								hostname tulip : changes the hostname to tulip until the next reboot.
+								chdev -l inet0 -a hostname=server1 : changes the hostname permanently to server1.
+
+mktcpip						<--Sets the required values for starting TCP/IP on a host.
+
+rwho						<--Displays which users are logged in to hosts (that run rwhod) on the local network.
+								rwho -a : lists all users currently logged in to hosts on the local network.
+
+ruptime						<--Displays the status of each host (that runs rwhod) that is on the local network.
+								ruptime -al : lists a status report of each host on the local network sorted by load average.
+
+lsnamsv						<--Shows name service information stored in the database /etc/resolv.conf (name resolver).
+
+chnamsv						<--Changes TCP/IP-based name service configuration on a host.
+
+mknamsv						<--Configures TCP/IP-based name service on a host for a client.
+
+rmnamsv						<--Unconfigures TCP/IP-based name service on a host.
+============================NTP==================================
+Time daemons:-
+	xntpd
+ntp setup:-
+	/etc/ntp.conf
+	
+	startsrc -s xntpd
+	stopsrc -s xntpd
+	
+	lslpp -L all|grep xntpd
+	
+ntp daemon options:-
+	startsrc -s xntpd -a "-x"
+	
+	/etc/rc.tcpip
+NTP Trace commands:-
+	ntpq -p
+	ntptrace
+	ntpdate
+
+==============================NFS===================================
+NFS Server: Which is providing the file systems service access that is called server.
+or 
+Which is providing the service we can call server.
+Client: Which is taking the service we can call client.
+NOTE: some times a server can act as server also as client.
+biod deamon: The client server will take the Network file system access from the server via biod deamon.
+nfsd: The server will provide the Network file system access to clients via nfsd deamon
+rpc.mountd: It is main deamon on both servers, to mount the Network file system from server to client.
+NFS Daemons:-
+	server: rpc.mountd, nfsd, rpc.statd, rpc.lockd
+	client: rpc.statd, rpc.lockd. biod, rpc.mountd
+NFS files:-
+	/etc/exports
+	/etc/xtab
+	
+List nfs clients that have a remote mount:-
+	/etc/xtab
+display nfs shares:-
+	exportfs
+	showmount -e localhost
+create nfs share:-
+	mknfsexp -d <directory>
+	mknfsmnt
+	
+	shareall
+		
+uncreate nfs share:-
+	rmnfsexp  -d <directory> (unshares and removes from file)
+	
+	exportfs -u <filesystem>
+	unshareall
+	
+start/change nfs daemons:-
+	mknfs
+	chnfs
+	
+	startsrc -s nfsd
+	startsrc -s rpc.mountd
+stop nfs daemons:-
+	rmnfs
+	
+	stopsrc -s nfsd
+	stopsrc -s rpc.mountd
+nfs status:-
+	lssrc -a |grep -i nfs
+nfs reload:-
+	exportfs -av
+nfs performanace:-
+	nfsstat
+nfs Options:-
+	nfso -a
+	nfso -o <option>=<value>
+	
+	exportfs (display options)
+solaris/redhat mount problems (nfs v3 to v4):-
+	n/a
+
+Networking:-
+Basic network information(hostname, ip address)
+	stores information in the ODM (Object Database Manager)
+
+displaying network interfaces
+	ifconfig -a
+
+	
+
+	lsdev -Cc if
+	
+
+	
+
+	
+
+Configure network interface:-
+	mktcpip (completely setup a network interface)
+	rmtcpip (remove all network interfaces)
+	
+	# configure an interface
+	mktcpip -h aix1 -a 192.168.1.200 -m 255.255.255.0 -i en1 -g 192.168.0.10
+	
+	-h - hostname assigned to interface
+	-a - ip address
+	-m - netmask
+	-i - interface name
+	-g - gateway ip address
+	
+	# remove an interface
+	ifconfig en1 detach
+	
+	ifconfig (configures IP address)
+	
+	chdev (add aliases to network interface)
+
+Starting and stopping a network interface:- 
+	ifconfig en0 up
+	ifconfig en0 down
+	ifconfig en0 detach (remove)
+
+Setting NIC speed:-
+	chdev -l ent0 -a media_speed=1000_Full_Duplex -P
+	chdev -l ent0 -a media_speed=Auto_Negotiation -P
+
+	Note:
+	entX - physical device
+	enX - frame type run on entX
+
+Change NIC parameters
+	netstat -v
+	entstat -d <interface>
+
+	no -a
+	no -o "ipforwarding=1"
+
+Display NIC statistics
+	netstat -i [-f inet]
+	netstat -s
+	entstat -d <interface>
+
+display MAC address
+	netstat -ia
+
+Displaying network packets
+	tcpdump -i <interface>
+	iptrace -i <interface> <output file>
+	ipreport (used with iptrace to view reports)
+
+	Note: you must stop the iptrace by using "kill -15"
+
+default router:-
+	route add 0 <gateway IP address>
+	
+	Note: there is no file that holds the default router
+
+display routing table
+	netstat -rn
+	netstat -r -f inet
+	lsattr -EHl inet0 -a route
+
+
+Test IPMP, Bonding
+	smitty etherchannel (creates, deletes and tests)
+
+	entstat -d ent0
+change the hostname
+	hostname <new hostname>
+	chdev -l inet0 -a hostname=<hostname>
+
+setup DNS:-
+	/etc/resolv.conf
+
+Name service switch file (DNS client)
+	/etc/netsvc.conf
+	/etc/resolv.conf
+	/etc/irs.conf (may not be there)
+	
+	chnamsv     (change name service)
+	rmnamsv     (remove a name service)
+	lsnamsv -C   (list name services)
+
+Flush DNS cache:-
+	netcdctrl -t dns -e hosts -f
+
+
+Domain Name:-
+	domainname <domainname>
+
+	Obtain IP Address routing
+		route -n get <hostname>
+	
+	Find Services on the network
+		Boot (jumpstart) servers:
+	rpcinfo -b bootparam 1
+	
+	NFS servers:
+	rpcinfo -b mountd 1
+	
+	NIS servers/slaves:
+	rpcinfo -b ypserv 1
+	
+NFS (NETWORK FILE SYSTEM):
+
+# rpcinfo		--> You can check the registered services.
+	# rpcinfo -p 
+nfsd - A server-side daemon that supports client requests.
+rpc.mountd - A daemon that handles the mounting process of a shared resource and provides information about the exported (shared) directories. 
+			It reads the information of the shared directory from the /etc/xtab file. You can use the showmount -e ServerIPaddress command to find out 
+			which directories have been exported on a given server.
+rpc.statd - Works with rpc.lockd in the area of connection recovery and NFS service recovery after a failure.
+rpc.lockd - Files shared by the NFS service can also be used locally on the server that exports them.
+
+# showmount -e		--> Checking from the perspective of the host that exports the resources.
+
+/etc/resolv.conf	--> To configure your system to use a DNS server. 
+/etc/hosts
+/etc/netsvc.conf	-->
+/etc/rc.net		--> This script is executed during the second phase of operating system startup.
+					The script configures the network interfaces on the system.
+/etc/rc.tcpip	--> This script is executed during the third phase of system startup,while processing the /etc/inittab file. 
+					The following entry in the /etc/inittab file causes the script to run.
+	# lsitab rctcpip
+	rctcpip:23456789:wait:/etc/rc.tcpip > /dev/console 2>&1 # Start TCP/IP daemons
+/etc/services	--> 
+/etc/inetd.conf		--> The configuration file describes the services that are to be serviced by inetd.
+/etc/ftpusers	--> 
+/etc/rc.nfs		--> 
+/etc/auto_master	--> 
+/etc/automount.map
+Network Time Protocol (NTP) Mode 6 Scanner --> /etc/ntp.conf 
+
+Q) WE HAVE TWO SERVERS (SERVER1 AND SERVER2), ON SERVER1 /SAPFS FILE SYSTEM PRESENTED, NOW WE NEED TO SHARE THE /SAPFS FILE SYSTEM TO SERVER2 VIA NETWORK (NFS).
+Server1 - 192.168.1.100 (NFS Server)
+Server2 - 192.168.1.30 (NFS Client)
+Pre-checks:
+0) Configure the IPs and Hostnames if not configured on servers By using #smitty mktcpip
+1) Add the IPs and Hostnames on /etc/hosts file on both servers.
+2) Test the network communication between both servers by using ping command.
+a) Login server1
+#ping IP or hostname
+#ping 192.168.1.30
+TTL = 255 (Ping Success)
+b) Login to the Server2
+#ping 192.168.1.100
+TTL = 255 (Ping Success)
+NFS Implementation:
+Once ping is success on both servers, go ahead to implement NFS
+Server1 Side Steps:
+1) Login to server1
+2) exportfs -i <NFSName> --> to export the file system in network, or add FS in Network 
+sharing temporarly.
+Ex: #exportfs -i /sapfs
+3) Verify file system exported or not.
+#showmount -e
+O/P:/sapfs
+Server2 side steps or Client side:
+1) Login to Server2
+2) list the exported file systems from NFS server.
+#showmount -e <NFS Server IP or Hostname>
+#showmount -e 192.168.1.100
+O/P: /sapfs
+Note: above output should be list /sapfs file system, if it is not listed not possible to access the 
+NFS.
+3) Mount the NFS file system on server2 in any local directory.
+#mkdir /localdir
+#mount <NFServer:NFSFS></localdir>
+Ex:
+#mkdir /sap
+#mount 192.168.1.100:/sapfs /sap
+#cd /sap
+#ls
+aix1
+aix2
+aix3
+
+Actually in NFS
+We have two types of exports and three types of mounts.
+Exports Types:
+1) Temporary Export
+2) Permanent Export
+1) Temporary Export:
+#exportfs -i <FS name>
+#showmount -e --> List the exported file systems.
+2) Permanent Export:
+a) vi /etc/exports
+/sapfs
+:wq
+b) exportfs -a --> Refresh the /etc/exports file.
+c) showmount -e -> To list the exported file systems
+/sapfs
+Note: If File system exported as temporarly mode the NFS sharing will be lose after reboot the 
+server.
+b) Permanent export always available on every reboot of the server.
+c) Mostly ALL office environments we will use the permanent exports only.
+Mounts are Three types:
+1) Explicit mount or Temporary mount
+2) Predefined mount or Permanent mount
+3) Auto FS mount
+1) Explicit mount: 
+It is temporarly mount of the NFS file system on NFS clients. 
+Steps: 
+a) showmount -e NFSServerIP --> To check Server's NFS exported FSs
+b) #mkdir /local --> To create Local Directory
+c) #mount <NFS Server:/NFS FS></Localdir> --> To mount the NFS file system into local 
+directory.
+Note: Temporary mount will remove from the system after reboot the system.
+2) Predefined mount or Permanent mount:
+#crfs -v nfs -d </NFSFS> -a nodename=<NFSServer> -a options=<requiredoptions> -A yes -m 
+/LocalFS
+EX: crfs -v nfs -d /sapfs -a nodename=192.168.1.100 options=bg,soft,nointr,rw -A yes -m 
+/localsapfs
+b) mount /localsapfs
+c) cd /localsapfs
+d) ls
+Note: a) when we are mount the NFS FS by using crfs command doesn't mean we are creating 
+FS in NFS clients to access the data, crfs command will update the NFS share (/sapfs) file system 
+as local file system (/localsapfs) on /etc/filesystems configuration file.
+b) options=fg,hard,intr,rw --> for Hard mount
+(or)
+options=bg,soft,nointr,rw --> for Soft mount
+Hard mount:If we mount any NFS file system as hard mount on NFS clients, incase NFS server 
+is down or not accessible, this situation if try to access the NFS File system from clients, client 
+session will go hung state. it will not release session until NFS server is up. Even if reboot client 
+server issue will not fix, only solution NFS server should be up.
+
+SoftMount: If we mount any NFS file system as soft mount on NFS clients, incase NFS server is 
+down or not accessible, this situation if try to access the NFS share from the clients, client 
+session will go hung state for few seconds, then will release the session.
+Always soft mount will be good if we are mounting the NFS file system permanently.
+#exportfs -u </fsname> --> To un-export the file system temporarly.
+(or)
+vi /etc/exports --> Permanent un-export
+rmove FS the entry
+:wq
+#exportfs -a
+#exportfs -u /fsname
+
+PORT NO'S:
+
+
+Q) In aix1 server ent1 ethernet adapter failed and its having 192.168.1.200 ip addresss. How to 
+replace the ent1 adapter with new one.
+ANS:
+1) Remove the ipaddress for ent1
+2) Take ent1 details (location, model, serial numbers etc.)
+3) Remove the adapter by using diag command
+4) Once added new adapter exit from the diag command.
+5) Configure the 192.168.1.200 ip for the new adapter (ent2)
+
+2) IP Aliasing Configuration/Deconfiguration:
+Aliasing: If we need to configure more than one IP address for single NIC card, we will 
+configure the first IP address as original IP Address, remaining IP addresses we can configure as 
+Alias IPs.
+Note: Alias IPs we can configure Permanent or Temporarly in the server.
+If we configure alias IP as Permanent the IP will be available in the server, after rebooted 
+system.
+If we configure alias IP as Temporarly the IP will not be available after reboot the server.
+
+TO CONFIGURE THE ALIAS IP TEMPORARLY:
+#ifconfig <interface><Alias IP><alias>
+#ifconfig en0 192.168.1.11 alias -> To configure the alias IP (192.168.1.11) for en0 Interface.
+#ifconfig <interface><Alias IP><Netmask><gateway><alias>
+#ifconfig en0 192.168.1.12 255.255.255.254 10.3.1.66 alias --> To configure the alias IP 
+(192.168.1.12) with netmask value and gateway value as alias.
+#ifconfig <interface><Alias IP><delete> --> To delete the temporarly alias IP.
+#ifconfig en0 192.168.1.11 delete
+
+TO CONFIGURE THE ALIAS IP PERMANENTLY:
+#chdev -l <Interface> -a alias4 or 6=<alias IP>
+#chdev -l en0 -a alias4=192.168.1.12 --> To add the alias IP (192.168.1.12) as permanently.
+#chdev -l en0 -a alias4=192.168.1.13 -a netmask 255.255.255.0 -a gateway 10.3.6.60 --> To add 
+the IP alias (192.168.1.12) with netmask,gateway IPs as permanently.
+#chdev -l <Interface> -a delalias4=<Alias IP>
+#chdev -l en0 -a delalias4=192.168.1.13 --> To delete the permanent alias IP.
+
+3) Media Speed and MTU (Maximum Transfer Unit) Speed:
+Media Speed: By using media speed attribute we can verify/Increase/Decrease the IP address 
+speed.
+Media Speed Values:
+10_Full_Duplex
+10_Half_Duplex
+100_Full_Duplex
+100_Half_Duplex
+1000_Full_Duplex
+1000_Half_Duplex
+Auto_Negotiation
+#chdev -l <EA> -a media_speed=<value> --> To change the media speed to the Ethernet adapter 
+or NIC card.
+#chdev -l ent0 -a media_speed=1000_Full_Duplex --> We can change ent0 adapter media speed 
+as 1000_Full_Duplex.
+Note: When we are changing the media speed to the enthernet adapter (Ex: ent0,en0), The 
+adapter (en0) should not have the any IP address or if IP configured should not up, If IP is up the 
+media speed will not change.
+
+Q) How to change the IP address for the EA adapter,the adapter (ent0) having IP (192.168.1.10) 
+and IP is up status. without bring down IP how to change media speed.
+A)
+#chdev -l ent0 -a media_speed=1000_Full_Duplex -P
+Auto_Negotiation: This is one of the value in media_speed attribute, if we set 
+media_speed=Auto_Negotiation for any EA, the adapter media_speed automatically will change 
+depends on situation.
+#lsattr -El <EA> |grep -i media_speed --> To verify the media_speed of EA.
+#entstat -d <EA> |grep -i media --> To verify the current running media speed.
+#entstat -d <EA> |grep -i link -> To verify the link status
+#entstat -d <EA> |grep -i hardware --> To verify the hardware address/MAC address.
+
+4) Maximum Transfer Unit (MTU):
+By using MTU size we can define how much data (packet) need to transfer for each operation 
+through the Network Interface.
+The MTU range: Min 60 bytes -- Max 65535 Bytes.
+Default value is -- 1500 bytes.
+#lsattr -El <Interface> |grep -i mtu --> To display the MTU size.
+#ifconfig <Interace> mtu <mtusize>
+#ifconfig en0 mtu 3000 --> To change the MTU size as 3000 bytes for en0 Interface.
+
+5) Etherchannel/Link Aggregation:
+Etherchannel is one of the network mechanism in Aix Operating System, By using Etherchannel 
+we can achieve the network or IP address high availability and we can Increase network speed 
+also if we are configure as Link Aggregation mode.
+Etherchannel: To configure etherchannel we need minimum two ethernet adapters, one for 
+primary adapter and another one for backup adapter. In Etherchannel configuration only one 
+adapter active at a time, if active adapter fail then backup adapter will provide the network 
+service to IP address. This configuration High Network Availability available but network load 
+balance will not be share by the both adapters at a time. Only active adapter will balance the 
+network load. Backup adapter always idle until active adapter fail/down.
+Link Aggregation: To configure Link Aggregation we need minimum two ethernet adapters but 
+here both adapters we can configure as primary adapters, by using Link Aggregation 
+configuration we can Increase the Network speed, and load balance will be share by the both 
+adapters at a time. If one adapter fail, second adapter will provide the network service.
+To create Etherchannel or Link aggregation adapters:
+To create Etherchannel
+1) #smitty etherchannel
+2) Select "Add An EtherChannel / Link Aggregation" option.
+3) Select the "Primary adapter"
+4) Select the "Backup adapter"
+To create Link Aggregation Etherchannel:
+1) #smitty etherchannel
+2) Select "Add An EtherChannel / Link Aggregation" option.
+3) Select the both adapters as "Primary adapters"
+Note: Which are adapters we are using to create etherchannel/Link Aggregation, the adapters 
+should be empty, we should not configure any IP address.
+We will configure the IP address for etherchannel/Link aggregation adapter after created.
+Testing Etherchannel:
+#entstat -d <Etherchanneladapter> |grep -i active --> To display the active adapter.
+#/usr/lib/methods/ethchan_config -f <EEA> --> To manually failover to from primary adapter to 
+backup adapter or Backup adapter to primary adapter.
+#entstat -d <EEA> ---> To verify network statistics of primary and backup adapters (Transfer, 
+Receive packets, media speed, links status and Hardware address).
+#entstat -d <EEA> |grep -i link --> To verify the status of primary and backup adapter links.
+#entstat -d <EEA> |grep -i hardware --> To list the hardware address or mac address.
+Q) In etherchannel/Link aggregation have (two adapters) which adapter mac address will add to 
+the EEA.
+A) Primary adapter mac address will assign to the EEA.
+How to remove Etherchannel:
+1) Remove the IP, if configured.
+2) Remove the etherchannel (smitty etherchannel)
+Q) On one of the server we have Ehterchannel/Link Aggregation, Primary adapter is (ent3), 
+Backup adapter is (ent4). Now primary ent3 adapter having problems, IBM suggested us replace 
+the primary adapter with new adapter (ent6), Do we need to bring down IP or network on the 
+server for this activity?
+A) IP or Network down time not required, we can replace the problem adapter with new adapter 
+online by following below steps.
+1)#smitty etherchannel
+2) Select " Change / Show Characteristics of an EtherChannel / Link Aggregation" Option
+3) Select the EEA (ent7)
+3) First delete the Main adapter (ent3)
+4) Add the main new adapter (ent6)
+To replace the backup adapter:
+1)#smitty etherchannel
+2) Select " Change / Show Characteristics of an EtherChannel / Link Aggregation" Option
+3) Select the EEA (ent7)
+3) First delete the Backup adapter (ent4)
+4) Add the Backup new adapter (ent6)
+Recent Activity or Troubleshooting:
+I have replace the EEA (primary adapter), due to the adapter is failed.
+5) Network troubleshooting Part:
+Q) We are unable to login to the server by using network, How to identify the problem and how 
+to fix the problem.
+Action Steps:
+1) We have to login server by using Console to identify the problem.
+2) Verify the error logs 
+2)# ifconfig -a -> To verify the IP status.
+3)# lsdev -Cc adapter |grep -i ent -> Check the adapter status.
+5) #lsdev -Cc if --> To verify interface status.
+6) #entstat -d <EA> |grep -i link, --> To verify the link status, if link is down, we have to inform 
+the data center technician to put cable connection properly.
+#lscfg -l entX --> to take the location code of adapter.
+7) Verify the telnet/SSH demons. should be active.
+Recent Activity or Issue fixed:
+Problem: We are not able to login to the server via network or Putty.
+Solution1: 
+1) logged in server via console.
+2) Verified in error logs, there is link problem for the adapter
+3) verified link status, link is down.
+4) informed DC technician check the cable connections and put them properly.
+Solution2:
+Routes are missed I have added.
+6) Routes Adding/Removing
+Routing: When we have many servers/ipaddress and less networks we can make the separate 
+routes to reduce network traffic between servers.
+The routes we can add two ways
+1) Permanent routes adding (by using #smitty mkroute) command
+2) Temporarly routes adding (By using #route add ) command
+#netstat -nr -> To display the current routes information in the system.
+
+To add the route Temporarly:
+EX: 192.168.1./24 192.168.1.226 en3
+#route add <IP Address><Netmask><gateway><Interface>
+#192.168.1.0 255.255.255.0 192.168.1.226 en3
+Note: /24 = 255.255.255.0 netmask values
+Ex2: 192.168.1.0 192.168.1.200 en0
+#route add 192.168.1.0 192.168.1.200 en0 
+To Add the routes permanently
+#smitty mkroute
+Destination Address [192.168.1.0]
+Gateway [192.168.1.226]
+Netmask [255.255.255.0]
+Network Interface [en3]
+To Delete route Temporarly:
+#route delete <IP Address><netmaskvalue><gateway><Interface>
+To Delete Route Permanently:
+#smitty rmroute
+*Destination address [ ]
+Gateway [ ]
+Interface [ ]
+Netmask [ ]
+/etc/hosts -->
+It is one of the network related configuration file. By using this file we can resolve the server 
+IPs/Hostnames between the servers to communicate with each other.
+Ex:
+192.168.1.200 server1
+192.168.1.250 server2
+To make network communication between servers (server1,server2) we need to update the both 
+servers IP & hostname on /etc/hosts file on both sides.
+Note: /etc/hosts normal ASCII format file we can modify by using vi command.
+Login server1
+#vi /etc/hosts
+192.168.1.200 server1
+192.168.1.250 server2
+:wq
+Login server2
+#vi /etc/hosts
+192.168.1.200 server1
+192.168.1.250 server2
+:wq
+DNS:
+Stands for domain name server, by using DNS all servers will able to communication 
+with each other. To communicate all servers with each other we need to add the all server's IPs & 
+hostnames in DNS server. DNS server will configure mostly Big organizations.
+On ALL Servers we have to update/add the DNS server IP & Hostname in /etc/resolv.conf 
+configuration file.
+/etc/resolv.conf -> it is one of the configuration file its contains the DNS server IP and 
+hostname.
+/etc/services:
+This file contains the all deamons/services information with respected port numbers
+Note: 
+1) If you want change the daemon port numbers we can change/modifying under /etc/services 
+file.
+2) if you want stop the daemons we can put the hash (#) symbol in front of the daemon.
+Port numbers:
+telnet - 23
+ssh- 22
+ftp - 21
+rlogin - 513
+DNS - 443
+NFS - 2049
+Nim - 1058
+Nim register - 1059
+apache 8080
+/etc/inetd.conf --> It is one of the Demons configuration file, this file contains the deamons 
+information (Ex: telnet, ssh, ftp, sftp etc demons).
+Note: if we modify /etc/inetd.conf configuration file we need to restart the inetd demon to reflect 
+the modifications on system.
+
+
+NFS NOT WORKING PROPERLY HOW TO TROUBLESHOOT IT.
+(OR) Recently I fixed NFS issue by following below steps.
+1) We have verify the IP status and ping test, if ok then.
+2) Verify the NFS and Port map deamons. if not running restart the deamons by using below 
+commands.
+#stopsrc -g nfs --> To stop nfs deamons
+#stopsrc -g portmap --> To stop the portmap deamon
+#startsrc -g portmap --> To start portmap deamon.
+#startsrc -g nfs --> To start the NFS deamons.
+3) Verify the exported list
+To check the NFS version
+#nfsstat -v |grep -i version
+#topas
+To check the rpc state information.
+#rpcinfo -s
+
