@@ -1,0 +1,82 @@
+DOS files Management:-
+
+
+Install the bos.dosutils fileset for the DOS-commands or install mtools (AIX Toolbox for Linux Applications).
+
+dosdir						<--Lists the directory for DOS files (default device is /dev/fd0).
+
+dosread						<--Copies DOS files to AIX files.
+								dosread -a yourfile.txt yourfile : copies a text file from a DOS diskette and replaces each carriage return, line-feed sequence with a new-line character and interprets a Ctrl-Z as the end-of-line character.
+								dosdir | awk '!/There are/ {print $1}'|xargs -t -i dosread {} {} : copies every DOS file from a DOS diskette.
+
+doswrite					<--Copies AIX files to DOS files.
+								doswrite -a myfile myfile.txt : copies file myfile to a DOS diskette and replaces new-line characters with carriage return, line-feed sequences (-a). Ctrl-Z is added at the end of file.
+								for i in *;do;doswrite $i $i;done : copies every file in the current directory to a DOS diskette.
+
+dosdel						<--Deletes DOS files.
+
+dosformat					<--Formats a DOS diskette.
+								Mtools is a public domain collection of tools to allow Unix systems to manipulate MS-DOS files
+								Documentation: Mtools (HTML) or Mtools (PDF).
+
+floppyd						<--floppy daemon to run on your X server box 
+
+floppyd_installtest			<--small utility to check for the presence of floppyd 
+
+mattrib						<--change MS-DOS file attribute flags 
+
+mbadblocks					<--tests a floppy disk, and marks the bad blocks in the FAT 
+
+mcat						<--same as cat. Only usefull with floppyd. 
+
+mcd							<--change MS-DOS directory 
+
+mcopy						<--copy MS-DOS files to/from Unix 
+
+mdel						<--delete an MS-DOS file 
+
+mdeltree					<--recursively delete an MS-DOS directory 
+
+mdir						<--display an MS-DOS directory 
+
+mdu							<--list space occupied by directory and its contents 
+
+mformat	add an MS-DOS filesystem to a low-level formatted floppy disk 
+
+minfo	get information about an MS-DOS filesystem. 
+
+mlabel	make an MS-DOS volume label 
+
+mkmanifest	makes a list of short name equivalents 
+
+mmd	make an MS-DOS subdirectory 
+
+mmount	mount an MS-DOS disk 
+
+mpartition	create an MS-DOS as a partition 
+
+mrd	remove an MS-DOS subdirectory 
+
+mmove	move or rename an MS-DOS file or subdirectory 
+
+mren	rename an existing MS-DOS file 
+
+mshowfat	shows the FAT map of a file 
+
+mtoolstest	tests and displays the configuration 
+
+mtype	display contents of an MS-DOS file 
+
+mzip	zip disk specific commands 
+ 
+ 
+CDE:-
+
+dtconfig					<--/usr/dt/bin/dtconfig -d : disables desktop logins (-e enables desktop logins).
+
+dtlogin						<--/usr/dt/bin/dtlogin -daemon : starts the desktop login manager manually.
+
+xinit						<--Initializes the X Window System.
+								xinit /etc/dt/Xsession : starts the CDE desktop from command line interface (customized version, if present).
+								xinit /usr/dt/bin/Xsession : starts the CDE desktop from command line interface (default version).
+								 
