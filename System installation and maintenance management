@@ -1,0 +1,53 @@
+System installation and maintenance management:- 
+oslevel						<--Reports the latest installed maintenance level of the system.
+								oslevel -r : determines the highest recommended maintenance level reached for the current version of AIX.
+								oslevel -lr 5100-04: lists which fileset updates are missing if after installing ML 04 on 5100-03 the command oslevel -r still shows 5100-03.
+								oslevel -s : 
+								oslevel -rq :
+								
+alog        				<--Creates and maintains fixed-size log files.
+								alog -o -t boot : view the boot log (the log that holds boot information).
+								alog -L : lists the logs defined in the alog database.
+
+errpt						<--Generates a report of logged errors in the system error log.
+								errpt -a : displays a complete detailed report.
+								errpt -c > /dev/console : formats and displays each of the errors at logtime (concurrent error logging) on /dev/console.
+								errpt -a -jE85C5C4C 	<--Detailed info about a specific error:
+errdemon					<--Starts the error logging daemon errdemon that reads error records from the /dev/error file and creates error log entries in the default system error log /var/adm/ras/errlog.
+								/usr/lib/errdemon : starts the error logging daemon.
+								/usr/lib/errdemon -l : displays the path to the system error log file and error log size.
+								/usr/lib/errdemon -s 2000000 : changes the maximum size of the error log file to 2 MB.
+
+syslogd						<--The syslogd daemon logs messages from kernel, daemons and system applications using /etc/syslog.conf.
+								*.debug          errlog (add this line to to syslog.conf to redirect all syslog messages to the system error log).
+								stopsrc -s syslogd : stops the syslogd daemon.
+								startsrc -s syslogd : starts the syslogd daemon.
+								refresh -s syslogd : refreshes the syslogd daemon.
+
+errlogger					<--Logs an operator message.
+								errlogger new disk added on scsi1 adapter : logs "new disk added on scsi1 adapter" in the system error log.
+
+errclear					<--Deletes entries from the system error log. Software and operator errors (older than 30 days) and hardware errors (older than 90 days) are removed using crontab.
+
+errinstall					<--Installs or replaces messages in the error logging message sets of the error log message catalog.
+
+errupdate					<--Updates the Error Record Template Repository (default file /var/adm/ras/errtmplt).
+
+diag						<--Menu driven program to run a wide choice of tasks and service aids (diagnostics, hardware error report, format, microcode and bootlist management,  ...).
+								Diagnostics modes:
+								Concurrent mode: diag is used during normal operation (only devices not in use can be tested).
+								Single-user mode: run diag after shutdown -m.
+								Stand-alone mode: boot from Diagnostics CD (press F5 when acoustic beep is heard)
+								or boot and press F6 when acoustic beep is heard to load diag from hard disk.
+								if diag returns "diag is not supported on this model" use:
+								SMS mode: boot and press F1 when acoustic beep is heard, select "test the computer". Some older models use a SMS diskette.
+
+alt_disk_install			<--Installs an alternate disk with a mksysb install image or clones the currently running system to an alternate disk.
+								Note: install bos.alt_disk_install fileset to use alt_disk_install.
+								alt_disk_install -C hdisk2 : Clones the current rootvg to hdisk2.
+								alt_disk_install -C -b update_all -l /dev/cd0 hdisk4 : Creates clone of the current rootvg on hdisk4, installs a ML on the clone and changes the bootlist to hdisk4.
+								alt_disk_install -X old_rootvg : Removes the original rootvg from the ODM, after booting from the new alternate disk (you can still reboot from old_rootvg).
+
+nimadm					 	<--Performs Alternate Disk Migration (to a new version or release) of AIX using NIM resources.
+								nimadm -c aix1 -s spot2 -l lpp2 -d "hdisk1 hdisk2" -Y : migrates totarget NIM client aix1, using NIM SPOT resource spot2, the NIM lpp_source lpp2, and hdisk1 and hdisk2 target disks, and agreeing to all required software license agreements for the software being installed (-Y).
+								nim -o alt_disk_install -a source=rootvg -a disk='hdisk2' -a phase=12 holland : clones a rootvg on client holland to hdisk1, but only run phase1 and phase2 (leaving the /alt_inst file systems mounted).
