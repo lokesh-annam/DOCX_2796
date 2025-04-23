@@ -1,0 +1,1423 @@
+CHAPTER 11 : LOGICAL VOLUME MANAGER (LVM)
+==================================================
+Component of AIX Storage, Traditional Unix Disk Storage, Issue with Traditional Unix Disk Storage, 
+Benefit of the LVM, Logical Volume Components, Volume Group Types, Volume Group -t Factor, Limitations of logical volume storage, 
+Volume Group Descriptor Area (VGDA), Quorum, Volume Group Status Area(VGSA),Logical Storage, Logical Volumes, LVM Mapping, Uses of Logical Volumes, 
+Logical volume control block (LVCB),Physical Volume Allocation Policy, Logical Volume Mirroring, logical Volume Striping, Logical Track Group(LTG).
+
+
+PHYSICAL VOLUME		--> Represents a hard disk (hdisk0).
+VOLUME GROUP		--> A set of one or more PVs which form a single storage pool. You can define multiple VGs on each AIX system.
+LOGICAL VOLUME		--> One or more PPs. A file system resides on top of an LV. Only one LV is mapped to a file system. A LV can't span across a VG. Up to 255 LVs in a VG.  
+PHYSICAL PARTITION	--> A fixed portion of a physical volume. The smallest allocation unit in the LVM. All PPs within a VG are the same size, usually 4 or 8 MB.
+LOGICAL PARTITIONS	--> One or more PPs. LP represents a mirrored copy of a PP. Up to two copies of a PP can be mirrored resulting in a LP count of three (2 mirrors plus original).
+FILE SYSTEM (FS)	--> A structure that directly stores our data is created on the LV.
+VOLUME GROUP DESCRIPTOR AREA (VGDA):- Information about volume group logical volume physical volume. it's qoute Quorum
+									If any changes on logical volume, extention, deletion
+									Ex: # readvgda hdisk$
+QUORUM:- Quorum is a method 51% are more VGDA count. it must maintain on any volume group.
+		It's prevent data correcption.		
+LOGICAL VOLUME CONTROL BLOCK (LVCB):- Logical Volume also contain every LV first 512 bytes 
+									contain LVCB info about creation of Logical Volume, Mirrord copy, and mount point
+									Ex: # getlvcb -AT lvname
+PHYSICAL VOLUME ALLOCATION POLICY:-
+VOLUME GROUP STATUS AREA(VGSA):- 
+LOGICAL TRACK GROUP(LTG):-
+
+PHYSICAL VOLUME:- 
+# lspv	-->List of Physical Volume
+# lspv -u	--> shows all pvs with extra details: serial number, storage type ...
+# lspv hdisk0	--> detailed information about a phys. vol. (vg, pp size, free pp, logical volumes number)
+# lspv -l hdisk1	--> list of all the logical volumes on the physical volume
+# lspv -p hdisk2	--> displays a map of all physical partitions located on hdisk1
+# lspv -M hdisk1	--> shows which physical partitions are being used for specific logical volumes
+# bootinfo -s hdisk$	-->
+# chdev -l hdisk$ -a pv=yes	--> To assigning a Physical Volume ID from the physical volume.
+# chdev -l hdisk$ -a pv=clear	--> To clear a Physical Volume ID from the physical volume.
+# chdev -l hdiskX -a queue_depth=32 -U	--> change attribute concurrently (only if lsattr -El hdiskX shows True+ for attr.)
+How to migrate one Physical volume to another physical volume?
+# migratepv sourcepv destpv		--> migrates the data from hdisk1 to hdisk5 (moves all lvs, it can be done during normal system activity)
+# migratepv -l testlv hdisk1 hdisk5		--> migrates only testlv from hdisk1 to hdisk5
+	Ex: # migratepv hdisk$ hdisk$
+# chpv -an pvname	--> Disable pps of the disk 
+	Ex: chpv -an hdisk$	
+# chpv -ay pvname 	--> Enable pps of the disk 
+	Ex: chpv -ay hdisk$ 
+# chpv -vr pvname	--> Inactive the PV STATE. 
+	Ex: chpv -vr hdisk$	
+# chpv -va pvname	--> Active the PV STATE.
+	Ex: chpv -va hsisk$
+# chpv -c hdisk$	--> clears the bootrecord on hdisk$
+# lquerypv -h /dev/hdiskX	--> shows the disk header
+# lquerypv -M hdisk0	--> shows the LTG size for a physical disk
+
+
+VOLUME GROUP:- 
+# lsvg	-->List of Volume Group
+# lsvg -o	--> List the active Volume Group
+# lsvg -o | lsvg -ip	--> lists pvs of online vgs.
+# lsvg rootvg	--> gives details about the vg (lsvg -L <vgname>, will doe not wait for the lock release (useful during mirroring))
+# lsvg -l rootvg	--> To list the logical volume on a particular volume group.
+# lsvg -p rootvg	--> display all physical volumes that are part of the volume group.
+# lsvg -M rootvg	--> lists all PV, LV, PP deatils of a vg (PVname:PPnum LVname: LPnum :Copynum)
+# lsvg -n <hdisk>	--> shows vg infos, but it is read from the VGDA on the specified disk (it is useful to compare it with different disks)
+# mkvg -y vgname -s ppsize hdisk$	--> To create Volume Group 	
+	Ex:- # mkvg -y datavg -s 128 hdisk$	
+# mkvg -s 2 -y testvg hdisk13	--> creates a volume group
+# varyoffvg vgname	--> Inactive the Volume Group
+# varyonvg vgname	--> Active the Volume Group.
+# varyonvg -f VGname	--> so forced varyon may needed.
+# reducevg vgname hdisk$	--> Remove volume from Physical disk
+	Ex: # reducevg datavg hdisk1
+# reducevg datavg <pvid>	--> reducevg command can use pvid as well (it is useful, if disk already removed from ODM, but VGDA still exist)
+# extendvg vgname hdisk$	--> Extend the Volume Group from one Physical disk to another Physical disk.
+	Ex: # extendvg datavg hdisk2
+# syncvg -v vgname	--> All the LVs in that vg are sync.
+	Ex: syncvg -v datavg 
+# chvg -u vgname	--> Unlock the voume group 
+# chvg -Qn VGname	--> Quorum disable
+# mirrorvg -S P01vg hdisk1	--> mirroring rootvg to hdisk1 (checking: lsvg P01vg | grep STALE) (-S: background sync)
+                          (mirrorvg -m rootvg hdisk1 <--m makes an exact copy, pp mapping will be identical, it is advised this way)
+# unmirrorvg testvg1 hdisk0 hdisk1	--> remove mirrors on the vg from the specified disks
+
+HOW TO REDUCE/REMOVE A VOLUME GROUP?
+If disk is failed or disk performance is slow, we will remove the disk from VG.
+NOTE: Before remove the hard disk from the VG, the disk should not contain any LVs, File systems, the disk should be empty.
+STEPS:
+1) Check LVs/FSs in the PV. (#lspv -l hdisk0)
+2) Remove LVs/FSs if existed. if file systems are mounted we have to unmount them and remove it.
+3) Finally remove the disk from the VG by using below command.
+# lsvg -l hdisk$
+# reducevg -d datavg hdisk$
+# lqueryvg -tAp hdisk0	--> look into the VGDA (-A:all info, -t: tagged, without it only numbers)
+
+Removing VG:
+NOTE: There is no separate command to remove the VG, if we remove/reduce all PVs from the 
+VG, The VG will be delete from the server. if we want delete VG from server, just we have to 
+reduce the all PVs from the VG then VG will be delete automatically.
+
+
+ADD DISKS TO VG:
+Note: If we don't have free space (PPs) in volume group we can add new disks to VG to create new LVs/FSs or To Increase the existing FSs/LVs
+Steps to add disks:
+1) Take empty disk
+2) Create PVID if not created
+3) Add the disk to VGs by using below command.
+Syn: # extendvg <VGNAME><New PV>
+EX: # extendvg sapvg hdisk1
+# lsvg -p sapvg 	--> To list the total PVs of sapvg
+
+
+TYPES OF VOLUME GROUP:-
+==========================
+VGTYPE		MAX-PV		MAX-LVS		MAX-PPS-PER-VG 		MAX-PP-SIZE
+-------------------------------------------------------------------
+Normal		32			256			32512				1GB
+Big vg 		128			512			130048				1GB 
+Scalable	1024		4096		2097152				128GB 
+
+# mkvg -B -y vgname -s ppsize pvname	--> To create Big Volume Group
+	Ex: mkvg -B bigvg -s 32 hdisk$
+# chvg -B bbvg
+# mkvg -S -y vgname -s ppsize pvname	--> To create Scalable Volume Group
+	Ex: mkvg -S bigvg -s 32 hdisk$
+# chvg -S scalablevg
+
+MIRRORING:- 		
+# lspv
+# lsvg -l rootvg
+# lsvg -p rootvg
+# lscfg -vpl hdisk#
+# extendvg -f vg_name pv_name 
+	EX: # extendvg -f rootvg hdisk0
+# mirrorvg -S vg_name pv_name
+	EX: # mirrorvg -S rootvg hdisk0
+# mirrorvg -S -c 3 vg_name 		<-- We can do the mirroring will 
+# lsvg rootvg | grep -i stale
+# mirrorvg -s datavg
+# lsvg datavg | grep -i stale
+# bootinfo -b
+# bootlist -m normal -o
+# bootlist -m normal hdisk0 -->Bootlist order should be rootvg. (Change the bootlist to hdisk# remember alt_disk reside on hdisk#)
+# bootlist -m normal -o
+# bosboot -ad /dev/hdisk$
+
+UN-MIRRORING:-
+# lspv
+# lsvg -l rootvg
+# lsvg -p rootvg
+# unmirrorvg rootvg -->un-mirror rootvg.
+# lspv -l hdisk$ -->After mirroring checked the list of pvs.
+# lspv -l hdisk$ -->After mirroring checked the list of pvs.
+# migratepv hdisk$ hdisk$ -->if any files are left we need to move the inactive disk to active disk.
+# migratepv -l <lv_name> hdisk# hdisk#
+# chpv -c hdisk# -->clear the bootimage of the inactive hard disk.
+# lsvg -p rootvg
+# reducevg rootvg hdisk$ -->Remove the hdisk from the rootvg disk. 
+# lsvg -p rootvg
+# alt_disk_copy -d hdisk$ -B -->Take the alt clone on hdisk. 
+# lspv  		-->Confirm the "altinst_rootvg" created on hdisk.
+# alt_rootvg_op -W -d hdisk1		-->Wake-up the alt_clone disk.
+# chroot /alt_inst /usr/bin/oslevel -s	-->Check the osversion on wake-up disk.
+# alt_rootvg_op -S		-->Sleep the alt_clone_disk
+# bootinfo -b
+# bootlist -m normal -o
+# bootlist -m normal hdisk0 -->Bootlist order should be rootvg. (Change the bootlist to hdisk# remember alt_disk reside on hdisk#)
+# bootlist -m normal -o
+# bosboot -ad /dev/hdisk$
+# bootinfo -s hdisk
+
+IF IT IS ALREADY IN UN-MIRROR STATE: 
+# alt_disk_install -X altinst_rootvg -->removing the altclone.
+	
+IMPORT AND EXPORT:- 
+1) We can use export/import commands to move the VG from one server(aix1) to another server 
+(aix2) or
+2) By using export/import we can change/rename the VG name.
+To move the VG from one server (ser1) to another (ser2)
+By using export/import VG commands we can move the VG from one server to another 
+server follow the below steps:
+ON SOURCE SERVER STEPS:
+If you want to export any filesystem we need to unmount the filesystem.
+# umount /filesystem
+# varryoff vgname 
+# lspv
+# exportvg vgname
+NOTE: Once exported VG, The VG's file systems definations will remove from the OS/ODM/System or /etc/filesystems configuration file.
+4) remove the disks from the OS.
+#rmdev -dl <diskname>
+#rmdev -dl hdiskX
+
+Destination server:
+1) Add the disks to the destination server physically.
+2) Scan the added disks
+#cfgmgr
+3) Importvg the VG
+#importvg -y <vgname> -n <pvname> (or)
+#importvg -y <vgname><pvname>
+4) Varyon VG if not online
+#varyonvg <vgname>
+5) mount the file systems.
+#mount /fsname
+# lspv
+hdisk1 00cb9dbe137eba2c saimgrt active
+hdisk4 00cb9dbe13623391 None
+hdisk5 00cb9dbeb3812c53 rootvg active
+hdisk6 00cb9dbe136c60a9 None
+# cfgmgr
+# lspv
+hdisk0 00cb9dbe18a78c3d None
+hdisk1 00cb9dbe137eba2c saimgrt active
+hdisk2 00cb9dbe13a16525 None
+hdisk3 00cb9dbef0487445 None
+hdisk4 00cb9dbe13623391 None
+hdisk5 00cb9dbeb3812c53 rootvg active
+hdisk6 00cb9dbe136c60a9 None
+# importvg -y sai -n hdisk2
+
+To rename/change the VG name, FS name, LV name
+To Change/Rename VG Name:
+By using export/import commands we can change the VG name
+1) umount Filesystems
+#umount /fsname
+#umouut /fsname
+2) varyoffvg
+#varyoffvg <vgname>
+3) Exportvg
+#exportvg <vgname>
+4) importvg
+#importvg -y <vgname><pvname>
+Note: While importing VG we can change the VG name which is required. spicify the required 
+VG name after -y flag.
+5) Activate VG if not active
+#Varyonvg <vgname>
+6) mount the File systems
+#mount /fsname
+#mount /fsname
+How to rename the File system
+# lsfs
+Name Nodename Mount Pt VFS Size Options Auto Accounting
+/dev/hd4 -- / jfs2 524288 -- yes no
+/dev/hd1 -- /home jfs2 524288 -- yes no
+/dev/hd2 -- /usr jfs2 2097152 -- yes no
+/dev/hd9var -- /var jfs2 524288 -- yes no
+/dev/hd3 -- /tmp jfs2 524288 -- yes no
+/proc -- /proc procfs -- -- yes no
+/dev/hd10opt -- /opt jfs2 524288 -- yes no
+/dev/lv00 -- /rajani jfs -- -- no no
+/dev/lvnrlv -- /lvnfs jfs2 -- -- no no
+/dev/fslv01 -- /saimgrtfs jfs2 4194304 -- yes no
+/dev/fslv00 -- /saifs jfs2 2097152 -- yes no
+/dev/javalv -- /javafs jfs2 5242880 -- no no
+# df -gt -> to list the only mounted file systems and we can see the tolal size/used/free size of the 
+file systems
+# lsvg -l sapvg
+sapvg:
+LV NAME TYPE LPs PPs PVs LV STATE MOUNT POINT
+loglv00 jfs2log 1 1 1 open/syncd N/A
+fslv00 jfs2 4 4 2 open/syncd /saifs
+sailv jfs2 10 10 1 closed/syncd N/A
+javalv jfs2 10 10 1 closed/syncd /javafs
+
+# df -gt
+Filesystem GB blocks Used Free %Used Mounted on
+/dev/hd4 0.25 0.01 0.24 5% /
+/dev/hd2 1.00 0.55 0.45 55% /usr
+/dev/hd9var 0.25 0.01 0.24 4% /var
+/dev/hd3 0.25 0.00 0.25 2% /tmp
+/dev/hd1 0.25 0.00 0.25 1% /home
+/proc - - - - /proc
+/dev/hd10opt 0.25 0.04 0.21 15% /opt
+/dev/fslv01 2.00 0.00 2.00 1% /saimgrtfs
+/dev/fslv00 1.00 0.00 1.00 1% /saifs
+
+
+
+NOTE: a) -n -> will not activate VG automaticlly.
+b) Once VG imported, The VG file system's defincations will add into the /etc/filesystems 
+file/OS/ODM/System.
+c) While importing VG if you want you can change the VG name.
+
+# importvg -y vgname pvname 
+ERRORS:-
+1. If same volume group is exist in the destination server error will occur.
+2. If lv and log device is already exist.
+3. 
+
+
+ACTIVATE:DEACTIVATE /VARYOFF:VARYON VGS:
+DEACTIVATE VG:
+Note: 
+1) Before deactivate VG, we should close all file systems in the VG.
+2) If we deactivate VG, LVM operations not possible on inactive VGs 
+Ex: lsvg vgname, lsvg -l vgname etc...
+3) if we deactivate VG the VG's data cannot accessble
+#lsvg -o --> To list online/active VGs
+NOTE: In VG all File systems/LVs should closed before deactivate VG
+# umount /saifs
+# umount /javafs
+umount: 0506-349 Cannot unmount /dev/javalv: The requested resource is busy
+# fuser -u /javafs
+# fuser -cuk /javaf
+# umount /javafs
+# varyoffvg sai
+0516-010 : Volume group must be varied on; use varyonvg command.
+
+ACTIVATE VG:
+SYN: #varyonvg <VG name>
+EX: #varyonvg saivg
+Note: once VG is activated file systems we have to mount manually by using mount command.
+
+
+
+LOGICAL VOLUME:- 
+# mklv -y lvname -t typeoflv vgname no.ofLPs pvname
+	Ex: # mklv -y oraclelv -t jfs2 datavg 80 hdisk$
+# mklv -y lvname -t typeoflv -c no.ofcopys vgname no.ofLPs pvname1 pvname2 pvname3
+	Ex: # mklv -y oraclelv -t jfs2 -c 3 datavg 80 hdisk$ hdisk$ hdisk3$
+# mklv -y lvname -t typeoflv vgname no.ofLPs pvname
+	Ex: # mklv -y oraclelv -t jfs2 datavg 80 hdisk$
+WE CAN CREATE OUR OWN LOCATION DISTIBUTION.
+hdisk1:
+LV NAME               LPs     PPs     DISTRIBUTION          MOUNT POINT
+livedump              2       2       00..02..00..00..00    /var/adm/ras/livedump
+hd11admin             41      41      00..00..00..41..00    /admin
+
+e	outer edge
+m	outer middle
+c	center
+ie	inner edge  
+im	inner middle 
+# mklv -y lvname -t jfs2 -a ie vgname no.ofLPs pvname
+	Ex: mklv -y edgelv -t jfs2 -a ie datavg 80 hdisk$
+# rmlv 
+# lslv -m lvname
+	Ex: #lslv -m livedump
+# lslv lvname
+	Ex: # lslv livedump
+# extendlv lvname no.ofLPs pvname 
+	Ex: extendlv oraclelv 10 hdisk$ 	
+# mklvcopy lvname no.ofCopies pvname1 pvname2 
+	Ex: mklvcopy lv00 2 hdisk$
+# syngvg -l lvname		--> Sync the statle partitions.
+	Ex: syncvg -l oraclelv 
+# rmlvcopy lvname no.ofcopys pvname
+	Ex: rmlvcopy lv00 1 hdisk$ 
+# chlv -n newlv oldlv	--> Rename Logical volume
+# chlv -L "Add Lable" newlv	--> Add label 
+# cplv -y copylv -v vgname newlv --> Copy the lv (before doing we need to unmount the Filesystem).
+
+REMOVING LV:
+NOTE: Before removing LV from the VG/server the LV should be closed/umount.
+#rmlv <lvname> -> To remove LV
+#rmlv -f <lvnmae> -> To remove lv without confirmation	
+
+UNSTRUCTURAL LOGICAL VOLUME:-
+# mklv -y lvname -t typeoflv vgname no.ofLPs 
+	Ex: #mklv -l rawlv -t raw datavg 10
+
+CREATE A LOG DEVICE?
+# lsvg -y oraclejfs2log -t jfs2log datavg 1 hdisk$ 
+# logform -v jfs2 /dev/oraclejfs2log 
+# crfs -v jfs2 -d /dev/fslv00 -a log=/dev/oraclejfs2log -m /oralv 
+# mount /oralv
+
+CREATE A FILE SYSTEM:-
+					There are two types of creation
+					1. Create fs 
+					2. create lv and create fs
+
+# crfs -v jfs2 -g bigvg -a size=10M -A yes -m /one 
+	drawbacks: we can't specify the lvname, region with the intro policy, which pvname it filesystem is create.
+# mklv -y twostep -t jfs bigvg 2 hdisk$
+# crfs -v jfs2 -d /dev/twostep -A yes -m /second
+# crfs -v typeoflv -d /dev/lvname 
+	Ex: # crfs -v jfs2 -d /dev/testlv 
+# mkdir /testmount 
+# crfs -v typeoflv -d /dev/lvname -m /testmount 
+	Ex: crfs -v jfs2 -d /dev/testlv -m /testmount
+# crfs -v jfs2 -g datavg -a size=15G -A yes -m /ndlogs
+# chfs -m /s2 /second	--> Change Filesystem name.
+# chfs -a size=+20M /s2 --> Increase Filesystem size. 
+# fsck -n /devfile
+# fsck -y /devfile 
+# fuser -u /devfile 
+# fuser -uk /devfile 
+
+REMOVING FS:
+NOTE: Before removing File System from the VG/server the FS should be closed/umount.
+#umount </fsname> -> If file system is mounted, we have to umount
+#rmfs </fsname> -> To remove FS
+
+DIFFERENCES BETWEEN THE JFS AND JFS2.
+		JFS 									JFS2
+JFS Stands for Journal File system 		JFS2 stands for Enhanced Journal File system
+it is small file system, 				It is large file system
+We can increase JFS file system but 	We can Increase as well as we can decrease JFS2 File system
+we can not decrease JFS file system              
+Its having Fixed Inodes 				Its having dynamic Inodes
+JFS max File system size is 1TB 		JFS2 max File system size is 4PB
+Max File size is 64GB Max 				File size is 4PB
+Compression is available 				Compression not available
+Inode size is 128 bytes 				Inode size is 512 bytes
+
+Each disk (PV) belongs to a Volume group (VG). A standard VG is a collection of 1 to 32 PVs (1 to 128 for a big VG). 
+A PV can belong to only one VG. A maximum of 255 VGs can be defined per system.
+When a VG is created, the PVs within the VG are partitioned into contiguous, equal-sized PPs (units of disk space). 
+PPs are the smallest unit of allocatable storage space in a VG. The PP size is determined at VG creation (can't be changed dynamically afterwards), 
+and all PVs that are placed in the VG inherit this size. The PP size can range from 1 MB to 1024 MB, but must be a power of two. 
+If not specified at creation time, the default PP size for a VG is 4 MB for disks up to 4 GB (the minimum PP size needed is determined by the OS),
+but it must be larger for PVs greater than 4 GB due to the fact that the LVM, by default, will only track up to 1016 PPs/PV.
+The number of PPs/PV (1016) can be increased with a factor 1-16 (or 1-64 for a big VG) at creation time or later 
+(which will reduce the number of PVs in the VG) and/or the number of PVs/VG can be increased from 32 to 128 at creation time or later (big or gigantic VG).
+Importing a VG involves copying the VGDA data for the imported volume group into the ODM. When a volume group is exported, 
+the data held in the ODM about that volume group is removed from the ODM database.
+
+# lsvg						<--Displays information about VGs.
+								lsvg : lists all VGs.
+								lsvg rootvg : lists the characteristics of VG rootvg.
+								lsvg -o : lists only the active VGs (those that are varied on).
+								lsvg -p rootvg : lists the PVs in VG rootvg (state, size, distribution).
+								lsvg -l rootvg : lists the LVs in VG rootvg (type, size, state).
+								lsvg -M rootvg : displays a map of all LVs.
+# lqueryvg !					<--Queries the attributes of a VG using VG id, or PV name of a PV that is part of a VG.
+								lqueryvg -At -p hdisk0 : returns all attributes for the VG (static attributes, LV details and PV details).
+# mkvg						<--Creates a VG.
+								mkvg -y datavg -s 32 hdisk2 hdisk4 : creates the VG datavg that contains PVs hdisk2 and hdisk4, with PP size set to 32 MB.
+								mkvg -B -y uservg : create a big VG uservg (supports 128 PVs and 512 LVs).
+# chvg						<--Sets the characteristics of a VG.
+								chvg -a{y|n} datavg : VG datavg is automatically activated (y=varyonvg) or not (n=varyoffvg) during system startup.
+								chvg -u datavg : unlock the VG datavg.
+								chvg -B datavg : changes the VG to big VG format (supports 128 PVs and 512 LVs). Mapping size is 4*original size.
+								chvg -t 2 datavg : changes the limit of the number of PPs/PV by factor=2 (1016*2=2032 PPs/PV). Which decreases the number of disks (#PVs/factor=16 PVs/VG).
+								chvg -sy datavg : attempts to automatically synchronize (AUTO SYNC) stale partitions in VG datavg (default this not done for a VG).
+								chvg -L256 uservg : changes the LTG size to 256KB of VG uservg for better disk I/O performance. 
+								LTG size should be less than or equal to the maximum transfer size of all disks in the VG. Check each disk in the VG with:
+								lquerypv -M hdiskx : checks the maximum supported LTG size of hdiskx.
+								chvg -b n datavg : turns off the bad block relocation policy of VG datavg (default is yes for a VG).
+								chvg -h y -s y uservg : sets policy in VG uservg to automatically (-h y) migrate PPs from one failing disk to 
+								one spare disk with automatic synchronization of stale PPs (-s y).
+# syncvg						<--Synchronizes LV copies that are not current (stale).
+								syncvg -v datavg : synchronizes the copies on VG datavg.
+								syncvg -p hdisk3 : synchronizes the copies on physical volumes hdisk3.
+# synclvodm					<--Resynchronize the ODM. The VG must be active.
+								synclvodm rootvg : synchronizes the device configuration database with the LVM information for rootvg 
+								(use when the device configuration database is not consistent with the LVM information in the LVCBs and the VGDAs).
+								rvgrecover	Repairs the ODM.
+# mirrorvg					<--Mirrors all the LVs that exist on a given VG.
+								mirrorvg -S -c 3 rootvg : triply mirrors VG rootvg, returns the mirrorvg command immediately and starts a background syncvg (-S).
+								mirrorvg -m datavg hdisk3 : creates an exact mapped mirror of the LVs in VG datavg.
+# unmirrorvg					<--Removes the mirrors that exist on VGs or specified disks.
+								unmirrorvg rootvg : default unmirroring of rootvg (rootvg now has only 1 copy).
+# importvg					<--Imports a new VG definition from a set of PVs.
+								It is highly recommended that you run the fsck command before you mount the file systems.
+								importvg -y datavg hdisk9 : imports VG datavg from PV hdisk9.
+								importvg -y uservg 0009898xy2727d4f : imports VG uservg from PV with PVID 0009898xy2727d4f.
+								importvg -L datavg : imports VG datavg and learns about possible changes. Use if the VG was not exported and used on another machine.
+# exportvg					<--Exports the definition of a VG from a set of PVs.
+								exportvg datavg : removes VG datavg from the system.
+# redefinevg					<--Redefines the set of PVs of the given VG in the device configuration database.
+# extendvg					<--Adds PVs to a VG.
+								extendvg datavg hdisk2 : adds PV hdisk2 to VG datavg.
+# reducevg					<--Removes PVs from a VG. When all PVs are removed from the VG, the VG is deleted.
+								reducevg datavg hdisk3 : removes PV hdisk3 from VG datavg.
+								reducevg datavg 000005265ac63976 : removes PV using it's PVID 000005265ac63976 from VG datavg (use when a disk was removed without first running reducevg).
+# reorgvg						<--Reorganizes the PP allocation for a VG. Using the reorgvg command with the VG name and no other arguments reorganizes only the first LV in the VG.
+								reorgvg datavg lvdata1 lvdata3 : reorganizes LVs lvdata1 and lvdata3 on VG datavg.
+# recreatevg					<--Recreates a VG (with unique IDs, names, and mount points) on a set of disks that are mirrored from another set of disks. 
+									Imports and varies on the VG. Procedure after the real duplication of the PV (like mirroring):
+								chdev -l hdisk5 -a pv=clear : to avoid potential collisions of LVM component names (PVID, VGname, ...) of hdisk5.
+								recreatevg -y newvg -L /newfs -Y newlv hdisk5 : newvg is the newly assigned VG name, /newfs and newlv are used for prefixes of the 
+								newly assigned file systems and LVs, and hdisk5 is the duplicated target PV name.
+# splitvg						<--Splits a single mirror copy of a fully mirrored VG.
+								splitvg -y snapvg -c 2 datavg : splits second mirror copy of the VG datavg and creates snapshot VG snapvg.
+# joinvg						<--joinvg datavg : joins the the original VG datavg with the snapshot VG snapvg.
+# varyoffvg					<--Deactivates a VG.
+								varyoffvg uservg : deactivates the VG uservg.
+# varyonvg					<--Activates a VG.
+								varyonvg -f datavg : used to force a varyon on VG datavg even when inconsistencies are detected 
+								(between the configuration data for each VG held in the ODM database and VGDA.
+								varyonvg -r uservg : varies on VG uservg in read-only mode.
+
+LOGICAL VOLUME MANAGEMENT:-
+
+LVs automatically created at system installation are:
+hd5	boot LV (boot image). Available only at startup.
+hd6	Default paging space.
+hd8	Default logging space (jfslog) for the journaled file systems.
+hd4	/ (root) file system.
+hd2	/usr file system.
+hd9var  	/var file system.
+hd10opt	/opt file system.
+hd3	/tmp file system.
+hd1	/home file system. Users' home directories.
+Note: hd7 was used in earlier AIX versions as dump device.
+Maximum LV size is 1 TB (32-bit kernel) or 128 TB (64-bit kernel).
+A dedicated dump device lg_dumplv is created in systems with at least 4 Gigabytes of real memory.
+
+# lslv						<--Displays information about a logical volume (LV).
+								Total LVsize=PPsize * LPs assigned to LV * Number of LV copies.
+								lslv lvdata : lists all the attributes related to LV lvdata.
+								lslv -m lvdata : lists the LP to PP/PV mapping of LV lvdata.
+
+# mklv						<--Creates a logical volume. The smallest LV is equal to one PP.
+								mklv -y lvdata -c 3 datavg 10 : creates LV lvdata in VG datavg with ten LPs and a total of three copies of the data.
+								mklv -y lvdb datavg 50M : creates LV lvdb with a minimum size of 50MB (b/B=512B, k/K=KB, m/M=MB, g/G=GB). Rounded to whole LVs to make up 50 MB.
+								mklv -a c datavg 2 : creates LV lv00 with a size of two LPs and intra-physical volume allocation policy center 
+								(e=[outer] edge, m=[outer] middle, c=center, im=inner middle, ie=inner edge).
+
+# chlv						<--Changes the characteristics of a logical volume.
+								chlv -w p lvdata : turns on passive MWC for LV lvdata (big VG only).
+								
+								When creating really big filesystems, this is very helpful:
+								chlv -x 6552 lv08
+								Word on the net is that this is required for filesystems over 512M.
+								esmf04m-root> crfs -v jfs -g'ptmpvg' -a size='884998144' -m'/ptmp2' -A''`locale yesstr | awk -F: '{print $1}'`'' -p'rw' -t''`locale yesstr | awk -F: '{print $1}'`'' -a frag='4096' -a nbpi='131072' -a ag='64'
+								Based on the parameters chosen, the new /ptmp2 JFS file system is limited to a maximum size of 2147483648 (512 byte blocks) New File System size is 884998144
+								esmf04m-root> 
+
+If you give a bad combination of parameters, the command will list possibilities. I got something like this from smit, then seasoned to taste.
+# rmlv						<--Removes logical volumes from a volume group.
+								rmlv -f lvdata : remove LV lvdata without requiring user confirmation (attention: all data on this LV is destroyed).
+# extendlv					<--Increases the size of a logical volume by adding unallocated physical partitions.
+								extendlv lvdata 12 : adds twelve more LPs to LV lvdata.
+								extendlv lvraw 64M : adds 64 MB to LV lvraw. Rounded to whole LVs needed to make up 64 MB.
+# lquerylv *					<--Queries the attributes of a logical volume.
+# lreducelv *!				<--Reduces the number of allocated logical partitions of a logical volume (attention: if not used with care, data is lost). Official procedure to reduce a LV:
+								1. Back up all data in the logical volume.
+								2. Remove the logical volume.
+								3. Recreate the logical volume with the reduced logical partition allocation.
+								4. Restore the data.
+# cplv						<--Copies the contents of a logical volume to a new logical volume.
+								cplv -v datavg -y lvnew lvold : copies the contents of lvold to new LV lvnew in VG datavg.
+								cplv -e lvtest -f lvdata : copies the contents of LV lvdata to a smaller, existing LV lvtest within the same VG, 
+								without requiring user confirmation (attention: if lvtest is smaller than lvdata, then data will be lost, probably resulting in corruption).
+# mklvcopy					<--Adds copies to a logical volume.
+								mklvcopy lvdata 3 : increases the number of copies in each LP in LV lvdata to three.
+# rmlvcopy					<--Removes copies from a logical volume.
+								rmlvcopy lvuser 2 : decreases the number of copies in each LP in LV lvuser to two.
+# migratelp					<--Moves an allocated LP from one PP to another PP on a different PV in the same VG.
+								migratelp datalv/23 hdisk3/105 : moves the 23th LP of LV datalv to the 105th PP of PV hdisk3.
+								See lspv -p to display the free PPs of PV hdisk3.
+# splitlvcopy					<--Splits copies from one logical volume and creates a new logical volume from them.
+								splitlvcopy -y newlv oldlv 2 : splits one copy of each LP belonging to the LV oldlv which currently has 3 copies of each LP, and creates the LV newlv.
+# getlvcb *					<--Displays a formatted output of the data in the LVCB of a LV.
+								getlvcb -TA hd3 : displays the information held in the LVCB of LV hd3.
+# putlvcb *!					<--Writes the control block information (only the specified fields) into block 0 of a logical volume (LVCB).
+								putlvcb -t jfs lvdata : writes the LV type jfs to the LVCB of LV lvdata.
+# lspv						<--Displays information about a physical volume (PV) within a volume group.
+								lspv : lists the name, PVID and VG for each configured PV.
+								lspv hdisk2 : lists the characteristics of PV hdisk2.
+								lspv -M hdisk3 : lists the mapping and stale PPs for hdisk3.
+								lspv -l hdisk0 : lists LV allocation within PV hdisk0.
+								lspv -p hdisk1 : lists PP intra-allocation by PV region and PP state (free, used, stale, vgda) on hdisk1.
+								lquerypv *	Queries the attributes of a physical volume.
+# chpv						<--Changes the characteristics of a physical volume in a volume group.
+								chpv -a n hdisk1 : turn off the allocation permission of free PPs for PV hdisk1.
+								chpv -a y hdisk1 : turn the allocation permission for hdisk1 back on.
+								chpv -v r hdisk3 : set the state of PV hdisk3 to unavailable (use when PV is to be removed from the system or is lost due to failure).
+								chpv -v a hdisk4 : make PV hdisk4 available to the system (from state removed to active).
+								chpv -h y hdisk2 : marks hdisk2 (with no allocated LPs) as a hot spare disk in a VG with mirrored LVs.
+# migratepv					<--Moves allocated PP's from one PV to one or more other PP's in the same VG.
+								The command is not allowed if the VG is varied on in concurrent mode.
+								migratepv hdisk1 hdisk3 hdisk5 : moves all PPs from hdisk1 to hdisk3 and hdisk5.
+								migratepv -l lv02 hdisk2 hdisk4 : moves all PPs in LV lv02 from hdisk2 to hdisk4.
+								 
+====================================================================================================================>
+===================LVM(LOGICAL VOLUME MANAGEMENT)===================
+1. Fiber Channel cables:
+2. SAN Switch:
+
+Types of vgs:
+
+				Max PVs		Max LVs		Max PPs per VG		Max PP Size
+Normal VG		32			256			32,512				1GB
+
+Big VG			128			512			130,048				1GB
+
+Scalable VG		1024		4096		2,097,152			128
+
+1. Take Hard disk
+2. Scan New Disk
+	#cfgmgr		<-- Scan New Disk	
+	#bootinfo -s hdisk$	
+	#chdev -l pvName -a pv=yes 		<-- To create PVID for new disk 
+3. We have to create VG on new disk.
+	#mkvg -y appvg -s 64 hdisk$
+	#lsvg		<-- List the VGs
+4. To Create Logical Volume
+	#mklv -y lv_name -t typeof_lv vg_name noof_LPs pv_name
+	#mklv -y saplv -t jfs2 sapvg 4 hdisk$
+5. To create File System with createing Logical Volume 
+	#crfs -v jfs2 -d /dev/saplv -m /sapfs 
+	# crfs -v jfs2 -g vg_name size=1G -A yes -m FS_name
+6. To open the FileSystem
+	#mount /File_system 
+	
+#chdev -l pv_name -a pv=yes 	<-- To create PVID 
+#chdev -l pv_name -a pv=clear 	<-- To remove PVID
+
+ADD/REMOVE DISKS TO VOLUME GROUP
+1. Take empty disk 
+2. Create PVID if not created.
+3. Add the disk to VGs by using below command.
+Syn: #extendvg vg_name new_PV
+ex:	 #extendvg sapvg hdisk$
+	 #lsvg -p sapvg 	<-- To list the total PVs of sapvg
+
+REMOVE/REDUCE THE HARD DISK FROM THE VG:
+NOTE: Before remove the hard disk from the VG, the disk should not contain any LVs, Filesystem, the disk should be empty.
+1. lspv -l hdisk$		<-- Check LVs/FSs in the PV.
+2. Remove LVs/FSs if existed. if the file system are mounted we have to unmount them and remove it.
+3. Finally remove the disk from the VG by using below cmd.
+Syn: #reducevg vg_name new_PV
+ex:	 #reducevg sapvg hdisk$
+
+REMOVE LV/FS/VG:
+NOTE: Before removing LV from the VG the LV should be closed/unmount.
+
+#rmlv lv_name		<-- To remove LV
+#rmlv -f lv_name  	<-- To remove LV without confirmation
+
+NOTE: Before removing File System from VG the FS should be closed/unmounted
+#unmount /FS_name	<-- To unmount FS
+#rmfs /FS_name		<-- To remove FS
+
+NOTE: There is no seperate command to remove the VG, If we remove/reduce all PVs from the VG, the VG will be delete from the server.
+
+
+TO CONVERT NORMAL VG:
+#mkvg -y vg_name -s pp_size pv_name
+
+TO CONVERT BIG VG:
+#mkvg -B -y vg_name -s pp_size pv_name
+
+TO CONVERT SCALABLE VG:
+#mkvg -S -y vg_name -s pp_size pv_name
+
+TO CONVERT NORMAL TO BIG VG:
+#chvg -B vg_name
+NOTE: This is online activity, no need to umount respected file systems in VG, varyoffvg not required.
+2) To convert the VG normal to Scalable VG or
+TO CONVERT THE BIG VG TO SCALABLE VG:
+Note: This is offline activity we need to umount the file systems and need to varyoff the VG before converting toScalable VG.
+
+TO CONVERT NORMAL TO SCALABLE VG:
+NOTE: This is offline activity we need to unmount the FS and need to varyoff the VG before converting to sclable VG.
+STEPS:
+1. unmount the FS.
+2. varyoff the VG
+3. convery the VG to Scalable
+	#chvg -G vg_name
+	
+	
+MIGRATING:
+We can transfer the data from one PV to another PV within VG only.
+NOTE: In migrating the source and destination disks should be in Same VG
+SYN: #migratepv source_pv destination_pv		<-- To Migrate the data 
+		or nohup migratepv <sourcepv> <Destinationpv>
+ex:  #migratepv hdisk$ hdisk$
+
+SYN: #migratepv -l lv_name source_pv destination_pv		<-- To transfer perticular LV from one PV to another PV in the same VG. 
+ex:  #migratepv -l fslv00 hdisk$ hdisk$
+
+
+EXPORT/IMPORT VGs:
+STEPS:-
+1. unmount the all file systems of VG
+	# unmount /FS 
+2. Varyoff/Deactive VG
+	# varyoffvg vg_name
+3. Export VG
+	# exportvg vg_name 
+4. Remove the disk from the OS.
+	# rmdev -dl disk_name
+5. Remove the disk from the source system physically.
+	# lsvg -p vg_name 
+	# lsvg -l vg_name
+	# unmount /FS 
+	# lsvg -l vg_name
+	# lsvg -o 
+	# varryoff vg_name
+	# lsvg -o 
+	# cat /etc/systems | grep -ip FS_name
+	# exportvg  vg_name
+	# lsvg -o 
+	# lspv 
+	# rmdev -dl disk_name
+	
+DESTINATION SERVER:
+STEPS:-
+1. Add the disk to the destination server physically.
+2. Scan the added disks.
+	# cfgmgr
+3. Import the VG.
+	# importvg -y vg_name -n pv_name or 
+	# importvg -y vg_name pv_name
+	-n will not active VG automatically.
+4. Varyon VG if not online. 
+	# varyonvg vg_name
+5. mount the file system.
+	# mounr /FS_name
+	# lspv 
+	# cfgmgr 
+	# importvg -y vg_name -n disk_name
+	# exportvg vg_name
+	# lsvg -o 
+	# lspv 
+	# lsvg -l vg_name
+	# mount /FS_name 
+	# cat /etc/systems | grep -ip FS_name
+	# 
+
+TO RENAME THE FS 
+	# chfs -a newfs_name oldfs_name 
+TO RENAME THE LV
+	# chlv -n new_name old_name 
+VGs AUTO ON:
+	# chvg -ay vg_name		<-- to set auto on = yes
+	# chvg -an vg_name		<-- To set auto on = no 
+FILE SYSTEM AUTO ON:
+	# chfs -A yes fs_name	<-- to set auto on = yes for the file system.
+	# chfs -A no fs_name	<-- To set auto on = no for the file system. 
+	
+==============================FILE SYSTEMS================================
+1. SINGEL STEP FS CREATION
+	# crfs -v typeof_FS -g vg_name -a size=FS_size -A yes -m FS_name
+	
+2. DOUBLE STEP FS CREATION:
+	# mklv -y lv_name -t typeof_lv vg_name noof_LPs pv_name
+	# crfs -v typeof_FS -d /dev/lv_name -A yes -m FS_name
+	
+3. INODE
+	# istat file_name		<-- To see the inode information of file. 
+
+# lsfs		<-- To display the total file system in the system.
+# fuser -u FS_name		<-- To find the user who are accessing the file system.
+# fuser -uk FS_name		<-- To kill the users sessions who are accessing the filesystem.
+
+4. FSCK
+NOTE: Before running the fsck command we have to unmount the file system. if we are not unmounting file system we may lose the file system date.
+	# fsck -y FS_name 		<-- To check the FS consistency.
+======================================================================================================
+AIX LVM Basics:-
+To remove lvm
+#smit lvm
+
+To Remove PID 
+
+bash-3.2# lspv
+hdisk0          00f7e0d0ce3fba16                    rootvg          active
+hdisk1          00f7e0d0ce6caaff                    rootvg          active
+hdisk2          00f7e0d0ce7090e7                    appvg           active
+hdisk3          00f7e0d0ce79574f                    appvg           active
+hdisk4          00f7e0d0186c0471                    None
+hdisk5          00f7e0d0187224c0                    None
+bash-3.2# chdev -l hdisk5 -a pv=clear
+hdisk5 changed
+bash-3.2# lspv
+hdisk0          00f7e0d0ce3fba16                    rootvg          active
+hdisk1          00f7e0d0ce6caaff                    rootvg          active
+hdisk2          00f7e0d0ce7090e7                    appvg           active
+hdisk3          00f7e0d0ce79574f                    appvg           active
+hdisk4          00f7e0d0186c0471                    None
+hdisk5          none                                None
+
+***
+
+cfgmgr ----to detect for new hdd
+
+create vloume group 
+
+add disk to volume group
+================================================================================================>
+AIX CHANGE THE FILE SYSTEM:-
+
+chfs -a size=+20G /opt -->Increase the 20GB on /opt
+chfs -a size=-20G /tmp -->Reduce the 20GB on /tmp
+
+
+========================= Paging Space =========================================
+	
+SECONDARY MEMORY, ALTERNATE MEMORY, VIRTUAL SPACE.
+Paging space: it is the alternate memory in Aix operating system, Paging also called like swap space, secondary memory, alternate memory and virtual space.
+NOTE:
+1) The paging space we can create from the Hard disks.
+2) We can create Max Paging space size double size of the existing Real memory.
+Ex: if real memory is 5GB, Paging Space we can create upto 10GB.
+3) Default Paging space is /dev/hd6 Logical Volume.
+
+PAGE OUT: When ever Real Memory become full the Applications/Programs/Process are moved from the real memory to Paging space is called Page out.
+(Or)
+If process are moving from Real Memory to Paging space
+PAGE IN: If Applications/Programs/Process are moving from Paging Space to Real Memory we can call Page IN.
+PAGE REPLACEMENT: If any Application/Process completed Page out & Page In, this is called Page Replacement.
+
+
+PAGING SPACE:- 
+# lsps -a	--> To view total paging space.
+# lsps <PSname> --> To list particular Paging Space.
+# lsps -s 	--> To display total paging space size and usage of total paging space.
+# mkps -s <noofLPs><vgname><pvname> --> To create Paging Space.
+# mkps -a -n -s pp-size vgname pvname	--> Create the paging space with Auto on Yes. 
+	-a --> Active 
+	-n --> 
+	Ex: mkps -a -n -s 2 bigvg hdisk$ 
+# mklv -y pagingname -t paging vgname pp-size pvname	--> Create the paging space.
+# mklv -y sappaginlv -t paging sapvg 10 hdiskX
+# swapoff /dev/pagingname		--> To deactivate the paging space.
+# swapon /dev/pagingname  		--> To activate the paging space.
+# rmps pagingname 				--> Remove the paging space 
+# rmlv <PSname> 				--> To remove the paging space
+	NOTE: PS should be deactivate before remove from the system.
+# chps -s PP-size pagingname	--> Increase the paging space
+# chps -d PP-size pagingname	--> Decrease the paging space
+# chps -a {y|n} paging00	--> specifies that the paging space paging00 is active (y) or inactive (n) at subsequent system restarts.
+# chps -ay <PSname> 		--> To set Auto On=yes for the PS.
+# chps -an <PSname> 		--> To set Auto on=no for the PS.
+	/etc/swapspaces 		--> It is paging space configuration file
+	NOTE: if Paging Space is Auto=yes, PS entry will add into the /etc/swapspaces.
+# chlv -n <NewPSname><OldPSname>	--> To rename the paging space.
+	NOTE: Deactivate the paging space before rename.
+
+# lsps						<--Lists paging space and attributes. Configuration file: /etc/swapspaces (contains a list of swap devices).
+								lsps : 
+# chps						<--Changes attributes of a paging space.
+								chps -a {y|n} paging00 : specifies that the paging space paging00 is active (y) or inactive (n) at subsequent system restarts.
+								chps -s 10 paging02 : adds ten LPs to paging02 without rebooting.
+								chps -d 5 paging01 : removes five LPs from paging01 without rebooting.
+								chps -d 50 hd6 : removes fifty LPs from hd6 without rebooting.
+# mkps						<--Adds an additional paging space to the system.
+								mkps -a -n -s20 datavg : creates a permanent paging space pagingxx in VG datavg of 20 LPs and activates it immediately.
+# rmps						<--Removes a paging space from the system (exept hd6).
+								rmps paging00 : removes deactivated paging space paging00.
+# swapoff						<--Deactivates one or more paging space.
+								swapoff paging01 : deactivates paging space paging01.
+# swapon						<--Activates a paging space.
+								swapon paging01 : activate paging space paging01.
+								swapon -a : activates all paging spaces defined in /etc/swapspaces.
+# swap						<--Displays paging characteristics and enables the allocation and deallocation of paging devices.
+								swap -l : displays device, major and minor numbers, and total and free space.
+								swap -a /dev/paging01 : activates paging space paging01 (like swapon).
+								swap -d /dev/paging01 : deactivates paging space paging01 (like swapoff).
+# migratepv					<--migratepv -l hd6 hdisk0 hdisk2 : moves hd6 from hdisk0 to PV hdisk2 within the same VG (always use VG rootvg for hd6 performance).
+
+VOLUME GROUP -T FACTOR:- 
+For a Small or a Big VG we can extend the volume group to have more than 1016 
+PPs Per PV but this will reduce the number of MAX PVs, these 2 attributes are variable 
+based on the volume group factor also known as "t-Factor".
+	# chvg -t 2 bbvg
+CALCULATION:
+Normal VG: 32/factor = new value of MAX PVs
+Big VG: 128/factor= new value of MAX PVs
+"chvg -t" can be used online either increasing or decreasing the value of the factor.
+
+LVM MAPPING:-  
+LOGICAL VOLUME MIRRORING:- 
+LOGICAL VOLUME STRIPING:-
+FILE SYSTEM FRAGMENTATION:-
+
+
+DIFFERENCE BETWEEN JFS AND JFS2:-
+Function					JFS								Enhanced JFS
+Optimization				32-bit kernel					64-bit kernel
+Maximum file system size	32 TB							32 TB
+Maximum file size			64 GB							16 TB
+Number of I-nodes			Fixed at file system creation	Dynamic, limited by disk space
+Large file support			As mount option					Default
+Online defragmentation		Yes								Yes
+namefs						Yes								Yes
+
+/etc/filesystem		--> Contain all file system info. 
+/etc/swapspaces		--> This file lists all the paging spaces
+
+=========================================================================================================================================================================>
+
+=========================================================================================================================================================================>
+PAGEFILECREATION:-
+
+root@sbiwmc23$lsvg -l rootvg
+rootvg:
+LV NAME             TYPE       LPs     PPs     PVs  LV STATE      MOUNT POINT
+hd5                 boot       1       2       2    closed/syncd  N/A
+hd6                 paging     48      96      2    open/syncd    N/A
+hd8                 jfs2log    1       2       2    open/syncd    N/A
+hd4                 jfs2       20      40      2    open/syncd    /
+hd2                 jfs2       20      40      2    open/syncd    /usr
+hd9var              jfs2       20      40      2    open/syncd    /var
+hd3                 jfs2       20      40      2    open/syncd    /tmp
+hd1                 jfs2       20      40      2    open/syncd    /home
+hd10opt             jfs2       40      80      2    open/syncd    /opt
+hd11admin           jfs2       1       2       2    open/syncd    /admin
+lg_dumplv           sysdump    16      32      2    open/syncd    N/A
+livedump            jfs2       1       2       2    open/syncd    /var/adm/ras/livedump
+root@sbiwmc23$lsps -a
+Page Space      Physical Volume   Volume Group    Size %Used Active  Auto  Type Chksum
+hd6             hdisk0            rootvg       12288MB     1   yes   yes    lv     0
+root@sbiwmc23$lsvg rootvg
+VOLUME GROUP:       rootvg                   VG IDENTIFIER:  00f8bb9600004c00000001434cb41603
+VG STATE:           active                   PP SIZE:        256 megabyte(s)
+VG PERMISSION:      read/write               TOTAL PPs:      1198 (306688 megabytes)
+MAX LVs:            256                      FREE PPs:       782 (200192 megabytes)
+LVs:                12                       USED PPs:       416 (106496 megabytes)
+OPEN LVs:           11                       QUORUM:         1 (Disabled)
+TOTAL PVs:          2                        VG DESCRIPTORS: 3
+STALE PVs:          0                        STALE PPs:      0
+ACTIVE PVs:         2                        AUTO ON:        yes
+MAX PPs per VG:     32512
+MAX PPs per PV:     1016                     MAX PVs:        32
+LTG size (Dynamic): 256 kilobyte(s)          AUTO SYNC:      no
+HOT SPARE:          no                       BB POLICY:      relocatable
+PV RESTRICTION:     none                     INFINITE RETRY: no
+root@sbiwmc23$
+root@sbiwmc23$
+root@sbiwmc23$
+root@sbiwmc23$
+root@sbiwmc23$
+root@sbiwmc23$
+root@sbiwmc23$lsvg -p rootvg
+rootvg:
+PV_NAME           PV STATE          TOTAL PPs   FREE PPs    FREE DISTRIBUTION
+hdisk0            active            599         391         119..32..00..120..120
+hdisk1            active            599         391         118..16..17..120..120
+root@sbiwmc23$
+root@sbiwmc23$
+root@sbiwmc23$
+root@sbiwmc23$smit chps
+                                                       COMMAND STATUS
+
+Command: OK            stdout: no            stderr: no
+
+Before command completion, additional instructions may appear below.
+
+
+F1=Help                        F2=Refresh                     F3=Cancel                      F6=Command
+F8=Image                       F9=Shell                       F10=Exit                       /=Find
+n=Find Next
+
+                               yes
+
+shrinkps: Temporary paging space paging00 created.
+
+root@sbiwmc23$
+root@sbiwmc23$lsps -a
+Page Space      Physical Volume   Volume Group    Size %Used Active  Auto  Type Chksum
+hd6             hdisk0            rootvg       28672MB     1   yes   yes    lv     0
+root@sbiwmc23$smit chps
+root@sbiwmc23$tty
+/dev/pts/3
+root@sbiwmc23$smit chps
+/usr/sbin/shrinkps[1066]: /dev/hd6: 0403-012 A test command parameter is not valid.
+/usr/sbin/shrinkps[1071]: /dev/hd6: 0403-012 A test command parameter is not valid.
+shrinkps: Paging space hd6 removed.
+
+=========================================================================================================================================================================>
+SOP FOR MIRRORING:-
+
+# lspv			<--Displays information about a physical volume within a volume group.
+	# lspv
+# lscfg    		<--Displays configuration, diagnostic, and vital product data (VPD) information about the system.
+	# lscfg -vpl hdisk#
+			 Description
+       -l Name
+            Displays device information for the named device.
+       -p
+            Displays the platform-specific device information.
+       -v
+            Displays the VPD found in the Customized VPD object class. Also, displays platform specific VPD when used with the -p flag.
+       -s
+            Displays the device description on a separate line from the name and location.
+# alt_disk_install -X altinst_rootvg
+	Installs an alternate disk with a mksysb install image or clones the currently running system to an alternate disk. This command is obsolete in AIX 5.3. Note: In AIX
+       5.3, the alt_disk_install command is replaced by the alt_disk_copy, alt_disk_mksysb, and alt_rootvg_op commands. The alt_disk_install module continues to be shipped as
+       a wrapper to the new commands, but the alt_disk_install command does not support any new functions, flags, or features.	
+For alt_disk_install or later:
+       " Determine Volume Group Boot Disk:"
+            alt_disk_install -q disk
+       "Put-to-sleep Volume Group:"
+            alt_disk_install -S
+       "Rename Alternate Disk Volume Group:"
+            alt_disk_install -v  new_volume_group_name disk
+       "Wake-up Volume Group:"
+            alt_disk_install -W  disk
+       "Clean Up Alternate Disk Volume Group:"
+            alt_disk_install -X [ volume_group]
+# chpv -c hdisk		<--Changes the characteristics of a physical volume in a volume group.
+# lsvg rootvg
+
+# extendvg rootvg hdisk	<--Adds physical volumes to a volume group.
+			# extendvg -f rootvg hdisk
+# lspv
+# lsvg -p rootvg		<--Displays information about volume groups.
+
+# mirrorvg		<--Mirrors all the logical volumes that exist on a given volume group.
+			# mirrorvg -S rootvg hdisk
+				
+lsvg			<--Displays information about volume groups.
+					lsvg rootvg
+				
+					-i Reads volume group names from standard input.
+					-l Lists the following information for each logical volume within the group specified by the volumegroup parameter:
+					-p Lists the following information for each physical volume within the group specified by the volumegroup parameter:
+					-o Lists only the active volume groups (those that are varied on). An active volume group is one that is available for use.
+					-P  Lists the mirror pool that each physical volume in the volume group belongs to.
+
+
+extendvg 		<--Adds physical volumes to a volume group.
+					extendvg -f rootvg hdisk 
+
+
+
+mirrorvg		<--Mirrors all the logical volumes that exist on a given volume group.
+					mirrorvg -S rootvg hdisk
+		
+		
+bootinfo -b	
+
+bootlist		<-- Displays and alters the list of boot devices available to the system.	
+					bootlist -m normal -o	
+					bootlist -m normal hdisk0 hdisk1
+					 Description
+					   Device
+							Provides the names of the specific or generic devices to include in the boot list.
+					   -f File Indicates that the device information is to be read from the specified file name.
+					   -F Indicates that the boot list must be modified even if the validation of the speed and duplex attributes, if specified, is not possible.
+					   -i Indicates that the device list specified by the -m flag should be invalidated.
+					   -m Mode Specifies which boot list to display or alter. Possible values for the mode variable are normal, service, both, or prevboot.
+					   -o Indicates that the specified boot list is to be displayed after any specified alteration is performed. 
+					   The output is a list of device names. hexadecimal dump of the boot list or a list of device names. (This is normally used for problem determination.)
+					   -V Indicates that the speed and duplex attributes, if specified, are to be verified only. The boot list is not modified.
+					   -v Displays verbose output. This flag is for problem determination only.
+
+bosboot 		<--Creates boot image.
+					bosboot -ad /dev/hdisk#
+	
+					 -d device Specifies the boot device. This flag is optional for hard disk.
+
+					The following flags are action flags. One and only one flag must be specified.
+					   Item
+							Description
+					   -a Creates complete boot image and device.
+					   -v Verify, but do not build boot image.
+
+					   The following flags are option flags:
+					   Item
+							Description
+					   -b FileName Uses specified file name as the boot image name. This flag is optional.
+					   -D Loads the low level debugger. This flag is optional.
+					   -I (upper case i) Loads and invokes the low-level debugger. This flag is optional.
+					   -k Kernel Uses the specified kernel file for the boot image. This flag is optional, and if not specified, /unix is the default.
+					   -L Enables lock instrumentation for MP systems. This flag has no effect on systems that are not using the MP kernel.
+					   -l (lower case L) LVDev Uses target boot logical volume for boot image. This flag is optional.
+					   -M primary|standby|both
+							Specifies which boot pointer table entry to update. The options are:
+							  primary
+								   Specifies the table entry that was most recently used.
+							  standby
+								   Specifies the table entry that was not most recently used.
+							  both
+								   Specifies both boot pointer table entries.
+					   -p Proto Uses the specified prototype file for the RAM disk file system. This flag is optional.
+					   -q Determines how much disk space is required in which file system to create the boot image. Boot image is not created. This flag is optional.
+					   -T Type Specifies the hardware platform type (see note 6). This causes the bosboot command to create a boot image for the hardware platform type specified. 
+					   If the type is not specified, the bosboot command creates a boot image whose hardware platform type matches that of the currently running machine. 
+					   This flag is optional.
+
+chvg -Qn rootvg		<--will disable quorum
+syncvg -v rootvg	<--Will sync all stale partitions.
+lsvg -l rootvg
+lsvg -p rootvg 
+# bosboot -ad /dev/hdisk0
+# bosboot -ad /dev/hdisk1
+# bootlist -m normal hdisk0 hdisk1
+# bootlist -m normal -o
+# bootinfo -b
+# lspv
+hdisk0          00cc585765fbccb5                    rootvg          active
+hdisk2          00cc58579953e1ae                    datavg          active
+hdisk4          00cc5857ae0fd28b                    backup_files_vg active
+hdisk5          00cc5857ae0fe04f                    None
+hdisk6          00cc58578909878d                    appl_vg         active
+hdisk7          00cc5857825497ab                    backup_index_vg active
+hdisk1          00cc5857c1cb1540                    None
+hdisk3          00cc58579953e1e9                    datavg          active
+# alt_disk_install -X altinst_rootvg
+root@sbiicoruata145:/#lspv
+hdisk0          00cc585765fbccb5                    rootvg          active
+hdisk2          00cc58579953e1ae                    datavg          active
+hdisk4          00cc5857ae0fd28b                    backup_files_vg active
+hdisk5          00cc5857ae0fe04f                    None
+hdisk6          00cc58578909878d                    appl_vg         active
+hdisk7          00cc5857825497ab                    backup_index_vg active
+hdisk1          00cc5857c1cb1540                    None
+hdisk3          00cc58579953e1e9                    datavg          active
+
+hdisk0          00cc585765fbccb5                    rootvg          active
+hdisk2          00cc58579953e1ae                    datavg          active
+hdisk4          00cc5857ae0fd28b                    backup_files_vg active
+hdisk5          00cc5857ae0fe04f                    None
+hdisk6          00cc58578909878d                    appl_vg         active
+hdisk7          00cc5857825497ab                    backup_index_vg active
+hdisk1          00cc58575930e636                    rootvg          active
+hdisk3          00cc58579953e1e9                    datavg          active
+# lsvg -p rootvg		<--Displays information about volume groups.
+hdisk0          00cc585765fbccb5                    rootvg          active
+hdisk1          00cc58575930e636                    rootvg          active
+# mirrorvg -S rootvg hdisk
+# lsvg -l rootvg
+rootvg:
+LV NAME             TYPE       LPs     PPs     PVs  LV STATE      MOUNT POINT
+hd5                 boot       1       2       2    closed/syncd  N/A
+hd6                 paging     256     512     2    open/stale    N/A
+hd8                 jfs2log    1       2       2    open/stale    N/A
+hd4                 jfs2       43      86      2    open/stale    /
+hd2                 jfs2       119     238     2    open/stale    /usr
+hd9var              jfs2       56      112     2    open/stale    /var
+hd3                 jfs2       136     272     2    open/stale    /tmp
+hd1                 jfs2       80      160     2    open/stale    /home
+hd10opt             jfs2       56      112     2    open/stale    /opt
+hd11admin           jfs2       8       16      2    open/stale    /admin
+lg_dumplv           sysdump    24      24      1    open/syncd    N/A
+livedump            jfs2       2       4       2    open/stale    /var/adm/ras/livedump
+perflv              jfs2       16      32      2    open/stale    /perfdata
+auditlv             jfs2       1       2       2    open/stale    /audit
+wait for some time then check 
+# lsvg -l rootvg
+rootvg:
+LV NAME             TYPE       LPs     PPs     PVs  LV STATE      MOUNT POINT
+hd5                 boot       1       2       2    closed/syncd  N/A
+hd6                 paging     256     512     2    open/syncd    N/A
+hd8                 jfs2log    1       2       2    open/syncd    N/A
+hd4                 jfs2       43      86      2    open/syncd    /
+hd2                 jfs2       119     238     2    open/syncd    /usr
+hd9var              jfs2       56      112     2    open/syncd    /var
+hd3                 jfs2       136     272     2    open/syncd    /tmp
+hd1                 jfs2       80      160     2    open/syncd    /home
+hd10opt             jfs2       56      112     2    open/syncd    /opt
+hd11admin           jfs2       8       16      2    open/syncd    /admin
+lg_dumplv           sysdump    24      24      1    open/syncd    N/A
+livedump            jfs2       2       4       2    open/syncd    /var/adm/ras/livedump
+perflv              jfs2       16      32      2    open/syncd    /perfdata
+auditlv             jfs2       1       2       2    open/syncd    /audit
+# bosboot -ad /dev/hdisk0
+# bosboot -ad /dev/hdisk1
+# bootlist -m normal hdisk0 hdisk1
+# bootlist -m normal -o
+# bootinfo -b
+
+
+
+=========================================================================================================================================================================>
+PV-ID CHANGE IN AIX:-
+
+# perl -e 'print pack("H*","00cc561771550ef0");' > /tmp/pvid
+# cat /tmp/pvid | dd of=/dev/hdisk1 bs=1 seek=128
+# rmdev -Rdl hdisk$
+# cfgmgr
+# varyonvg -f datavg
+# unmirrorvg datvg hdisk$
+# reducevg datavg hdisk$
+# rmdev -Rdl hdisk$
+# cfgmgr
+# extendvg datavg hdisk$
+# mirrorvg -S datavg
+
+=========================================================================================================================================================================>
+=========================================================================================================================================================================>
+-------------------------------------------------------------------
+When creating really big filesystems, this is very helpful:
+chlv -x 6552 lv08
+Word on the net is that this is required for filesystems over 512M.
+
+esmf04m-root> crfs -v jfs -g'ptmpvg' -a size='884998144' -m'/ptmp2'
+-A''`locale yesstr | awk -F: '{print $1}'`'' -p'rw' -t''`locale yesstr |
+awk -F: '{print $1}'`'' -a frag='4096' -a nbpi='131072' -a ag='64'
+Based on the parameters chosen, the new /ptmp2 JFS file system
+is limited to a maximum size of 2147483648 (512 byte blocks)
+New File System size is 884998144
+esmf04m-root> 
+
+If you give a bad combination of parameters, the command will list
+possibilities.  I got something like this from smit, then seasoned
+to taste.
+________________________________________
+
+If you need files larger than 2 gigabytes in size, this is better.
+It should allow files up to 64 gigabytes:
+ crfs -v jfs -a bf=true -g'ptmpvg' -a size='884998144' -m'/ptmp2' -A''` |
+  |   locale yesstr | awk -F: '{print $1}'`'' -p'rw' -t''`locale yesstr | aw |
+  |   k -F: '{print $1}'`'' -a nbpi='131072' -a ag='64'    
+
+
+=========================================================================================================================================================================>
+PHYSICAL VOLUME MANAGEMENT
+See also lsdev, chdev, mkdev and rmdev.
+# lspv									-->Displays information about a physical volume (PV) within a volume group.
+# lspv									-->lists the name, PVID and VG for each configured PV.
+# lspv hdisk2								-->lists the characteristics of PV hdisk2.
+# lspv -M hdisk3							-->lists the mapping and stale PPs for hdisk3.
+# lspv -l hdisk0							-->lists LV allocation within PV hdisk0.
+# lspv -p hdisk1							-->lists PP intra-allocation by PV region and PP state (free, used, stale, vgda) on hdisk1.
+# lquerypv *	Queries the attributes of a physical volume.
+# chpv									-->Changes the characteristics of a physical volume in a volume group.
+# chpv -a n hdisk1						-->turn off the allocation permission of free PPs for PV hdisk1.
+# chpv -a y hdisk1						-->turn the allocation permission for hdisk1 back on.
+# chpv -v r hdisk3						-->set the state of PV hdisk3 to unavailable (use when PV is to be removed from the system or is lost due to failure).
+# chpv -v a hdisk4						-->make PV hdisk4 available to the system (from state removed to active).
+# chpv -h y hdisk2						-->marks hdisk2 (with no allocated LPs) as a hot spare disk in a VG with mirrored LVs.
+# migratepv								-->Moves allocated PP's from one PV to one or more other PP's in the same VG. The command is not allowed if the VG is varied on in concurrent mode.
+# migratepv hdisk1 hdisk3 hdisk5			-->moves all PPs from hdisk1 to hdisk3 and hdisk5.
+# migratepv -l lv02 hdisk2 hdisk4			-->moves all PPs in LV lv02 from hdisk2 to hdisk4.
+
+
+=========================================================================================================================================================================>
+AIX LVM COMMANDS:-
+
+# mkvg -y vgname -s ppsize hdisk1 hdisk2
+	# mkvg -y backup_index_vg -s 256 hdisk6
+# mklv -y lvname -t type_of_fs vgname number_of_lps
+	# mklv -y lvname -t type_of_fs vgname number_of_lps
+# mirrorvg vgname
+# crfs -v type_of_fs -d lvname -m mountpoin_name -A yes
+	# crfs -v jfs2 -g backup_index_vg -a size=19G -A yes -m /DontTouch_BackupIndex
+# mount /dev/lv_name /mountpoin_name (or) mount all
+
+PRACTICALLY:-
+# lsvg	
+# mkvg -y datavg -s 256 hdisk2 hdisk3
+# mklv -y WAS9_lv -t jfs2 datavg 80 
+# mklv -y ndlogs_lv -t jfs2 datavg 80
+# mirrorvg datavg
+# vi /etc/filesystems
+ 
+# crfs -v jfs2 -d WAS9_lv -m /WAS9/ -A yes
+# crfs -v jfs2 -d ndlogs_lv -m /ndlogs -A yes
+
+
+SAME WITH MIRRORING:-
+
+# mkvg -y vgname -s ppsize hdisk1 hdisk2
+# mklv -y lvname -t type_of_fs -e x vgname number_of_lps hdisk2 hdisk3
+# crfs -v type_of_fs -d /dev/lvname -m /opt/IBM -A yes
+# mount /opt/IBM
+
+
+=========================================================================================================================================================================>
+CREATE LVM:-
+1. # lscfg -vpl <disk_name>		--> Take Hard Disk by given wwpn number.
+2. # cfgmgr		--> Scan New Disk 
+3. # lspv 		--> List the PVs
+4. # bootinfo -s 	<disk_name>		--> To check the disk size.
+5. # chdev -l <pv_name> -a pv=yes		--> To create a PVID for a new disk.
+6. # mkvg -y <vg_name> -s 64 <disk_name>		--> Create VG on new disk.
+7. # lsvg			--> To list the VGs 
+8. # mklv -y <lv_name> -t jfs2 <vg_name> <No_of_LPs> <PV_name>		--> To create Logical Volume. 
+9. # crfs -v jfs2 -d /dev/lvname -m <fs_name> 		--> To create File System With created Logical Volume. 
+10. # mount </FS_name>
+
+TYPES OF VGS:
+In Aix There are 3 types of VGs
+1) Normal VG
+2) Big VG
+3) Scalable VG
+1. To create Normal VG
+#mkvg -y <vgname> -s <ppsize><pvname pvname>
+To create Big VG
+#mkvg -B -y <vgname> -s <ppsize><pvname pvname>
+To Create Scalable VG
+#mkvg -S -y <vgname> -s <ppsize><pvname pvname
+  
+============================================================================================================>
+UN-MIRRORING
+
+# lspv
+# lsvg rootvg
+# lsvg -l rootvg
+# lsvg -p rootvg
+# unmirrorvg rootvg hdisk#		<--Split the mirroring disk from rootvvg
+# lspv -l hdisk#
+
+http://www.datadisk.co.uk/main/web_updates.htm
+
+
+LVM IN AIX BY USING SMITTY:-
+
+# mklv -y 'ndloglv' -t 'jfs2' -c'2' rootvg 100 hdisk0 hdisk1
+
+1.List  Free PPS
+By using 
+root@sbiacr14$lspv
+hdisk0          00f8bbf36c4850c4                    rootvg          active
+hdisk1          00f8bbf36c648757                    rootvg          active
+root@sbiacr14$lspv hdisk0
+PHYSICAL VOLUME:    hdisk0                   VOLUME GROUP:     rootvg
+PV IDENTIFIER:      00f8bbf36c4850c4 VG IDENTIFIER     00f8bbf300004c00000001436c485138
+PV STATE:           active
+STALE PARTITIONS:   0                        ALLOCATABLE:      yes
+PP SIZE:            1024 megabyte(s)         LOGICAL VOLUMES:  14
+TOTAL PPs:          558 (571392 megabytes)   VG DESCRIPTORS:   2
+FREE PPs:           465 (476160 megabytes)   HOT SPARE:        no
+USED PPs:           93 (95232 megabytes)     MAX REQUEST:      1 megabyte
+FREE DISTRIBUTION:  111..77..54..111..112
+USED DISTRIBUTION:  01..35..57..00..00
+MIRROR POOL:        None
+
+2.smit lvm
+	1.Select logical volume
+	2.Add logical volume group 
+3.provide volume group name 
+	Ex:rootvg
+4.provide the details 
+	Vloumr group name :ndloglv
+	Logical partiotions :100
+	Physical volume hdisk0, hdisk1—mirrored
+	Numer of copies of each logical :2
+5.Create file system 
+	#Smit crfs
+	1.Add an Enhanced journaled file system.
+	2.Add an Enhanced journaled file system on a previousily defined logical volume.
+	Logical Volume name	:ndloglv
+	mount point 	:/ndloglv
+	Mount autometically at system restart	: yes
+	Permissions	:read/write
+	Block size [bytes]	:4096
+6.Mount the file system 
+	#mount 
+
+=========================================================================================================================================================================>
+
+ 
+VOLUME GROUP MANAGEMENT:-
+Each disk (PV) belongs to a Volume group (VG). A standard VG is a collection of 1 to 32 PVs (1 to 128 for a big VG). 
+A PV can belong to only one VG. A maximum of 255 VGs can be defined per system.
+When a VG is created, the PVs within the VG are partitioned into contiguous, equal-sized PPs (units of disk space). 
+PPs are the smallest unit of allocatable storage space in a VG. The PP size is determined at VG creation (can't be changed dynamically afterwards), 
+and all PVs that are placed in the VG inherit this size. The PP size can range from 1 MB to 1024 MB, but must be a power of two. 
+If not specified at creation time, the default PP size for a VG is 4 MB for disks up to 4 GB (the minimum PP size needed is determined by the OS), 
+but it must be larger for PVs greater than 4 GB due to the fact that the LVM, by default, will only track up to 1016 PPs/PV. 
+The number of PPs/PV (1016) can be increased with a factor 1-16 (or 1-64 for a big VG) at creation time or later 
+(which will reduce the number of PVs in the VG) and/or the number of PVs/VG can be increased from 32 to 128 at creation time or later (big or gigantic VG).
+Importing a VG involves copying the VGDA data for the imported volume group into the ODM. When a volume group is exported, 
+the data held in the ODM about that volume group is removed from the ODM database.
+
+# lsvg			--> Displays information about VGs.
+# lsvg			--> lists all VGs.
+# lsvg rootvg		--> lists the characteristics of VG rootvg.
+# lsvg -o			--> lists only the active VGs (those that are varied on).
+# lsvg -p rootvg	--> lists the PVs in VG rootvg (state, size, distribution).
+# lsvg -l rootvg	--> lists the LVs in VG rootvg (type, size, state).
+# lsvg -M rootvg	--> displays a map of all LVs.
+# lqueryvg !		--> Queries the attributes of a VG using VG id, or PV name of a PV that is part of a VG.
+# lqueryvg -At -p hdisk0		--> returns all attributes for the VG (static attributes, LV details and PV details).
+# mkvg			--> Creates a VG.
+# mkvg -y datavg -s 32 hdisk2 hdisk4		--> creates the VG datavg that contains PVs hdisk2 and hdisk4, with PP size set to 32 MB.
+# mkvg -B -y uservg		--> create a big VG uservg (supports 128 PVs and 512 LVs).
+# chvg			--> Sets the characteristics of a VG.
+# chvg -a{y|n} datavg 	--> VG datavg is automatically activated (y=varyonvg) or not (n=varyoffvg) during system startup.
+# chvg -u datavg		--> unlock the VG datavg.
+# chvg -B datavg		--> changes the VG to big VG format (supports 128 PVs and 512 LVs). Mapping size is 4*original size.
+# chvg -t 2 datavg	--> changes the limit of the number of PPs/PV by factor=2 (1016*2=2032 PPs/PV). Which decreases the number of disks (#PVs/factor=16 PVs/VG).
+# chvg -sy datavg		--> attempts to automatically synchronize (AUTO SYNC) stale partitions in VG datavg (default this not done for a VG).
+# chvg -L256 uservg	--> changes the LTG size to 256KB of VG uservg for better disk I/O performance. 
+
+LTG size should be less than or equal to the maximum transfer size of all disks in the VG. Check each disk in the VG with:
+# lquerypv -M hdiskx	--> checks the maximum supported LTG size of hdiskx.
+# chvg -b n datavg	--> turns off the bad block relocation policy of VG datavg (default is yes for a VG).
+# chvg -h y -s y uservg		--> sets policy in VG uservg to automatically (-h y) migrate PPs from one failing disk to one spare disk with automatic synchronization of stale PPs (-s y).
+
+
+# syncvg				--> Synchronizes LV copies that are not current (stale).
+# syncvg -v datavg	--> synchronizes the copies on VG datavg.
+# syncvg -p hdisk3	--> synchronizes the copies on physical volumes hdisk3.
+
+SPLITS A SINGLE MIRROR COPY OF A FULLY MIRRORED VG.
+# splitvg
+# splitvg -y snapvg -c 2 datavg		--> splits second mirror copy of the VG datavg and creates snapshot VG snapvg.
+# joinvg
+# joinvg datavg				--> joins the the original VG datavg with the snapshot VG snapvg.
+
+DEACTIVATES A VG.
+# varyoffvg					--> 
+# varyoffvg uservg			--> deactivates the VG uservg.
+
+ACTIVATES A VG.
+# varyonvg
+# varyonvg -f datavg		--> used to force a varyon on VG datavg even when inconsistencies are detected (between the configuration data for each VG held in the ODM database and VGDA.
+# varyonvg -r uservg		--> varies on VG uservg in read-only mode.
+
+=========================================================================================================================================================================>
+CREATE A DATAVG FS:-
+
+# mkvg -y datavg -s 128 hdisk2
+# extendvg datavg hdisk3
+# mirrorvg -S datavg
+# crfs -v jfs2 -g datavg -a size=15G -A yes -m /ndlogs
+# lsvg -l datavg 
+# lsvg datavg 
+
+/etc/filesystem
+
+# File System creation:- 
+# mkvg -y datavg -s 256 hdisk2
+# lspv
+# extendvg -f datavg hdisk3
+# mirrorvg -S datavg
+# reducevg datavg hdisk3
+# bootinfo -s hdisk2
+# crfs -v jfs2 -g datavg -a size=70G -A yes -m /WAS9
+# df -gt
+# lsvg -l datavg
+# mount /WAS9
+# df -gt
+# mirrorvg -S datavg
+====================================================================================================================>
+CHAPTER 10 : RAID LEVELS
+
+What is RAID, Types of RAID`s, RAID Levels (RAID0, RAID1,RAID10, RAID5)
+
+RAID (Redundant Array of Independent Disk)
+
+RAID0, 
+RAID1,
+RAID10, 
+RAID5
