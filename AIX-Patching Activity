@@ -1,0 +1,102 @@
+#lsvg -p rootvg ------ Check the disk status For VG.
+#lspv -l hdisk1 ------ Check the logical volume status in Disk.
+#lspv -l hdisk0 ------ Check the lagical valume status in Hdisk.
+#bootlist -m normal -o
+hdisk0 blv=hd5 pathid=0
+hdisk1 blv=hd5 pathid=0
+#bootinfo -b
+hdisk0
+#df -gt
+#unmirrorvg rootvg
+0516-1246 rmlvcopy: If hd5 is the boot logical volume, please run 'chpv -c <diskname>'
+        as root user to clear the boot record and avoid a potential boot
+        off an old boot image that may reside on the disk from which this
+        logical volume is moved/removed.
+#lspv -l hdisk1
+hdisk1:
+LV NAME               LPs     PPs     DISTRIBUTION          MOUNT POINT
+auditlv               9       9       08..01..00..00..00    /audit
+
+#migratepv hdisk1 hdisk0
+lspv -l hdisk1
+#reducevg rootvg hdisk1
+#alt_disk_copy  -d hdisk1
+Calling mkszfile to create new /image.data file.
+Checking disk sizes.
+Creating cloned rootvg volume group and associated logical volumes.
+Creating logical volume alt_hd5
+Creating logical volume alt_hd6
+Creating logical volume alt_hd8
+Creating logical volume alt_hd4
+Creating logical volume alt_hd2
+Creating logical volume alt_hd9var
+Creating logical volume alt_hd3
+Creating logical volume alt_hd1
+Creating logical volume alt_hd10opt
+Creating logical volume alt_hd11admin
+Creating logical volume alt_lg_dumplv
+Creating logical volume alt_livedump
+Creating logical volume alt_perflv
+Creating logical volume alt_auditlv
+Creating /alt_inst/ file system.
+Creating /alt_inst/admin file system.
+Creating /alt_inst/audit file system.
+Creating /alt_inst/home file system.
+Creating /alt_inst/opt file system.
+Creating /alt_inst/perfdata file system.
+Creating /alt_inst/tmp file system.
+Creating /alt_inst/usr file system.
+Creating /alt_inst/var file system.
+Creating /alt_inst/var/adm/ras/livedump file system.
+Generating a list of files
+for backup and restore into the alternate file system...
+Backing-up the rootvg files and restoring them to the 
+alternate file system...
+Modifying ODM on cloned disk.
+Building boot image on cloned disk.
+forced unmount of /alt_inst/var/adm/ras/livedump
+forced unmount of /alt_inst/var/adm/ras/livedump
+forced unmount of /alt_inst/var
+forced unmount of /alt_inst/var
+forced unmount of /alt_inst/usr
+forced unmount of /alt_inst/usr
+forced unmount of /alt_inst/tmp
+forced unmount of /alt_inst/tmp
+forced unmount of /alt_inst/perfdata
+forced unmount of /alt_inst/perfdata
+forced unmount of /alt_inst/opt
+forced unmount of /alt_inst/opt
+forced unmount of /alt_inst/home
+forced unmount of /alt_inst/home
+forced unmount of /alt_inst/audit
+forced unmount of /alt_inst/audit
+forced unmount of /alt_inst/admin
+forced unmount of /alt_inst/admin
+forced unmount of /alt_inst
+forced unmount of /alt_inst
+Changing logical volume names in volume group descriptor area.
+Fixing LV control blocks...
+Fixing file system superblocks...
+Bootlist is set to the boot disk: hdisk1 blv=hd5
+#bosboot -ad /dev/hdisk0
+bosboot: Boot image is 51249 512 byte blocks.
+#bootlist -m normal –o hdisk0
+#bootinfo -b
+hdisk0
+#df -gt
+#cd /doc-root/TL-7100-04-00-1543/
+#smitty update_all
+#lsvg rootvg
+#shutdown -Fr
+SHUTDOWN PROGRAM 
+#oslevel -s
+7100-04-03-1642
+#df -gt
+#oslevel -s
+7100-04-03-1642
+#uptime
+12:00AM   up 3 mins,  1 user,  load average: 0.53, 0.25, 0.10
+#df -gt
+#exit
+
+
