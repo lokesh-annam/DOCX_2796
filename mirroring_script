@@ -1,0 +1,16 @@
+#mirroring
+#*****************
+for i in `lspv |grep -i altinst_rootvg |awk '{print $1}'`; do
+echo $i;alt_disk_install -X altinst_rootvg;extendvg -f rootvg $i;mirrorvg -S rootvg;lsvg rootvg;lsvg -l rootvg;
+done
+
+#bosboot
+#********************
+for j in `lspv |grep -i rootvg |awk '{print $1}'`;do
+echo $j;bosboot -ad /dev/$j;
+done
+
+#bootlist order
+#******************
+
+bootlist -m normal `lspv |grep -i rootvg | awk 'NR==1 {first=$1} NR==2 {print first, $1}'`;bootlist -m normal -o
