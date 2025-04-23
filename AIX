@@ -1,0 +1,167 @@
+LVM (Logical Volume Manager):-
+
+1.Types of VG
+							a.Normal VG			32(Max PVs)		256(Max LVs)		1G(Max PPs)
+							b.Big VG			128				512					1G
+							c.Scalable VG		1024			4096				128G
+							
+							#mkvg -y VGname hdisk#	-->To create a new VG. 
+							#chvg -B VGname --> It convert normalVG to bigVG 
+							#varyoffvg VGname -->It's required downtime for converting bigVG to ScalableVG.
+							#chvg -G VGname -->It convert bigVG to scalableVG. Once convert normalVG to scalableVG is possible but scalableVG to normalVG not possible.
+							#varyonvg VGname -->
+							
+VGDA - Volume Group Descriptor Area
+
+#lsvg VGname
+
+			1PV/VG=2VGDA
+			2PV/VG=3VGDA
+			3PV/VG=3VGDA
+===============================================================================================>
+Quorum:- It is inbuilt tool to monitor the VG health by checking the vgda availability.
+			If the Quorum is enabled, VGDA>50%
+			If enable Quorum, chvg -Qy VGname 
+			If disable Quorum, chvg -Qn VGname
+		When less VGs are available Quorum is required.
+================================================================================================>
+t factor:-
+			t value = 1
+		In VG			32 PVs				1016PPs/pv
+			t value = 2		#chvg -t 2 VGname 
+		In VG			16PVs				2032PPs/PV
+			t value = 4		#chvg -t 4 VGname 
+		In VG			8PVs				4064PPs/PV
+================================================================================================>
+How to migrate rootvg from 1 PV to another online?
+	#lsvg rootvg
+	#lsvg -p rootvg
+	#lsvg -l rootvg 
+	#cfgmgr							->Lets say new disk name is hdisk7
+	#extendvg rootvg hdisk7
+	#migratepv /dev/hdisk0 /dev/hdisk7
+	#bosboot -ad hdisk7				->Boot Logical Volume on hdisk7
+	#bootlist -m normal hdisk7		->To change the bootlist 
+	#reducevg rootvg hdisk0 
+	#shutdown -Fr now 
+	#exportvg VGname
+	#importvg -y VGname hdisk# 
+	
+========================LVM CREATION IN AIX SERVER===================================================>
+Step1: To check available Volume Groups (VG) in server
+# lsvg
+Step2: To Check available free space (free PPs) in VG
+# lsvg datavg
+Step3: To check available LV’s in required VG’s
+# lsvg  -l datavg
+Step4: To calculate free space in GB
+# echo free pps vaule(MB)/1024 = Value in GB
+# echo 20736/1024 | bc -l
+Step5: To check used Physical Volume(PV)’s in required VG’s
+# lsvg –p datavg
+Step6: To create logical volume
+Here we keep batchlogs as a volume name.
+# mklv –y <LV name> -t <filesystemtype> <VG name> < PP count> <PV names…. >
+# mklv –y batchlogs –t jfs2 datavg 1200 hdisk2 hdisk3 hdisk4 hdisk5
+Step7: To Create file system for same LV,
+# crfs –v <filesystemtype> -d <LV path> -m < mount point> -a < automount value>
+# crfs –v jfs2 –d /dev/batchlogs –m /opt/batchlogs –a auto=yes
+Step8: Mounting LVs,
+# mount /opt/batchlogs
+Step9: Checking mount status in df,
+# df –gt
+
+================================================================================================>
+
+Steps involved in reducing inode utilization
+Step 1:- Find the inode utilization of mount points
+
+Use command “df –i” for finding inode utilization 
+Step 2:- Find the directory, which is utilizing huge inode size
+•	Use the below find command to find the number of files present in all directory recursively
+•	It also shows the top directories by sorting it in ascending order
+
+#for i in `find . -type d `; do echo `ls -a $i | wc -l` $i; done|sort -nr
+
+Step 3:- find the old files by issuing “ls –ltr | more” command 
+Step 4:- Check with respective team to archive or remove the files and get the proper approval form customer and WAR-Room.
+Step 5:- Archive the files to backup folder or if the files can be removed use below command
+#for i in `ls -ltr |grep -w "2011" | awk '{print $9}'`; do ls -ltr $i; rm $i; done
+Note: - Grep used in the above command is to remove files created on the year 2011
+Step 6:- Check the inode utilization by again issuing “df –i” command
+	
+====================================Mirroring Rootvg===============================================================
+# lspv	<-- Displays information about a physical volume within a volume group.
+# bootinfo -s hdisk1            --> check the size of the hdisk1 (It should be equal or bigger than hdisk0)
+# lsvg -l rootvg	<-- Displays information about volume groups.
+# lsvg -p rootvg		<-- Lists the following information for each physical volume within the group specified by the volumegroup parameter:
+# alt_disk_install -X altinst_rootvg	<-- Clean Up Alternate Disk Volume Group
+# lscfg -vpl hdisk$		<--
+# chpv -c hdisk$	<-- Changes the characteristics of a physical volume in a volume group. -c Clears the boot record of the given physical volume.
+# extendvg -f rootvg hdisk$	<-- The extendvg command increases the size of the volumegroup by adding one or more physicalvolumes. -f  Forces the physical volume to be added to the specified volume group unless it is a member of another volume group in the Device Configuration Database or of a volume group that is active.
+# lsvg -p rootvg		<--	
+# mirrorvg -S rootvg hdisk$	<-- Mirrors all the logical volumes that exist on a given volume group. -S Background Sync
+# lsvg rootvg | grep -i STALE		<-- It also must be in sync. The stale PP ‘0’ zero represent it is in perfect sync.
+# lsvg -l rootvg		<-- Then Check whether the Disk is in Mirror or not.
+# lsvg rootvg
+wait for some time then check 
+# lsvg -l rootvg
+# lsvg datavg
+# bootinfo –b		<-- Next we need to check current Hdisk from which the system is booted.
+# bootlist -om normal		<-- To confirm both hdisk0 and hdisk1 is part of the boot sequence.
+# bootlist -m normal hdisk$ hdisk$		<-- To add the hdisk1 on the bootlist.
+# bosboot -ad /dev/hdisk$		<-- To create the boot images on hdisk1
+===================================================================================================================
+# lsvg -l datavg
+# lsvg -p datavg
+# unmirrorvg datavg
+# lspv -l hdisk#
+# migratepv hdisk$ hdisk$
+# mirrorvg -S datavg
+
+
+===============================Un-Mirroring Rootvg================================================================
+# lspv	<-- Displays information about a physical volume within a volume group.
+# lsvg -l rootvg	<-- Displays information about volume groups.
+# lsvg -p rootvg		<-- Lists the following information for each physical volume within the group specified by the volumegroup parameter
+# unmirrorvg rootvg hdisk#		<-- To unmirror the hdisk1 in the mirroring.
+# lspv -l hdisk# -->After mirroring checked the list of pvs.
+# lspv -l hdisk# -->After mirroring checked the list of pvs.
+# migratepv hdisk# hdisk#
+# chpv –c hdisk#		<-- it clears the bootimage from the disk
+# reducevg rootvg hdisk#		<-- Reduces the disk from rootvg
+# alt_disk_copy -d hdisk# -B
+# lspv
+# alt_rootvg_op -W -d hdisk#		-->Wake-up the alt_clone disk.
+# chroot /alt_inst /usr/bin/oslevel -s	-->Check the osversion on wake-up disk.
+# alt_rootvg_op -S		-->Sleep the alt_clone_disk
+# bootinfo -b
+# bootlist -m normal hdisk0    --> To remove hdisk1 on the boot sequence which means add the hdisk0 alone on the boot sequence.
+# bootlist -m normal -o
+# bootlist -m normal hdisk# -->Bootlist order should be rootvg. (Change the bootlist to hdisk# remember alt_disk reside on hdisk#)
+# bootlist -m normal -o
+# bosboot -ad /dev/hdisk#
+# bootlist –m normal –o hidsk#
+
+===================================================================================================================
+
+# smitty mklv
+
+
+
+===================================================================================================================
+# mksysb -ieX /mksysb_bkp/sbiwmm17_mksysb_12Aug2015
+
+-e -- Excludes files that are listed in the /etc/exclude.rootvg file from being backed up
+
+root@sbiwmm17$cat /etc/exclude.rootvg
+^./export/nim/
+^./tftpboot/
+^./opt/IBM/
+
+To Lists or restores the contents of a volume group backup on a specified media/File
+
+# lsmksysb –f  sbiwmm17_mksysb_12Aug2015
+
+===================================================================================================================
+
