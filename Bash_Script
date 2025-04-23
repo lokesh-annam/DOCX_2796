@@ -1,0 +1,140 @@
+#!/bin/bash
+#set -x
+
+FIND=`which find`
+ECHO=`which echo`
+CP=`which cp`
+RM=`which rm`
+JAR=`which jar`
+LS=`which ls`
+CLEAR=`which clear`
+DATE=`date +%d%m%y`
+PATH="/WAS9/IBM/WebSphere/AppServer/profiles/Appsrv01/installedApps/sbiiretuata16Cell01/"
+$ECHO "\n  For Taking a Back-Up of an Enterprise Application Select any one "
+$LS $PATH | /usr/bin/awk '{print NR" : "$0}'
+$ECHO  "\n Enter the ur Enterprise Application number in Above Range:\t\c "
+read opt
+App=`/usr/bin/ls $PATH | /usr/bin/awk 'NR=='$opt' { print $NF}' 2> /dev/null`
+if [ -n "$App" ]
+then
+
+BASE="/WAS9/IBM/WebSphere/AppServer/profiles/"
+BUILD="/tmp/warbuild"
+CREATE="/sysmonlogs/Appteam/WAR_bkps/retail"
+
+     ABSOLUTE=`$FIND $BASE/Appsrv01/installedApps -type d -name $App`
+     if [ ! $ABSOLUTE ]
+        then
+          $ECHO "$App Directory does not exist in $BASE"
+     else
+          $CP -rf $ABSOLUTE $BUILD
+          $RM -rf `$FIND $BUILD/$App/ -type d -name META-INF`
+          DESTINATE=`$LS $BUILD/$App/`
+          $JAR -cvf $CREATE/$DESTINATE -C $BUILD/$App/$DESTINATE .
+          $CLEAR
+          $ECHO "The file is under the path $CREATE"
+          $LS -ltr $CREATE/$DESTINATE
+          $RM -rf $BUILD/$App
+     fi
+
+        $ECHO "\n\nYou want to take Back-up in stgwarbkp folder if so type Y or else N\n"
+        read param
+        case $param in
+
+                Y|y)   if [ ! -d "$CREATE/$DATE" ]
+                     then
+                        /usr/bin/mkdir -p $CREATE/$DATE
+                     fi
+                        /usr/bin/mv $CREATE/$DESTINATE $CREATE/$DATE/$DESTINATE
+                        $ECHO "\nThe Back-Up file is in the Path $CREATE/$DATE\n"
+                        /usr/bin/ls -ltr $CREATE/$DATE/$DESTINATE
+                ;;
+
+                N|n)   $ECHO "\n\nFile will be in $CREATE"
+                ;;
+                *)   $ECHO "\n\nOops!! This is a Wrong option!"
+                ;;
+esac
+
+else
+    $ECHO "Usage: sh warbuild.sh <directory-name> <application-name>"
+    $ECHO "Usage: ./warbuild.sh <directory-name> <application-name>"
+fi
+
+
+
+
+#!/bin/bash
+userfile="users.txt"
+while IFS= read -r user; do
+    if id "$user" &>/dev/null; then
+			chuser shell=/usr/bin/false "$user"
+			echo "Locked account : $user"
+	else
+			echo "User $user does not exist"
+	fi
+done < "$userfile"
+echo "All specified accounts processed."
+
+===================dynatrace.sh===========================================
+#!/bin/bash
+ESTABLISHED_COUNT=$(netstat -an |grep -c ESTABLISHED)
+FIN_WAIT_COUNT=$(netstat -an |grep -c FIN_WAIT)
+CLOSED_COUNT=$(netstat -an |grep -c CLOSED)
+
+echo "host.netstat_connection_status,status=ESTABLISHED $ESTABLISHED_COUNT" | /opt/dynatrace/oneagent/agent/tools/dynatrace_ingest --verbose
+echo "host.netstat_connection_status,status=FIN_WAIT $FIN_WAIT_COUNT" | /opt/dynatrace/oneagent/agent/tools/dynatrace_ingest --verbose
+echo "host.netstat_connection_status,status=CLOSED $CLOSED_COUNT" | /opt/dynatrace/oneagent/agent/tools/dynatrace_ingest --verbose
+
+================SSL_Cert_Expiry_OSIngest.sh===================================
+#!/bin/bash
+INPUT_FILE="/scripts/ssl.txt"
+OUTPUT_FILE="output.txt"
+
+while IFS= read -r line; do
+  echo "Reading line: $line" # Debug
+  # Use basic regex to capture the certificate name and the expiration date
+  cert_name=$(echo "$line" | sed 's/\(.*\) \([A-Za-z]\{3\} [0-9]\{1,2\}, [0-9]\{4\}\)/\1/')
+  exp_date=$(echo "$line" | sed 's/\(.*\) \([A-Za-z]\{3\} [0-9]\{1,2\}, [0-9]\{4\}\)/\2/')
+  echo "Certificate Name: $cert_name" # Debug
+  echo "Expiration Date: $exp_date" # Debug
+
+  # Convert the expiration date to a timestamp using Python
+  exp_timestamp=$(python3 -c "
+import time
+from datetime import datetime
+date_str = '$exp_date'.strip()
+try:
+    date_obj = datetime.strptime(date_str, '%b %d, %Y')
+    print(int(time.mktime(date_obj.timetuple())))
+except ValueError as e:
+    print(f'Error: {str(e)}')
+")
+
+  # Check if the Python conversion produced an error
+  if [[ $exp_timestamp == *"Error:"* ]]; then
+    echo "Error: Invalid date format for certificate: $cert_name"
+    continue
+  fi
+  # Get the current timestamp using Python
+  cur_timestamp=$(python3 -c "import time; print(int(time.time()))")
+
+  # Calculate the remaining days
+  remaining_days=$(( (exp_timestamp - cur_timestamp) / 86400 ))
+  Date=$exp_date
+  FormattedDate=$(python3 -c "from datetime import datetime;Date='$Date'.title().strip();print(datetime.strptime(Date,'%b %d, %Y').strftime('%d-%m-%Y'))")
+  # Check if the certificate has already expired
+  if (( remaining_days <= 0 )); then
+    echo "$cert_name | $((-remaining_days)) days ago."
+        echo "SSL.ExpiryDate.IngestedMetric,cert_name=$cert_name,expiry_date=$FormattedDate $remaining_days" | /opt/dynatrace/oneagent/agent/tools/dynatrace_ingest --verbose
+        echo "SSL.Number_of_DaysLeft_for_Expiry.IngestedMetric,cert_name=$cert_name $remaining_days" | /opt/dynatrace/oneagent/agent/tools/dynatrace_ingest --verbose
+  else
+    echo "$cert_name | $remaining_days days remaining."
+        echo "SSL.ExpiryDate.IngestedMetric,cert_name=$cert_name,expiry_date=$FormattedDate $remaining_days" | /opt/dynatrace/oneagent/agent/tools/dynatrace_ingest --verbose
+        echo "SSL.Number_of_DaysLeft_for_Expiry.IngestedMetric,cert_name=$cert_name $remaining_days" | /opt/dynatrace/oneagent/agent/tools/dynatrace_ingest --verbose
+ fi
+
+done < "$INPUT_FILE"  > "$OUTPUT_FILE"
+
+
+
