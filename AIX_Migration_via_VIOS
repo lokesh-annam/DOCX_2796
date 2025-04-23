@@ -1,0 +1,122 @@
+AIX_Migration:-
+
+Step1:-
+	Map the image in VIO server.
+	$ lsrep		<-- Lists and displays information about the Virtual Media Repository.
+	$ mkrep -sp rootvg -size 10GB		<--Create a repo /var/vio/VMLibrary 
+	$ lsrep
+	$ mkopt -name AIX73SP0 -file /home/padmin/AIXv7.3_Install_7300-00-00-2147_DVD_1_of_2_122021_LCD8265100.iso -ro	<-- to load the IOS Image.
+	# slot
+	# uname -L
+	$ mkvdev -fbo -vadapter vhost$		<-- 
+	$ loadopt -disk <package_name> -vtd <vtopname>
+		$ loadopt -vtd vtopt$ -disk AIX73SP0
+	$ lsrep
+	$ unloadopt -vtd vtopt1
+	$ lsmap -all	<-- identified the mapping ID.
+	
+	
+
+Client Side:- 
+Step1:-
+	Reboot the system # sutdown -Fr now
+Step2:-
+	Select the SMS Menu		<-- 1 = SMS Menu
+Step3:-
+	Select boot option 	<-- 5.   Select Boot Options
+Step4:- 
+	Select Install/Boot Device	<--	1.   Select Install/Boot Device
+Step5:- 
+	Select Device Type	<-- 5.   List all Devices
+Step6:-
+	Select Device	<--   3.        -      SCSI CD-ROM
+Step7:-
+	Select Task		<--  2.   Normal Mode Boot(Select boot option)
+Step8:-
+	exit System Management Services		<--  1.   Yes
+Step9:-
+	Type a 1 and press Enter
+Step10:-
+	Type 1 and press Enter to have English during install.
+Step11:-
+	Change/Show Installation Settings and Install
+Step12:-
+	System Settings:
+	Method of Installation.............Migration                 
+         Disk Where You Want to Install.....hdisk0
+Step13:-
+	Migration Install
+Step14:-
+	Change Disks Where You Want to Install
+	77  Display More Disk Information
+	Type the number for the disks to be used for installation and press Enter.
+
+       Level  Rootvg   Physical Volume Identifier
+              Disks
+     1 7.2    hdisk0    00cc5817ef64ed4e
+     2 7.2    hdisk2    00cc5817e24fe74e
+Step15:-
+	Install with the current settings listed above
+Step16:-
+	Continue with Install
+Step17:-
+	Migration Confirmation		<-- Continue with the migration
+	
+Step18:-
+	Set Terminal Type			<-- vt100
+Step19:-	
+	Accept License Agreements
+Step20:-
+	ACCEPT Installed License Agreements Yes
+Step21:-
+	Tasks Completed - Exit to Login
+===========================================================================
+# lparstat -i		<--  This command provides a display of current LPAR related parameters and Hypervisor information, as well as utilization statistics for the LPAR.
+# prtconf			<-- it displays the system model, machine serial, processor type, number of processors, processor clock speed, cpu type,total memory size, network information, filesystem information, paging space information, and devices information.
+# echo cvai | kdb
+# instfix -i | grep ML
+
+
+# exportvg altinst_rootvg 		<-- If already altinst_rootvg is available, Then exportvg of altinst_rootvg
+# mkrep -sp rootvg -size 10G 		<-- Create the Virtual Media Repository of 10 GB in size in the rootvg volume group
+# mkvopt -name AIX720503 -file AIX_7.2_install.iso -ro 		<-- Copy this image into the Repository
+# lsrep		<-- Load the ISO into the optical device
+# loadopt -disk <pkg_name> -vtd vtopt0
+# unloadopt -vtd vtopt0 
+LPAR Activation --> Select the LPAR –-> Actions-Activate the LPAR
+Select the LPAR profile –-> and select the SMS menu
+From the SMS menu –-> Select the --> Boot option --> 5 Boot Options 
+Then Select the option -1 –Select Install /Boot Device
+Then select the option 5 from the list – List all Devices
+From the Devices list select the SCSI-CD ROM – Select option 4
+Select the Normal Mode Boot
+Select 1 to continue -- Yes
+Once booted with iso image  –-> Type 1 define the console 
+Type 1 to language selection
+Select the   --option 2 ---Change/Show Installation Settings and Install
+Select option 1 ---System setting
+Choose option 3 –Migration Install
+Select option 77 to display more details of disks where we want to install
+With help of disk PVID we need to select disk—Do not select alt_rootvg disk
+
+Select 1 option
+Select 0 to continue the installation
+Select 1 to Continue with  install
+Once started it will ask for Migration Confirmation
+Select 0 to continue
+It will starting merging the filestes later it will install
+Once migration is done need to select terminal Type as vt100
+Software License license agreements
+Accept install license agreements	--> Yes 
+Esc+3 for three times and will get below window 
+Then select tasks completed –Exit to get the Login Prompt
+Will get the Login prompt to access the server after migration
+Once get the Login need to verify the OS level which we upgraded on below 
+Once post checks are done mount the NAS Volumes
+Cd /scripts
+./mntall
+Handover to the app team
+	
+
+
+	
