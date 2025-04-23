@@ -1,0 +1,469 @@
+
+awk
+		Syntax:
+		awk options 'selection _criteria {action }' input-file > output-file
+		
+		1. Default behavior of Awk:
+			$ awk '{print}' employee.txt
+		2. Print the lines which match the given pattern.
+			$ awk '/manager/ {print}' employee.txt 
+		3. Splitting a Line Into Fields :
+			$ awk '{print $1,$4}' employee.txt
+			
+			Built-In Variables In Awk
+				NR: Display Line Number
+				Examples:  
+					$ awk '{print NR,$0}' employee.txt 
+				Display Line From 3 to 6
+					$ awk 'NR==3, NR==6 {print NR,$0}' employee.txt 
+				1) To print the first item along with the row number(NR) separated with ” – “ from each line
+					$ awk '{print NR "- " $1 }' geeksforgeeks.txt
+				2) To return the second column/item
+					$ awk '{print $2}' geeksforgeeks.txt 
+				
+				NF: Display Last Field
+				Examples:
+					$ awk '{print $1,$NF}' employee.txt
+				3) To print any non empty line if present  
+					$ awk 'NF < 0' geeksforgeeks.txt
+					$ awk ‘NF == 0 {print NR}’  geeksforgeeks.txt
+					$ awk ‘NF <= 0 {print NR}’  geeksforgeeks.txt
+				4) To find the length of the longest line present in the file: 
+					$ awk '{ if (length($0) > max) max = length($0) } END { print max }' geeksforgeeks.txt
+					
+					ls -lrt | awk '{ 
+										if (length($0) > max) max = length($0) 
+										
+										} 
+										END 
+										{ 
+										print max 
+										}'
+				5) To count the lines in a file: 
+					$ awk 'END { print NR }' geeksforgeeks.txt
+				
+				6) Printing lines with more than 10 characters:  
+					$ awk 'length($0) > 10' geeksforgeeks.txt
+				7) To find/check for any string in any specific column: 
+					$ awk '{ if($3 == "B6") print $0;}' geeksforgeeks.txt
+					
+					ls -lrt | awk '{ 
+										if($3 == "addmitam") print $0;
+										
+										}'
+===========================================================================================================================================================================================================>									
+cat :-
+			It reads data from the file and gives its content as output.
+===========================================================================================================================================================================================================>									
+cmp	:-		
+			When cmp is used for comparison between two files,
+			
+			
+comm
+
+cut	:-
+			You can use the cut command to select fields or columns from a line by specifying a delimiter or you can select a portion of text by specifying the range or characters. Basically the cut command slices a line and extracts the text.
+			
+			-b, --bytes=LIST
+			   select for printing only the bytes in positions listed in Byte-list.
+			-c, --characters=LIST
+			   select by specifying a character, a set of characters, or a range of characters.
+			-d, --delimiter=DELIM
+			   specify a delimiter that will be used instead of the default “TAB” delimiter. 
+			   An input delimiter may be specified only when operating on fields, i.e., -f option.
+			-f, --fields=LIST
+			   select for printing only the fileds in positions listed in Field-list; 
+			   also print any line that contains no delimiter character, unless the -s option is specified
+			--complement
+			   complement the set of selected bytes, characters or fields
+			-n
+			   Do not split multi-byte characters (no-op for now). 
+			   Suppresses splitting of multibyte characters (like utf-8 characters). Use this option only with the -b flag. 
+			   If the last byte of a character falls within the range denoted by the List variable of the -b flag, 
+			   the character is written; otherwise, the character is excluded. 
+			-s, --only-delimited
+			   do not print lines not containing delimiters
+			--output-delimiter=STRING
+			   use STRING as the output delimiter the default is to use the input delimiter
+			-z, --zero-terminated
+			   line delimiter is NULL, not newline
+			--help
+			   display this help and exit
+			--version
+			   
+			   output version information and exit
+			Unix Cut Command Examples
+			We will see the usage of cut command by considering the below text file as an example
+			#cat file.txt
+			unix or linux os
+			is unix good os
+			is linux good os
+			1. Write a unix/linux cut command to print characters by position?
+			The cut command can be used to print characters in a line by specifying the position of the characters. To print the characters in a line, use the -c option in cut command
+			#cut -c4 file.txt
+			x
+			u
+			l
+			The above cut command prints the fourth character in each line of the file. You can print more than one character at a time by specifying the character positions in a comma separated list as shown in the below example
+			#cut -c4,6 file.txt
+			xo
+			ui
+			ln
+			This command prints the fourth and sixth character in each line.
+			
+			2.Write a unix/linux cut command to print characters by range?
+			You can print a range of characters in a line by specifying the start and end position of the characters.
+			# cut -c4-7 file.txt
+			x or
+			unix
+			linu
+			The above cut command prints the characters from fourth position to the seventh position in each line. To print the first six characters in a line, omit the start position and specify only the end position.
+			# cut -c-6 file.txt
+			unix o
+			is uni
+			is lin
+			To print the characters from tenth position to the end, specify only the start position and omit the end position.
+			# cut -c10- file.txt
+			inux os
+			ood os
+			good os
+			If you omit the start and end positions, then the cut command prints the entire line.
+			# cut -c- file.txt
+			
+			3.Write a unix/linux cut command to print the fields using the delimiter?
+			You can use the cut command just as awk command to extract the fields in a file using a delimiter. 
+			The -d option in cut command can be used to specify the delimiter and -f option is used to specify the field position.
+			# cut -d' ' -f2 file.txt
+			or
+			unix
+			linux
+			This command prints the second field in each line by treating the space as delimiter. You can print more than one field by specifying the position of the fields in a comma delimited list.
+			# cut -d' ' -f2,3 file.txt
+			or linux
+			unix good
+			linux good
+			The above command prints the second and third field in each line.
+			Note: If the delimiter you specified is not exists in the line, then the cut command prints the entire line. To suppress these lines use the -s option in cut command.
+			
+			4. Write a unix/linux cut command to display range of fields?
+			You can print a range of fields by specifying the start and end position.
+			# cut -d' ' -f1-3 file.txt
+			The above command prints the first, second and third fields. To print the first three fields, you can ignore the start position and specify only the end position.
+			# cut -d' ' -f-3 file.txt
+			To print the fields from second fields to last field, you can omit the last field position.
+			cut -d' ' -f2- file.txt
+			
+			5. Write a unix/linux cut command to display the first field from /etc/passwd file?
+			The /etc/passwd is a delimited file and the delimiter is a colon (:). The cut command to display the first field in /etc/passwd file is
+			# cut -d':' -f1 /etc/passwd
+			
+			6. The input file contains the below text
+			# cat filenames.txt
+			logfile.dat
+			sum.pl
+			add_int.sh
+			Using the cut command extract the portion after the dot.
+			First reverse the text in each line and then apply the command on it.
+			# rev filenames.txt | cut -d'.' -f1
+
+egrep
+fgrep
+
+grep	:- The grep filter searches a file for a particular pattern of characters, and displays all lines that contain that pattern. 
+			Options Description
+			-c : This prints only a count of the lines that match a pattern
+				
+				Ex:
+				$grep -c "unix" geekfile.txt
+				
+			-h : Display the matched lines, but do not display the filenames.
+			
+			-i : Ignores, case for matching
+				
+				Ex:
+				$grep -i "UNix" geekfile.txt
+				
+			-l : Displays list of a filenames only.
+				
+				Ex:
+				$grep -l "unix" *
+				
+			-n : Display the matched lines and their line numbers.
+				
+				Ex:
+				$ grep -n "unix" geekfile.txt
+				
+			-v : This prints out all the lines that do not matches the pattern
+				
+				Ex:
+				$ grep -v "unix" geekfile.txt
+				
+			-e exp : Specifies expression with this option. Can use multiple times.
+				
+				Ex:
+				$ grep "^unix" geekfile.txt		<--Matching the lines that start with a string
+				$ grep "os$" geekfile.txt		<--Matching the lines that end with a string
+				$grep –e "Agarwal" –e "Aggarwal" –e "Agrawal" geekfile.txt
+				
+			-f file : Takes patterns from file, one per line.
+				
+				Ex:
+				$grep –f pattern.txt  geekfile.txt
+				
+			-E : Treats pattern as an extended regular expression (ERE)
+			
+				Ex:
+				$grep -E "boot|boots" a_file
+				
+			-w : Match whole word
+			
+				Ex:
+				$grep -w "unix" geekfile.txt
+				
+			-o : Print only the matched parts of a matching line, with each such part on a separate output line.
+			
+				Ex:
+				$ grep -o "unix" geekfile.txt
+				
+			-A n : Prints searched line and nlines after the result.
+				
+				Ex:
+				$grep -A[NumberOfLines(n)] [search] [file]
+				
+			-B n : Prints searched line and n line before the result.
+			
+				Ex:
+				$grep -B[NumberOfLines(n)] [search] [file]  
+				
+			-C n : Prints searched line and n lines after before the result.
+			
+				Ex:
+				$grep -C[NumberOfLines(n)] [search] [file]
+ 
+		
+head
+less
+more
+nl
+od
+paste
+rgrep
+sed
+sort
+tac
+tail:-
+		TAIL command examples in UNIX / Linux
+
+		The tail command in unix or linux system is used to print the last N lines from the file on the terminal. Tail command is especially used with log files to read the last few lines to know about the error messages. The syntax of tail command is
+		tail [options] [files]
+		The tail command options are:
+		c : Prints the last N bytes of file; With leading +, prints the characters from the N byte in the file.
+		n : Prints last N lines; With leading + prints lines from the Nth line in the file.
+		f : Prints the appended lines on the terminal as the file grows.
+		Tail Command Examples
+		Create the following file in your linux or unix operating system for practising the examples:
+		# cat example.txt
+		virtual storage
+		oracle virtual instance
+		mysql backup
+		dedicated hosting server
+		cloud servers
+		1. Display last 10 lines
+		By default, the tail command prints the last 10 lines from the file.
+		# tail example.txt
+		2. Display last N lines
+		Use the -n option to print the last n lines from the file. The following example prints the last 2 lines from the file:
+		# tail -n2 example.txt
+		dedicated hosting server
+		cloud servers
+		3. Print lines from the Nth line
+		You can print lines starting from the Nth line in a file. The following example prints lines from the 2nd line.
+		# tail -n+2 example.txt
+		oracle virtual instance
+		mysql backup
+		dedicated hosting server
+		cloud servers
+		4. Print the last n bytes
+		use the -c option to print the last N bytes from the file. The following example prints the last 8 bytes from the file.
+		# tail -c8 example.txt
+		servers
+		5. Print characters from the Nth byte
+		Use the leading "+" with -c option to print the characters from the Nth byte. The following example prints the characters from the 79th byte.
+		# tail -c+79 example.txt
+		cloud servers
+		6. Print last lines from dynamically changing file
+		The -f option print the lines from file that is growing dynamically. When you run the tail -f filename command, it prints the last 10 lines and waits for new lines to be added to the file. Whenever the new lines are appended to the file, the tail command also appends the new lines on the standard output. The -f option is useful when debugging applications. In general, the applications writes error messages to log files. You can use the -f option to check for the error messages as and when they appear in the log file.
+		# tail -f logfile
+
+
+tee
+tr
+		
+		Translate/ tr command examples in unix and linux
+By Surya13:531 comment
+Tr stands for translate or transliterate. The tr utility in unix or linux system is used to translate, delete or squeeze characters. The syntax of tr command is
+tr [options] set1 [set2]
+The options of tr command are:
+-c : complements the set of characters in string.
+-d : deletes the characters in set1
+-s : replaces repeated characters listed in the set1 with single occurrence
+-t : truncates set1
+Tr command Examples:
+1. Convert lower case letters to upper case
+The following tr command translates the lower case letters to capital letters in the give string:
+# echo "linux dedicated server" | tr "[:lower:]" "[:upper:]"
+LINUX DEDICATED SERVER
+# echo "linux dedicated server" | tr "[a-z]" "[A-Z]"
+LINUX DEDICATED SERVER
+2. Transform upper case letters to lower case.
+Similar to the above example, you can translate the uppercase letters to small letters.
+# echo "UNIX DEDICATED SERVER" | tr "[:upper:]" "[:lower:]"
+unix dedicated server
+# echo "UNIX DEDICATED SERVER" | tr "[A-Z]" "[a-z]"
+unix dedicated server
+3. Replace non-matching characters.
+The -c option is used to replace the non-matching characters with another set of characters.
+# echo "unix" | tr -c "u" "a"
+uaaa
+In the above example, except the character "c" other characters are replaced with "a"
+4. Delete non-printable characters
+The -d option can be used to delete characters. The following example deletes all the non-printable characters from a file.
+# tr -cd "[:print:]" < filename
+5. Squeezing characters
+You can squeeze more than one occurrence of continuous characters with single occurrence. The following example squeezes two or more successive blank spaces into a single space.
+# echo "linux    server" | tr -s " "
+linux server
+Here you can replace the space character with any other character by specifying in set2.
+# "linux    server" | tr -s " " ","
+linux,server
+6. Delete characters
+The following example removes the word linux from the string.
+# echo "linuxserver" | tr -d "linux"
+server
+
+
+uniq 
+
+		UNIQ command examples in unix and linux
+By Surya13:52No comments
+
+Uniq command in unix or linux system is used to suppress the duplicate lines from a file. It discards all the successive identical lines except one from the input and writes the output.
+
+The syntax of uniq command is
+# uniq [option] filename
+The options of uniq command are:
+c : Count of occurrence of each line.
+d : Prints only duplicate lines.
+D : Print all duplicate lines
+f : Avoid comparing first N fields.
+i : Ignore case when comparing.
+s : Avoid comparing first N characters.
+u : Prints only unique lines.
+w : Compare no more than N characters in lines
+Uniq Command Examples:
+
+First create the following example.txt file in your unix or linux operating system.
+# cat example.txt
+Unix operating system
+unix operating system
+unix dedicated server
+linux dedicated server
+1. Suppress duplicate lines
+The default behavior of the uniq command is to suppress the duplicate line. Note that, you have to pass sorted input to the uniq, as it compares only successive lines.
+# uniq example.txt
+unix operating system
+unix dedicated server
+linux dedicated server
+
+If the lines in the file are not in sorted order, then use the sort command and then pipe the output to the uniq command.
+# sort example.txt | uniq
+2. Count of lines
+The -c option is used to find how many times each line occurs in the file. It prefixes each line with the count.
+# uniq -c example.txt
+      2 unix operating system
+      1 unix dedicated server
+      1 linux dedicated server
+3. Display only duplicate lines
+You can print only the lines that occur more than once in a file using the -d option.
+> uniq -d example.txt
+unix operating system
+
+> uniq -D example.txt
+unix operating system
+unix operating system
+The -D option prints all the duplicate lines.
+4. Skip first N fields in comparison
+The -f option is used to skip the first N columns in comparison. Here the fields are delimited by the space character.
+# uniq -f2 example.txt
+unix operating system
+unix dedicated server
+In the above example the uniq command, just compares the last fields. For the first two lines, the last field contains the string "system". Uniq prints the first line and skips the second. Similarly it prints the third line and skips the fourth line.
+5. Print only unique lines
+You can skip the duplicate lines and print only unique lines using the -u option
+# uniq -u example.txt
+unix dedicated server
+linux dedicated server
+
+wc
+
+
+
+
+
+
+bzip2
+compress
+gzip
+gzip
+tar
+
+		Tar command examples
+By Surya11:42No comments
+Create linux tar gz (Gzip) archive
+#tar -czvf myarchive.tgz mydirectory/'
+#tar -czvf myarchive.tgz myfile1 myfile2 mydir1
+
+We use the -t option to create an linux tar archive
+-c, –create create a new archive
+Note that .tgz is the same thing as .tar.gz
+Create linux simple tar archive (withouth compresion)
+#tar -cvf myarchive.tar mydirectory/
+Extracting linux tar archive:
+
+Extract linux tar gz (Gzip) archive
+
+#tar -xzvf mystuff.tgz
+
+Extract linux simple tar archive
+
+#tar -xvf mystuff.tar
+
+We use -x to extract the files form the tar archive
+-x, –extract, –get extract files from an archive
+Extract linux tar archive to speciefied directorytar -xvzf filename.tar.gz -C /desired/path
+
+And now let us shortly explain this command
+
+Usage: tar [OPTION]… [FILE]…
+Let us check the option used in this example
+-c, –create                      create a new archive
+-z, –gzip, –ungzip        filter the archive through gzip
+-v, –verbose                   verbosely list files processed
+-f, –file=ARCHIVE          use archive file or device ARCHIVE
+-C directory file Performs a chdir  operation on directory and performs the c (create) or r (replace) operation on file .
+
+In c and r mode, these changes the directory before adding the following files. In x mode, change directories after opening the archive but before extracting entries from the archive.
+You can extract to a defined location using:
+#tar xvf yourstuff.tar -C your/path/here
+Testing / viewing your archive
+
+#tar -tvf myarchive.tar
+#tar -tzvf myarchive.tgz
+Here we used the – t opton
+-t, –list                           list the contents of an archive
+————————————————-
+
+
+uncompress
+unzip
+zip
