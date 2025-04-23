@@ -1,0 +1,159 @@
+#!/bin/bash
+
+# Input values
+HOST_GROUP="INB-RET-APP"
+MONITORING_MODE="infra-only" # or "fullstack"
+INSTALLER_URL="https://10.176.56.209/e/434b82fb-cd2c-4310-a604-9e5e1a96240a/api/v1/deployment/installer/agent/aix/default/latest?arch=ppc"
+API_TOKEN="dt0c01.CO7SF472P5EHKBUNCG4DFHAY.IIRSASBLXPDYHDQY5ZRDJUJLY5BZSXAQOZ7566PVABXA7RSAXU2WUJOGCNOWLEZR"
+INSTALLER_SCRIPT="Dynatrace-OneAgent-AIX-1.305.98.20250114-172617.sh"
+
+# Cluster servers (host:port)
+# CLUSTER_SERVERS=(
+    # "10.176.56.209:443"
+    # "10.176.56.210:443"
+    # "10.176.56.211:443"
+# )
+
+# ActiveGate servers (host:port)
+ACTIVEGATE_SERVERS=(
+    "10.176.56.212:9999"
+    "10.176.10.246:9999"
+)
+
+# ----------------------------
+# Prerequisite Checks
+# ----------------------------
+
+# 1. Check free space in /opt (8GB required)
+required_space=8 # 8GB
+opt_space=$(df -k /opt | tail -1 | awk '{print $3}')
+available_gb=$((opt_space / 1024 / 1024)) # Convert KB to GB
+
+if [ "$available_gb" -lt "$required_space" ]; then
+    echo "ERROR: /opt has only ${available_gb}GB free space. Requires ${required_space}GB."
+    exit 1
+fi
+echo "Disk check passed: ${available_gb}GB free in /tmp"
+
+# 2. Check network connectivity to all servers
+check_connectivity() {
+    local host=$1
+    local port=$2
+    local timeout=5
+
+    echo "Checking connectivity to $host:$port..."
+   
+    # Run telnet command with timeout
+    (echo quit | telnet "$host" "$port" > /dev/null 2>&1) &
+    pid=$!
+   
+    # Wait for the timeout period
+    (sleep $timeout && kill -HUP $pid 2>/dev/null) & watcher=$!
+    wait $pid 2>/dev/null
+    status=$?
+   
+    if [ $status -ne 0 ]; then
+        echo "ERROR: Cannot connect to $host:$port (Timeout: ${timeout}sec)"
+        return 1
+    else
+        echo "Successfully connected to $host:$port"
+        return 0
+    fi
+}
+
+# Check connectivity to cluster servers
+# for server in "${CLUSTER_SERVERS[@]}"; do
+    # host=$(echo "$server" | cut -d: -f1)
+    # port=$(echo "$server" | cut -d: -f2)
+    # if ! check_connectivity "$host" "$port"; then
+        # echo "ERROR: Cluster server connectivity check failed. Aborting installation."
+        # exit 1
+    # fi
+# done
+
+# Check connectivity to ActiveGate servers
+for server in "${ACTIVEGATE_SERVERS[@]}"; do
+    host=$(echo "$server" | cut -d: -f1)
+    port=$(echo "$server" | cut -d: -f2)
+    if ! check_connectivity "$host" "$port"; then
+        echo "ERROR: ActiveGate server connectivity check failed. Aborting installation."
+        exit 1
+    fi
+done
+
+echo "All connectivity checks passed."
+
+# ----------------------------
+# Agent Installation/Uninstallation Logic
+# ----------------------------
+
+# Check if the agent is running
+if [ -f "/opt/dynatrace/oneagent/agent/initscripts/oneagent" ]; then
+    /opt/dynatrace/oneagent/agent/initscripts/oneagent status
+    if [ $? -eq 0 ]; then
+        echo "Agent is running. Proceeding with uninstallation..."
+
+        # Uninstallation steps
+        unset DT_HOME
+        unset LDR_PRELOAD64
+        cd /opt/dynatrace/oneagent/agent/initscripts
+        ./oneagent stop
+        ./uninstall.sh
+        cd /opt/dynatrace/oneagent/agent
+        rm -rf /var/log/dynatrace
+        rm -rf /var/lib/dynatrace
+        rm -rf /tmp/Dynatrace-OneAgent-Aix-*
+    else
+        echo "Agent is not running. Proceeding with installation..."
+    fi
+else
+    echo "Dynatrace folder not found. Proceeding with installation..."
+fi
+
+# Installation steps
+cd /tmp
+
+# Download the installer
+wget -O $INSTALLER_SCRIPT "$INSTALLER_URL" --header="Authorization: Api-Token $API_TOKEN"
+
+# Verify the signature
+wget https://ca.dynatrace.com/dt-root.cert.pem
+(echo 'Content-Type: multipart/signed; protocol="application/x-pkcs7-signature"; micalg="sha-256"; boundary="--SIGNED-INSTALLER"'; echo; echo; echo "--SIGNED-INSTALLER"; cat $INSTALLER_SCRIPT) | openssl cms -verify -CAfile dt-root.cert.pem > /dev/null
+
+if [ $? -eq 0 ]; then
+    echo "Signature verification successful."
+
+    # Set permissions and execute the installer
+    chown root:system $INSTALLER_SCRIPT
+    chmod 775 $INSTALLER_SCRIPT
+    ./$INSTALLER_SCRIPT --set-monitoring-mode=$MONITORING_MODE --set-app-log-content-access=false --set-host-group=$HOST_GROUP
+
+    if [ $? -eq 0 ]; then
+        echo "Installation completed successfully."
+    else
+        echo "Installation failed."
+    fi
+else
+    echo "Signature verification failed. Aborting installation."
+fi
+
+
+
+
+
+
+#Sample output
+
+#Disk check passed: 10GB free in /tmp
+#Checking connectivity to cluster1.example.com:443...
+#Successfully connected to cluster1.example.com:443
+#Checking connectivity to cluster2.example.com:443...
+#Successfully connected to cluster2.example.com:443
+#Checking connectivity to activegate1.example.com:9999...
+#Successfully connected to activegate1.example.com:9999
+#Checking connectivity to activegate2.example.com:9999...
+#Successfully connected to activegate2.example.com:9999
+#All connectivity checks passed.
+#Agent is running. Proceeding with uninstallation...
+#...
+#Installation completed successfully.
