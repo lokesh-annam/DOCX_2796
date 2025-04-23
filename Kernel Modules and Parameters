@@ -1,0 +1,36 @@
+============================Kernel Modules and Parameters========================
+display loaded modules:-
+	genkex
+
+load modules:-
+
+unload modules:-
+
+set kernel parameters (tuning)
+	chdev -l sys0 -a <parameter>=<value>
+	no -a          (network)
+	vmo -a        (virtual memory)
+	nfso -a        (NFS)
+	ioo -a         (Input/Ouput) 
+	raso -a        (reliability, availability, serviceability)
+	schedo -a   (processor scheduler)
+	
+	vi /etc/security/limits
+	cd /etc/tunables
+	
+	tunchange, tundefault, tunsave, tunrestore, tuncheck
+	
+	Note: most parameters are dynamically changed in AIX , for example memory segments are dynamically adjusted
+
+display kernel parameters:- 
+	lsattr -EHl sys0
+
+	Note: only a few kernel parameters can be changed
+
+build kernel:- 
+	chdev -l sys0 -a <parameter>=<value>
+	
+	Note: most parameters are dynamically changed in AIX , for example memory segments are dynamically adjusted
+
+interprocess communication:-
+	ipcs -a
