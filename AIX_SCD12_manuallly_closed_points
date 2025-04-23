@@ -1,0 +1,47 @@
+grep "^UsePrivilegeSeparation[[:blank:]]" /etc/ssh/sshd_config
+ls -ltr /var/adm/cron/at.allow
+cat  /var/adm/cron/at.allow
+ls -ltr /var/adm/cron/at.deny
+trustchk -p TE
+trustchk -p TEP
+grep -c "mesg n" /etc/profile;grep -c "mesg n" /etc/csh.login
+cat /etc/ssh/sshd_config | grep -i Ciphers
+
+
+
+
+
+
+
+
+Implementation steps:-
+
+
+sudo su -
+bash
+grep "^UsePrivilegeSeparation[[:blank:]]" /etc/ssh/sshd_config
+ls -ltr /var/adm/cron/at.allow
+cat  /var/adm/cron/at.allow
+ls -ltr /var/adm/cron/at.deny
+
+trustchk -p CHKEXEC=ON;trustchk -p CHKSCRIPT=ON;trustchk -p STOP_ON_CHKFAIL=ON
+trustchk -p TE=ON;trustchk -p TEP=ON
+
+trustchk -p TE;trustchk -p TEP
+
+echo "mesg n" >> /etc/profile;echo "mesg n" >> /etc/csh.login
+grep -c "mesg n" /etc/profile;grep -c "mesg n" /etc/csh.login
+
+cat /etc/ssh/sshd_config | grep -i Cipher
+
+vi /etc/ssh/sshd_config
+
+UsePrivilegeSeparation
+
+Ciphers aes128-ctr,aes192-ctr,aes256-ctr,aes128-ctr,aes192-ctr,aes256-ctr,aes128-gcm@openssh.com,aes256-gcm@openssh.com
+
+stopsrc -s sshd;startsrc -s sshd
+
+10.176.229.100
+scp -pr SbiiYonoWacUat1_scd12_Compliance.txt addmitam@10.176.229.100:/home/addmitam
+
