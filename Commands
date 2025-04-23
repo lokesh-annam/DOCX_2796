@@ -1,0 +1,87 @@
+cp -p /etc/ssh/sshd_config /etc/ssh/sshd_config_11082022
+vi /etc/ssh/sshd_config
+Replace: 
+UsePrivilegeSeparation no
+With: 
+UsePrivilegeSeparation yes
+
+stopsrc -s sshd
+lssrc -s sshd
+startsrc -s sshd
+lssrc -s sshd
+
+find / -name ".shosts" -exec rm {} \;
+
+vi /etc/ssh/sshd_config
+
+PermitRootLogin no
+IgnoreRhosts yes
+PermitEmptyPasswords no
+HostbasedAuthentication no
+LogLevel INFO
+MaxAuthTries 4
+PermitUserEnvironment no
+
+
+lslpp -L "bos.msg.en_US.net.tcp.client"
+dspcat -g /usr/lib/nls/msg/en_US/ftpd.cat > /tmp/ftpd.tmp
+sed "s/\"\%s FTP server (\%s) ready.\"/\"\%s Authorized uses only. All activity may be monitored and reported\"/" /tmp/ftpd.tmp > /tmp/ftpd.msg
+gencat /usr/lib/nls/msg/en_US/ftpd.cat /tmp/ftpd.msg
+rm /tmp/ftpd.tmp /tmp/ftpd.msg
+dspcat -g /usr/lib/nls/msg/en_US/ftpd.cat | grep "^9[[:blank:]]"
+
+
+
+
+touch /etc/motd 
+chmod u=rw,go=r /etc/motd 
+chown bin:bin /etc/motd
+
+
+echo " *************************************************************************** NOTICE TO USERS This computer system is the private property of its owner, whether individual,corporate or government.
+It is for authorized use only. Users (authorized or unauthorized) have no explicit or implicit expectation of privacy. 
+Any or all uses of this system and all files on this system may be intercepted, monitored, recorded, copied, audited, inspected, and disclosed to your employer, 
+to authorized site, government, and law enforcement personnel, as well as authorized officials of government agencies, both domestic and foreign.
+By using this system, the user consents to such interception, monitoring,recording, copying, auditing, inspection, and disclosure at the discretion of such personnel 
+or officials. Unauthorized or improper use of this system may result in civil and criminal penalties and administrative or disciplinary action, as appropriate. 
+By continuing to <p> use this system you indicate your awareness of and consent to these terms and conditions of use. 
+LOG OFF IMMEDIATELY if you do not agree to the conditions stated in this warning. 
+**************************************************************************** ">/etc/motd
+
+Apply the proper Cipher and restart the sshd service.
+vi /etc/ssh/sshd_config
+
+Ciphers aes128-ctr,aes256-ctr,aes192-ctr,aes128-gcm@openssh.com,aes256-gcm@openssh.com,chacha20-poly1305@openssh.com
+stopsrc -s sshd
+lssrc -s sshd
+startsrc -s sshd
+lssrc -s sshd
+
+ 
+
+
+
+cp -p /etc/mail/sendmail.cf /etc/mail/sendmail.cf.pre_cis
+vi /etc/mail/sendmail.cf
+Change: O SmtpGreetingMessage=$j Sendmail $b 
+To: O SmtpGreetingMessage=mailerready
+
+  O SmtpGreetingMessage=mailerready
+
+chmod u=rw,g=r,o= /etc/mail/sendmail.cf
+chown root /etc/mail/sendmail.cf
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
