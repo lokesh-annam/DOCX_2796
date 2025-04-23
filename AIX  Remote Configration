@@ -1,0 +1,20 @@
+A very nice command to use when you either want to show someone remotely how to do something on AIX, or to allow a non-root user to have root access, is portmir.
+
+First of all, you need 2 users logged into the system, you and someone else. Ask the other person to run the tty command in his/her telnet session and to tell you the result. For example:
+
+user$ tty
+/dev/pts/1
+Next, start the portmirror in your own telnet session:
+root# portmir -t /dev/pts/1
+(Of course, fill in the correct number of your system; it won't be /dev/pts/1 all the time everywhere!)
+
+Now every command on screen 1 is repeated on screen 2, and vice versa. You can both run commands on 1 screen.
+
+You can stop it by running:
+# portmir -o
+If you're the root user and the other person temporarily requires root access to do something (and you can't solve it by giving the other user sudo access, hint, hint!), then you can su - to root in the portmir session, allowing the other person to have root access, while you can see what he/she is doing.
+
+You may run into issues when you resize a screen, or if you use different types of terminals. Make sure you both have the same $TERM setting, i.e.: xterm. If you resize the screen, and the other doesn't, you may need to run the tset and/or the resize commands.
+portmir -o /dev/pts/0 to stop console 
+portmir -t /dev/pts/0 to start console 
+portmir -t /dev/pts/3 to start console 
