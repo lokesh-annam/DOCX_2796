@@ -1,0 +1,2369 @@
+=========================================================================================================================================================================>
+for i in `cat ip.txt`;do echo "========$i=========";ssh -t -q  addmitam@$i "sudo cp /dev/null /etc/security/pwdhist.pag;sudo cp /dev/null /etc/security/pwdhist.dir; sudo lsuser SOCVA;sudo chuser unsuccessful_login_count=0 SOCVA;sudo echo SOCVA:Soc@1234 |sudo chpasswd;sudo pwdadm -c SOCVA;sudo date";done  >> /tmp/output_successful_change_SOCVA12_count.txt
+for i in `cat ip_test.txt`;do echo "========$i=========";ssh -t -q  addmitam@$i "sudo cp /dev/null /etc/security/pwdhist.pag;sudo cp /dev/null /etc/security/pwdhist.dir; sudo lsuser SOCVA;sudo chuser unsuccessful_login_count=0 SOCVA;sudo echo SOCVA:Soc@1234 |sudo chpasswd;sudo pwdadm -c SOCVA; sudo ifconfig -a|grep -i inet;sudo cat /etc/sudoers |grep SOCVA;sudo date";done  >> /tmp/output_successful_change_SOCVA12_count.txt
+
+ls -ltr  | awk '{print $9}' | grep -v "^$" | while read file; do echo $file; cp -r "${file}" "${file}${name}";done -->Copying the files
+
+for i in `cat ip.txt`;
+do
+echo "========$i=======";
+ssh -t -q addmitam@$i "sudo echo 'devopsadmin ALL=(ALL) NOPASSWD:  ALL'";done >> /etc/sudoers_bkp_22022023
+
+find . -name index.html -type f -exec 1s -lrt {} \;
+
+=========================================================================================================================================================================>
+If you want to see all of the TCP listening ports and which processes and PID’s are assigned to them, run the following script:
+!/usr/bin/ksh
+print
+“Port           
+PID             
+Process”
+netstat -Aan | grep LISTEN | awk ‘{print $1 ” ” $5}’ | while
+read pcb port; do 
+        out=`rmsock $pcb tcpcb`
+        if echo “$out” |
+grep “Kernel Extension” > /dev/null; then
+               
+printf “%-15s Kernel Extensionn” “$port”
+        else
+               
+pid=`echo “$out” | sed -n ‘s/.*pro[c]*ess ([0-9][0-9]*) .*/1/p’`
+               
+if [ -n “$pid” ]; then
+                       
+proc=`ps -p $pid | tail -n 1 | awk ‘{print $4}’`
+                       
+printf “%-15s %-16s $procn” “$port” $pid
+               
+else
+                       
+echo “Error, Line not recognized “$out” for Port $port”
+               
+fi
+fi
+done
+
+=========================================================================================================================================================================>
+bash-4.2$ cat /home/trickle/SBEDWPSFTP.sh
+#!/bin/bash
+DAT1=`date`
+cd /data/REPORTS_DATA/OAO/INCOMING
+TODAYDATE=`date +%Y%m%d`
+MON_YR=`date +%b" "%d`
+logfile="/data/REPORTS/SBIMOB_$TODAYDATE"
+echo "Script Started at $TODAYDATE"
+echo "-------------------------------"
+filecnt=`ls -ltr | grep "$MON_YR" |awk '{print $9}' |wc -l`
+if [ $filecnt -gt 1 ]
+then
+for i in `ls -ltr | grep "$MON_YR" |awk '{print $9}'`
+do
+cp -pr $i /data/users/polling/.
+echo $i >> SbiMobFileList.csv
+cd /data/users/polling
+/usr/bin/sftp inb@10.0.235.80 << EOF
+cd /data/INB/ftp
+lcd /data/users/polling
+put $i
+EOF
+done
+fi
+
+
+#0 7 * * * /usr/bin/sh /home/SBIINBfileupload.sh >>/tmp/SBIINBfileupload.txt
+
+=========================================================================================================================================================================>
+
+###############System.sh####################
+
+filename=$(hostname)_$(date +"%Y%m%d_%H%M").conf;
+
+echo "##### oslevel -r ######################" > $filename ;
+oslevel -r >> $filename ;
+echo "\n" >> $filename ;
+echo "##### oslevel -rq #####################" >> $filename ;
+oslevel -rq >> $filename ;
+
+echo "\n" >> $filename ;
+echo "##### instfix -i ######################" >> $filename ;
+instfix -i | grep -i ml >> $filename ;
+echo "\n" >> $filename ;
+echo "##### mount ###########################" >> $filename ;
+mount >> $filename ;
+echo "\n" >> $filename ;
+
+#++++ if for command checking ++++#
+echo "##### df ##############################" >> $filename ;
+if ( df -gP >> $filename )
+then
+  echo "\n" >> $filename ;
+else
+  df -kP >> $filename ;
+  echo "\n" >> $filename ;
+fi ;
+
+echo "##### lsps -a #########################" >> $filename ;
+lsps -a >> $filename ;
+echo "\n" >> $filename ;
+
+#### while loop for vg checking ####
+echo "##### lsvg -l , lsvg ##################" >> $filename ;
+lspv | grep active | awk '{print $3}' - | sort -u | while read ln
+do
+echo "#####" $ln "#####" >> $filename ;
+echo "===== lsvg -l" $ln "=====" >> $filename ;
+lsvg -l $ln >> $filename ;
+echo "===== lsvg" $ln "=====" >> $filename ;
+lsvg $ln >> $filename ;
+echo "\n" >> $filename ;
+done ;
+
+echo "##### ls pv ###########################" >> $filename ;
+lspv >> $filename ;
+echo "\n" >> $filename ;
+
+#### while loop for pv checking ####
+echo "##### lspv -l #########################" >> $filename ;
+lspv | grep active | awk '{print $1}' - | while read ln
+do
+echo "=====" $ln "=====" >> $filename ;
+lspv -l $ln >> $filename ;
+done ;
+echo "\n" >> $filename ;
+
+echo "##### lsconf ##########################" >> $filename ;
+lsconf >> $filename ;
+echo "\n" >> $filename ;
+
+echo "##### lsdev ###########################" >> $filename ;
+lsdev >> $filename ;
+echo "\n" >> $filename ;
+
+#++++ if for command checking ++++#
+echo "##### memory config ###################" >> $filename ;
+if (vmo -a >> $filename)
+then
+  echo "\n" >> $filename ;
+else
+  vmtune -a >> $filename ;
+  echo "\n" >> $filename ;
+fi ;
+
+echo "##### lslpp -l ########################" >> $filename ;
+lslpp -l >> $filename ;
+echo "\n" >> $filename ;
+
+echo "##### instfix -i ########################" >> $filename ;
+instfix -i >> $filename ;
+echo "\n" >> $filename ;
+
+echo "##### lscfg -vp #######################" >> $filename ;
+lscfg -vp >> $filename ;
+echo "\n" >> $filename ;
+echo "##### NetworkParameters  #######################" >> $filename ;
+no -a  >> $filename ;
+echo "\n" >> $filename ;
+echo "##### ulimit   #######################" >> $filename ;
+ulimit -a  >> $filename ;
+echo "\n" >> $filename ;
+echo "##### Vml  #######################" >> $filename ;
+vmo -L  >> $filename ;
+echo "\n" >> $filename ;
+echo "##### Vmstat  #######################" >> $filename ;
+vmstat -v  >> $filename ;
+echo "\n" >> $filename ;
+echo "##### lparstat  #######################" >> $filename ;
+lparstat -i >> $filename ;
+echo "\n" >> $filename ;
+echo "#####  RAM Details   #######################" >> $filename ;
+svmon -G >> $filename ;
+echo "\n" >> $filename ;
+lsattr -E -l mem0 >> $filename ;
+echo "\n" >> $filename ;
+lsattr -E -l sys0 -a realmem >>  $filename ;
+echo "\n" >> $filename ;
+echo "#####  bootinfo -r   #######################" >> $filename ;
+bootinfo -r >> $filename ;
+echo "\n" >> $filename ;
+echo "=====================================";
+echo "Out put file is in" $PWD"/"$filename ;
+echo "=====================================";
+
+
+=========================================================================================================================================================================>
+NFS server & client installation and configuration:-
+
+#!/bin/bash
+#HOST="10.248.56.18"
+#HOST="10.189.250.18"
+HOST="sfg.onlinesbi.com"
+USER="SBCOLLECT_MSMB_5697646"
+PORT="2201"
+YESTERDAY=`TZ=IST+24 date +%d%m%Y`
+for i in `cat /scripts/GSTlogs/SBCOLLECT_MSMB_GET.log| grep "rw" | grep $YESTERDAY | awk '{print $9}'`
+do
+echo "Downloading File $i"
+expect -c "
+spawn sftp -oMACs=hmac-sha2-256 -P$PORT $USER@$HOST
+expect \"*assword:*\"
+send \"Sbi@12345\r\"
+sleep 5
+expect \"sftp>*\"
+send \"cd SBI_UPI/SBCOLLECT_MSMB_5697646/Download\r\"
+expect \"sftp>*\"
+send \"lcd /data/sftp_files/home/SBCUPI/MIS/Files_Incoming\r\"
+expect \"sftp>*\"
+send \"get $i\r\"
+expect \"sftp>*\"
+send \"quit\n\"
+interact "
+done
+chmod 644 /data/sftp_files/home/SBCUPI/MIS/Files_Incoming/*.csv
+
+
+=========================================================================================================================================================================>
+
+EXTRA - SCRIPT
+SCRIPT:
+
+
+KORN SHELL:
+http://www.bolthole.com/solaris/ksh.html
+http://www.well.ox.ac.uk/~johnb/comp/unix/ksh.html
+
+
+SYMBOLS:
+#!/usr/bin/ksh      <--this indicates the shell, which should be used to interpret the script
+
+' '                 <--ignores all metacharacters between the quotes (echo '$HOME' --> $HOME) (with ssh variables are interpreted)
+" "                 <--ignores all metacharacters except for $, ` and \ (echo "$HOME" --> /home/root) (with ssh everything is string-literal)
+\                   <--ignores the special meaning of the following character (echo \$HOME --> $HOME)
+                    (it is the continuation character as well, to continue a command in a new line)
+${VAR}hello         <--{} distingueshes the variable from the surrounding text
+~                   <-- represents the home directory of the user (~joe refer's to the home dir of joe)
+------------------------------------
+A single-quote cannot occur within single-quotes.
+
+Some alternatives:
+echo $'It\'s Shell Programming'  # ksh, bash, and zsh only, does not expand variables
+echo "It's Shell Programming"   # all shells, expands variables
+echo 'It'\''s Shell Programming' # all shells, single quote is outside the quotes
+echo 'It'"'"'s Shell Programming' # all shells, single quote is inside double quotes
+------------------------------------
+x=day
+echo there is a ${x}long meeting      <--{} is used to eliminate the need of space after the variable
+there is a daylong meeting
+------------------------------------
+x=`date` or x=$(date)     <-() is supported only in ksh
+------------------------------------
+
+arithmeic:
+(( x += 1 ))                 <- counter adds 1 to x
+(( x -= 1 ))                 <- counter minus 1 from x
+x=$(($x+1))                  <- counter adds 1 to x
+
+let command can be used for this as well (+,-,*,/):
+let x=x+10
+let x=x/2
+
+read <variable>              <- reads from the input to the given variable
+export variable=value        <- passes variable into a subshell
+
+set -x                       <- shows real time info for debugging
+set -u                       <- unsets variables
+
+test command:
+The test command evaluates the expression and returns a return code 0 if true.
+test expression or [ expression ] or [[ expression ]] (leave a space near the squaer braces)
+In newer Korn shell the modern notation [[...]] is used, which is an extension of the test command.
+
+integer operations:
+if [ $? -eq 0 ] ; then       <- equal
+if [[ $? -eq 1 ]]            <- [[ is for test condition
+if [ $? -ne 0 ] ; then       <- not equal
+if [ $? -lt 0 ] ; then       <- less than
+if [ $? -gt 0 ] ; then       <- greater than
+if [ $? -le 0 ] ; then       <- less equal
+if [ $? -ge 0 ] ; then       <- greater equal
+$number1 -eq $number2        <- numbers are equal
+$number1 -ne $number2        <- numbers are not equal
+
+string operations:
+$string1 = $string2          <- strings are identical
+$string1 !=  $string2        <- strings are not identical
+
+if [[ -e $FILE ]]            <- if file exist
+
+read command:
+It reads one line from standard input and assigns the values  of each field to a shell variable.
+
+
+print command (printf):
+printf '%20s\n' "-- PLAYER --"
+
+The syntax is %[-]m[.n]s
+%s is the string, [-] is left justified, m is no. of chars wide, [n] is print the first n chars of the string.
+The above example shows the string “- PLAYER -” printed, right justified in string wide of 20 chars.
+
+VAR1="Hello"
+VAR2="Worldddd"
+
+printf '%10s %-10.5s\n' $VAR1 $VAR2
+Hello World
+
+----------------------
+
+RUNNIG A SCRIPT:
+
+Each shell script is executed in a subshell. Variables defined in a shell script cannot be passed back to the parent shell.
+
+.                         <---if you invoke a shell script with a . (dot) it runs in the current shell.
+                          Variables defined in this script are defined also for the current shell.
+
+./                        <- refers to files in the current working directory
+~                         <- refers to the home directory
+
+3 ways of running a script:
+ksh scriptname            (read permission needed)
+scriptname                (read and execute permission needed)(in the PATH variable must be defined the dir)
+. scriptname              (read permission needed) (it runs in the current shell, a subshell will not be invoked)
+
+
+$$                        process id
+$0                        shell script name currently executing
+$1, $2 ...                parameters which were invoked with the script
+$*                        equal all arguments passed
+$#                        number of arguments passed into shell script (if [[ $# -ne 1 ]]...)
+$?                        retrurn code of last command executed
+command1 && command2      if command1 successful then do command2 (ls s* && rm s*) (if [[ $ACE = "HIGH" && $banker_score -ge 11 ]])
+command1 || command2      if command1 not successful then do command2 ( if [[ $ACE = "HIGH" || $banker_score -ge 11 ]])
+
+exit n                    pass a return code to shell script
+$!                        process ID of last background process
+
+true                      this command always returns a true result
+false                     this command always returns a false result
+
+--------------------------------------------------
+
+LOOPS:
+
+for i in `cat file`
+do
+...
+done
+
+
+for i in /tmp/*            it will remove all files in /tmp
+do
+rm $i
+done
+
+while [[ $x -lt 9 ]]
+do
+...
+done
+
+
+read game?"Another Game (y|n)? "
+      case $game in
+            y|Y)  :;;            <- ":" means continue
+            n|N)  EXT=1;;
+      esac
+
+
+--------------------------------------------------
+
+CASE:
+(it can happen that there is a problem with numerical variable so this is needed before the CASE condition: "x=echo $x")
+
+case $x in
+1 )
+   echo
+   ;;
+
+2 )
+   echo "Stopping the ovo agent..."
+   ;;
+
+* )
+   echo "bye"
+   ;;
+esac
+
+--------------------------------------------------
+
+TIPS & TRICKS:
+
+cat <file> | head -n $x | tail -1            <-displays a line from a file
+awk 'NR==2' /root/settitle                   <--displays the 2nd line in the file:/root/setitle
+/usr/bin/echo yes | command                  <-- input is automatically yes
+echo "$FS2:\t it is mounted now"             <--\t will do a tab in the output
+perl -e 'select(undef,undef,undef,.3)'       <--it will sleep for 0.3 second
+
+---------------------
+
+Run the script every 2nd Sunday of the month:
+DAY=$(date "+%d")
+[ $DAY -ge 8 -a $DAY -le 14 ] || exit        <- if $DAY greater than 8 and lesser than 14 the script will continue
+...rest of the script                        if not (|| means condition is false) it will exit
+
+
+it will check if a file older than a week and if yes, delete it:
+35 21 * * 0 /usr/bin/find /home/traffic/ -name "trace" -mtime +7 -exec /usr/bin/rm {} \\;
+
+
+leaving the cursor at the same position while counting:
+x=1
+while [[ $x -le 100 ]]; do
+   tput cub 20
+   print -n $x
+   (( x += 1 )
+done
+
+
+---------------------------------------------
+
+AIX: Script to get Total Disk Size
+Article Number: 264 | Rating: Unrated | Last Updated: Tue, Jun 12, 2018 9:07 AM
+Single Server
+
+Total Disk Size (hdisk)
+
+1
+for i in `lspv |awk '{print $1}'`; do bootinfo -s $i; done |awk '{s+=$1} END {print s}' |while read x; do echo $x/1024|bc; done
+Total Disk Size (hdiskpower)
+
+1
+for i in `lspv |grep hdiskpower |awk '{print $1}'`; do bootinfo -s $i; done |awk '{s+=$1} END {print s}' |while read x; do echo $x/1024|bc; done
+
+-------------------------------------------------
+
+AIX: Script to check if all paths are consistent and available
+Article Number: 263 | Rating: Unrated | Last Updated: Tue, Jun 12, 2018 9:05 AM
+Single Server
+
+1
+lspath | awk '{print $1,$NF}' |sort |uniq -c
+(OR)
+
+1
+2
+3
+4
+5
+for x in `lspath |awk '{print $2}' |sort -k1.6n |uniq`
+do
+status=`lspath -l $x`
+echo $status |sed 's/\ /,/g'
+done
+Multiple Server
+
+1
+2
+3
+4
+for i in `cat server`
+do
+ssh $i lspath | awk '{print $1,$NF}' |sort |uniq -c |awk -v MYHOST=$(ssh $i uname -n) '{print MYHOST " " $1,$2,$3}'
+done
+
+---------------------------------------------
+
+AIX: Script to create a file with commands to remove missing & failed paths
+Article Number: 262 | Rating: Unrated | Last Updated: Tue, Jun 12, 2018 9:02 AM
+To create a file with commands to remove the missing paths
+
+#!/bin/sh
+# rmpaths
+>xrmpaths
+echo "#!/bin/sh" >>xrmpaths
+disks=$(lspv | awk '{print $1}')
+for loop in $disks
+do
+lspath -l $loop -H -F "name:parent:connection:status" |grep Missing| awk -F: '{print "rmpath -dl",$1,"-p", $2, "-w", $3}'>>xrmpaths
+done
+ 
+
+To create a file with commands to remove the failed paths
+
+#!/bin/sh
+# rmpaths
+>xrmpaths
+echo "#!/bin/sh" >>xrmpaths
+disks=$(lspv | awk '{print $1}')
+for loop in $disks
+do
+lspath -l $loop -H -F "name:parent:connection:status" |grep Failed| awk -F: '{print "rmpath -dl",$1,"-p", $2, "-w", $3}'>>xrmpaths
+done
+
+---------------------------------------------------
+
+Understanding the AND && and the OR || Shell operators
+By Surya00:54No comments
+The UNIX/Linux shell has the very handy AND operator ("&&") and the OR operator ("||").   When you first encounter these, they can be difficult to understand.   But once you understand the logic behind the way they work they are much easier to use.
+
+The shell is lazy.  If you have two questions for it:  question1 and question2, and you ask it "Is question1 OR question2 True?".  The shell will figure out the answer for question1, and if the answer is true, it won't even look at question2 at all.   This is because we asked if one OR the other is true.   Since the first one is true, without even looking at question2 it can answer that YES, "Question1 OR question2 is true". 
+
+A similar concept applies to the "AND" statement.   If you asked:  "Is question1 AND question2 True?".   The shell will figure out the answer for question1, and if it is false, it doesn't even look at question2 at all.   This is because we asked if they were BOTH true and since the first one is false, there is no way they can both be true, so it won't even bother looking at the second question at all.
+
+If your not familiar with return codes on UNIX/Linux, a "0" return code is "TRUE" and a non-zero return code is "FALSE".  Every command you run has a return code when it exits.
+
+Due to this feature of these operators, it can open up some interesting possibilities.  Here are a few examples of how we can take advantage of this:
+id newuser || mkuser newuser
+In this example the first command run is the "id" command.  The id command returns a "TRUE" exit code ("0") if the account exists, and a "FALSE" exit code ("1") if the account doesn't exist. 
+
+If the "newuser" account doesn't exist, when this command is run the "id" command will return false.   Since we are asking "OR" in this statement, the shell MUST run the second command to see if it is true since the first command was false.   The end effect of this is the "mkuser" command will only be run if the "newuser" account doesn't exist. 
+
+If the "newuser" account does exist, when this command is run the "id" command will return true.  Since we are asking "OR" the shell doesn't need to run the second command at all (mkuser).   So if the account does exist, the mkuser command is NOT run.
+
+Here is another example of how to delete a directory if it exists:
+ [ -d /tmp/test ] && rm -rf /tmp/test
+In this example the first command ("[ -d /tmp/test]") returns TRUE if the directory exists, and FALSE if the directory does not exist.
+
+If the directory does exist, the first command returns true.   Since we specified "AND" the shell must run the second command to determine if both the first and second commands are true.  The result of this is the directory is deleted if it exists.
+
+If the directory does not exist, the first command returns false.   Since we specified "AND", and the shell knows the first command is false, there is no need for it to run the second command.  So if the directory does not exist, it will not run the command to delete it.  
+
+The "&&" and "||" operators can also be used in a more traditional way.   For example, you can check to see if 2 files exist using "&&" and an if statement like this:
+if [ -e /tmp/file1 ] && [ -e /tmp/file2 ]; then
+      echo both files exist
+fi
+
+The if statement is only run if both files exist.
+
+Below are tables that visually show how these operators work.   If it says "TRUE" it means that command returned a "0" return code.   If it says "FALSE" it means that command returned non-zero return code.   If it says "NOT RUN" it means the shell can answer the question without running this command so it isn't run.   The "Overall return code" is the return code the entire statement evaluates to.
+
+GREEN=Command Run	Yellow = Command NOT run
+First Command	Operator	Second Command	Overall Return code
+TRUE	&&	TRUE	0 TRUE
+TRUE	&&	FALSE	1 FALSE
+FALSE	&&	NOT RUN	1 FALSE
+GREEN=Command Run	Yellow = Command NOT run
+First Command	Operator	Second Command	Overall Return code
+TRUE	||	NOT RUN	0 TRUE
+FALSE	||	TRUE	0 TRUE
+FALSE	||	FALSE	1 FALSE
+
+It is also possible to have more than 2 commands strung together in these kind of statements (i.e.  command1 || command2 && command3).   Here is a table that shows how this looks:
+
+GREEN=Command Run	Yellow = Command NOT run 
+First Command	Operator	Second Command	Operator	Third Command	Overall Return code
+TRUE	&&	TRUE	&&	TRUE	0 TRUE
+TRUE	&&	TRUE	&&	FALSE	1 FALSE
+TRUE	&&	FALSE	&&	NOT RUN	1 FALSE
+FALSE	&&	NOTRUN	&&	NOT RUN	1 FALSE
+GREEN=Command Run	Yellow = Command NOT run 
+First Command	Operator	Second Command	Operator	Third Command	Overall Return code
+TRUE	||	NOT RUN	||	NOT RUN	0 TRUE
+FALSE	||	TRUE	||	NOT RUN	0 TRUE
+FALSE	||	FALSE	||	TRUE	0 TRUE
+FALSE	||	FALSE	||	FALSE	1 FALSE
+GREEN=Command Run	Yellow = Command NOT run 
+First Command	Operator	Second Command	Operator	Third Command	Overall Return code
+TRUE	||	NOT RUN	&&	TRUE	0 TRUE
+TRUE	||	NOT RUN	&&	FALSE	1 FALSE
+FALSE	||	TRUE	&&	TRUE	0 TRUE
+FALSE	||	TRUE	&&	FALSE	1 FALSE
+FALSE	||	FALSE	&&	NOT RUN	1 FALSE
+GREEN=Command Run	Yellow = Command NOT run 
+First Command	Operator	Second Command	Operator	Third Command	Overall Return code
+TRUE	&&	TRUE	||	NOT RUN	0 TRUE
+TRUE	&&	FALSE	||	TRUE	0 TRUE
+TRUE	&&	FALSE	||	FALSE	1 FALSE
+FALSE	&&	NOT RUN	||	TRUE	0 TRUE
+FALSE	&&	NOT RUN	||	FALSE	1 FALSE
+
+Conclusion
+
+The "&&" and "||" operators are very handy operators to use.   They can save you time and make shell scripting easier.  
+
+---------------------------------------------------
+
+Using traps in your scripts
+By Surya19:49No comments
+Using traps in your scripts
+Summary:  For scripts to be reasonably robust, one of the conditions that should ideally be met is the ability to clean up any temporary logs or processes left lying around from a forceful termination. Another element to consider is when an interrupt from a user is received, what appropriate action should be taken? With the shell built-in trap command and the logger utility, these can help to provide your scripts with more robustness when a script is forcefully terminated. In this article, I will demonstrate ways trap and logger can be used.
+
+When writing scripts, it is good practice to have a controlled exit from your script; this allows for failed conditions within the script processing. Consider a script that copies or replaces certain files in a file system. You could check if each copy completes successfully before moving on to the next task in the script. If issues occur, then the script exits. This allows the system administrator to inspect where the script failed so that immediate action can be taken to back-out the process or take an alternative action in completing the task.
+Listing 1 below contains basic conditional code that could achieve this goal. Using a file copy process as an example, a test is carried out to make sure the file run_pj actually exists. If it does, then a copy is carried out to take a backup of the destination file. If the copy is unsuccessful, then the script exits with a message, detailing the error. If the file is not present, then the script exits, as no more processing should be carried out. If the copy was successful, then the new updated file is copied and overwrites the original file. If this is not successful, then the script exits.
+Listing 1. Example_replace
+ 
+#!/bin/bash
+#
+proj_dir=/opt/pcake/bin
+# check file is present
+if  [ ! -f "$proj_dir/run_pj" ]
+then
+ echo " $proj_dir/run_pj not present...exiting"
+ exit 1
+fi
+ # make a backup copy
+cp -p $proj_dir/run_pj $proj_dir/run_pj.24042011
+if [ $? != 0 ]
+then
+echo "$proj_dir/run_pj no backup made...exiting"
+exit 1
+fi
+ 
+# copy  over updated file
+if [ ! -f "/opt/dump/rollout/run_pj" ]
+ then
+  echo "/opt/dump/rollout/run_pj not present...exiting"
+  exit 1
+fi
+cp -p /opt/dump/rollout/run_pj $proj_dir/run_pj
+if [ $? != 0 ]
+then
+echo " $proj_dir/run_pj was not copied..exiting"
+exit 1
+fi
+In this demonstration, I am using bash v3.2. The bash shell can be downloaded from the AIX Toolbox, see the Resources section.
+Using the approach in Listing 1, the script exits if there is any error in the copy process, thus not allowing the script to carry on processing if there is an error. Clearly, any error would be fixed before the script is run again.
+Another technique to check for errors and exit is to use the set option:
+set -e
+With the set option: -e, if a command fails (that is, it returns a non-zero exit status), the script exits (unless it is part of a iteration, &&, || command). The example shown in Listing 2 below, copies a non-existent file. The set -e option is used. If the copy command fails, the script exits. Notice that when you run the command, the if statement for the last exit status is never reached because the script exits upon a non-zero return status of the cp command.
+Listing 2. Example_fail
+#!/bin/bash
+set -e
+proj_dir=/opt/rollout/v12
+# copy a non-existent file
+cp $proj_dir/go_sup /usr/local/bin/go_sup
+ if [ $? != 0 ]
+ then
+echo "could not copy $proj_dir/go_sup to /usr/local/bin/"
+exit 1
+ fi
+
+$ cp_test
+cp: /opt/rollout/v12/go_sup: A file or directory in the path name does not exist.
+Generating syslog messages
+Using the logger command allows the shell and scripts to write messages to the system messages file via the syslogdservice. This can be used within a script to log errors or on completions of your processes so that is viewable by all who interrogate the messages file. Thus keeping you and other system administrators informed of events that have been generated from your scripts.
+The most basic format of the command is:
+logger -p priority message
+Where -p is the priority or facility level contained within syslog.
+For example, the following logger command contains the calling script name ("rollout" in this example) with the messagesomething has happened.
+logger -p notice "$(basename $0) - something has happened"
+The the following output appears in /var/adm/messages:
+Apr  5 13:20:30 uk01wrs6008 user:notice dxtans: rollout - something has happened
+Getting a signal
+The two examples contained in Listing 1 and Listing 2 shows one way that checking post command execution can be carried out. However, what happens if a script gets terminated during its execution? Scripts can be killed or terminated using the signal mechanism (note that not all signals sent are terminal). A signal that is sent to a running process interrupts that process to force some sort of event, typically some action. Signals can come from, but not restricted to:
+The kernel or user space via some system event.
+The actual process itself via the keyboard (Ctrl-C).
+An illegal instruction from within the process.
+Another process via another user sending a kill to your process.
+Notification via a notification of the state of a required device.
+To view the current list of signals, use kill -l (the letter l) command. The list is presented in the form (signal number, signal name):
+ $ kill -l
+ 1) SIGHUP       2) SIGINT       3) SIGQUIT      4) SIGILL
+ 5) SIGTRAP      6) SIGABRT      7) SIGEMT       8) SIGFPE
+ 9)SIGKILL     10) SIGBUS      11) SIGSEGV     12) SIGSYS
+…....
+…....
+To view the signals and their default actions (on an AIX machine), view the file:
+$ cat /usr/include/sys/signal.h|more
+…..
+…..
+#define SIGHUP     1    /* hangup, generated when terminal disconnects */
+#define SIGINT     2    /* interrupt, generated from terminal special char */
+#define SIGQUIT    3    /* (*) quit, generated from terminal special char */
+#define SIGILL     4    /* (*) illegal instruction (not reset when caught)*/
+#define SIGTRAP    5    /* (*) trace trap (not reset when caught) */
+#define SIGABRT    6    /* (*) abort process */
+…..
+…..
+I have received a signal. Now what?
+When a signal has been received by the script, the script can do one of three actions:
+Ignore it and do nothing. This is probably what most scripts do without the script authors realising it.
+Catch the signal using trap and take appropriate action.
+Take the default action.
+All the above is true except for the following signals:
+SIGKILL (signal 9)
+SIGSTOP (signal 17)
+SIGCONT (signal 19)
+These cannot be caught and always uses the default action. SIGKILL always kills the process. Looking at the listing from the/usr/include/sys/signal.h file, we see the default action for each signal. For instance, SIGINT (signal 2) is an interrupt generated from the terminal; typically, this is the keyboard. Each defined system signal has a different action. There are also two user defined signals: SIGUSR1 (signal 30) and SIGUSR2 (signal 31).
+It is up to the author of the script to take what action is required if any, if a signal is received.
+These can be used by the script author to do bespoke signals. Be sure to view the signal.h file for all the default actions.
+Common signals are:
+SIGHUP - hangup or exit a foreground running process from a terminal
+SIGINT - Ctrl-C from the keyboard
+SIGQUIT - Ctrl-\ from the keyboard
+SIGTERM - software termination signal
+When receiving a signal, actions that can take place are:
+cleaning up files
+prompting the users if the script should be actually terminated
+ignoring the actual signal
+carry on processing
+Catching a signal
+To catch a signal that is sent to your process, use the built-in trap command. When a signal is caught, the current command being executed attempts to complete before the trap command takes over. If it is a SIGKILL, then termination is immediate. If you ignore certain signals, the default action always take place. For example, if you only trap for SIGINT but do nothing aboutSIGQUIT, then if your process gets a SIGQUIT, the default action takes place (most likely an untidy termination of your script, which you probably do not want).
+The format of the trap command is:
+trap 'command_list'  signals
+Where command_list is a list of commands, which can include a function to run upon receiving a signal contained in the signals list. And, signals is a list of signals to catch or trap.
+To ignore a signal, use two single quotes in place of the command_list:
+trap ''  signals
+To reset a trap use:
+trap - signals
+Where signals is the signal list.
+Lets now look at a bare bones script that catches SIGINT and SIGQUIT. The script contained in Listing 3 below is a counter iteration script. When the user hits Ctrl-C or Ctrl-\ on the keyboard, the trap command traps the signal, and echoes a message that the script has terminated. The termination is accomplished by using the exit command at the end of the command list. If this is not done, the script does not terminate and continues processing. In this example, we want it to terminate. There may be occasions when this would not be the case and processing should continue.
+Listing 3. Trap1
+#!/bin/bash
+# trap1
+trap 'echo you hit Ctrl-C/Ctrl-\, now exiting..; exit' SIGINT SIGQUIT
+count=0
+
+while :
+ do
+   sleep 1
+   count=$(expr $count + 1)
+   echo $count
+ done
+
+$ trap1
+1
+2
+3
+^Cyou hit Ctrl-C/Ctrl-\, now exiting..
+It is considered good form that you use the signal names and not the signal numbers within the trap command. This is for portability reasons across other systems.
+You can also use a function in place of the command as demonstrated in Listing 4 below:
+Listing 4. Trap1a
+#!/bin/bash
+# trap1a
+trap 'my_exit; exit' SIGINT SIGQUIT
+count=0
+
+my_exit()
+{
+echo "you hit Ctrl-C/Ctrl-\, now exiting.."
+ # cleanp commands here if any
+}
+
+while :
+ do
+   sleep 1
+   count=$(expr $count + 1)
+   echo $count
+ done
+Signals can also be caught, when a script is running in the background. Listing 5 below, contains a simple counter as in the previous examples. In the following example, I have again chosen to exit the script upon catching the signal. If this was a file processing script, temporary files created would be deleted first.
+The script is submitted into the background using:
+$ /home/dxtans/trapbg &
+[1] 708790
+$ 1
+2
+3
+Now from another terminal, send a signal SIGHUP to kill it.
+$ ps -ef |grep trapbg
+ dxtans 708790 2457860 11:49:39 pts/0 0:00 /bin/bash /home/dxtans/trapbg
+$ kill -1 708790
+Now back on the terminal where the script was submitted, the following is displayed:
+$ /home/dxtans/trapbg &
+[1] 708790
+$ 1
+2
+3
+Going down on a SIGHUP - signal 1, now exiting..
+[1]+ Done   /home/dxtans/trapbg
+<
+Listing 5. trapbg
+#!/bin/bash
+# trapbg
+trap 'echo Going down on a SIGHUP - signal 1, now exiting..; exit' SIGHUP
+count=0
+while :
+do
+ sleep 10
+ count=$(expr $count + 1)
+ echo $count
+done
+The most common tasks when dealing with signals is to clean up temporary files. Typically, these are created with the PID (the script process pid) that are appended to the user created files in /tmp. Assume the temp files are in this form:
+hold1.$$
+hold2.$$
+A common command to remove these files is:
+rm /tmp/hold*.$$
+The following piece of code traps for SIGNHUP SIGINT SIGQUIT SIGTERM then remove the files:
+trap 'rm /tmp/hold*.$$; exit' SIGNHUP SIGINT SIGQUIT SIGTERM 
+Earlier in this article, I demonstrated that using set -e causes a script to terminate upon an occurrence on a non-zero exit status from a command. Within trap, you have a similar option; it is not really a signal as such but is based on set -e as if it was invoked. It traps a non-zero exit status from a command, using the ERR variable. The ERR goes with the signal list within the trap command. In the following example, a non-existent file is copied, which invokes an error:
+#!/bin/bash
+# trap1b
+trap 'echo I have error in my script..' ERR
+cp /home/dxtans/afile /tmp
+When executed, the output is:
+$ trap1b
+cp: /home/dxtans/afile: A file or directory in the path name does not exist.
+I have error in my script.
+    
+There are two variables that come in handy when dealing with traps to give you more information on the script termination,LINENO and BASH_COMMAND. The BASH_COMAMND is exclusive to bash. These report, or attempt to report, the line number that the script is currently executing, and also the current command that is running. The following example, Listing 6 below, demonstrates this. The script executes a list of echo and sleep commands. When the script is sent either a SIGHUP, SIGINT, SIGQUIT, the script terminates. A message displays containing the line number and command when the trap was caught; the script then exits (from the exit command on the trap command list). Notice that the trap calls the function my_exit to display the information. By parsing the parameters $1 (LINENO) and $2 (BASH_COMMAND), it also logs a message to /var/adm/messages of the event. Other clean up commands would be put in this function, if required.
+Listing 6. trap4
+#!/bin/bash
+# trap4
+
+trap 'my_exit $LINENO $BASH_COMMAND; exit' SIGHUP SIGINT SIGQUIT
+my_exit()
+{
+echo "$(basename $0)  caught error on line : $1 command was: $2"
+
+logger -p notice "script: $(basename $0) was terminated: line: $1, command was $2"
+ # cleanp commands here if any
+}
+
+echo 1
+sleep 1
+echo 2
+sleep 1
+echo 3
+Running this script a couple of times, and then interrupting at different intervals, produces the following output.
+$ trap4
+1
+2
+^Ctrap4  caught error on line : 15 command was: sleep
+
+$ trap4
+1
+^Ctrap4  caught error on line : 13 command was: sleep
+In /var/adm/messages, we have an entry for the script termination:
+Apr  6 12:12:46 rs6000 user:notice dxtans: script: trap4 was terminated: line: 13,
+ command was sleep
+There are occasions when you will want to ignore certain signals. Perhaps you wish to prevent someone hitting Ctrl-C or Ctrl-\ on the keyboard by mistake when your script is doing some processing on large files, and you wish it to complete, without user interruption. The following segment of code achieves this:
+trap '' SIGINT SIGQUIT
+You can also ignore certain signals during a portion of your script, then re-instate them later on when you do wish to catch the signals so you can take some form of action. The script contained in Listing 7 below ignores the signals SIGINT and SIGQUIT until after the sleep command has finished. Then when the next sleep command starts, trap takes action if the signals are sent and terminates. As in the previous examples, you can assume the sleep commands represent some form of processing.
+Listing 7. trapoff_on
+#!/bin/bash
+# trapoff_on
+
+trap '' SIGINT SIGQUIT
+echo "you cannot terminate using ctrl-c or ctrl-\, "
+# heavy pressing go on here, cannot interrupt !
+sleep 10
+
+trap 'echo terminated; exit' SIGINT SIGQUIT
+# user can now interrupt
+echo "ok you can now terminate me using those keystrokes"
+sleep 10
+Sending a signal to a child
+Scripts that contain child processes also need to be addressed. Assuming you wish to terminate any child processes, you need to kill these as well. This is accomplished using the trap command as demonstrated in Listing 8 below. In this example, two sleep commands are used as the child processes. These are put into the background; as each process is run, the PID of the process is placed into the variable: $pid. This variable holds the two PIDS of the child (sleep) processes.
+To kill the main script, either a SIGHUP,SIGINT,SIGQUIT or SIGTERM is sent. Upon catching this signal, a kill command is issued to the PID of the child processes contained in the variable $pid. Once completed, the script exits. The wait at the end of the script will wait for the child processes to terminate or complete. Further signal traps may be required that would be contained within the child scripts to do further cleaning up before exit. Clearly, this depends on your type of processing.
+The following example kills the children when the parent is sent one of the signals.
+Listing 8. trapchild
+#!/bin/bash
+# trapchild
+
+sleep 120 &
+
+pid="$!"
+
+sleep 120 &
+pid="$pid $!"
+
+echo "my process pid is: $$"
+echo "my child pid list is: $pid"
+
+trap 'echo I am going down, so killing off my processes..; kill $pid; exit' SIGHUP SIGINT 
+ SIGQUIT SIGTERM 
+
+wait
+Upon execution of the script, the following displays:
+$ /home/dxtans/trap/trapchild
+my process pid is: 6553626
+my child pid list is: 5767380 6488072
+Check from the terminal that the processes are running, along with the child processes (the two sleep commands).
+$ ps -ef |grep trapchild
+    root 6553626 5439516   0 20:51:32  pts/1  0:00 /bin/bash /home/dxtans/trap/trapchild
+$ ps -ef |grep sleep
+root 5767380 6553626   0 20:51:32  pts/1  0:00 sleep 120
+root 6488072 6553626   0 20:51:32  pts/1  0:00 sleep 120
+Let's now send a SIGTERM to the parent process. The script terminates and terminates the child processes.
+$ kill -15 6553626
+The script then terminates with the following output:
+$ /home/dxtans/trap/trapchild
+my process pid is: 6553626
+my child pid list is: 5767380 6488072
+I am going down, so killing off my processes..
+Check that nothing is returned after the termination:
+# ps -ef |grep sleep
+Conclusion
+Using traps within your scripts requires a little extra effort. The result can be that when a trappable signal is inbound to your script, you will be in a good position to take action.
+
+====================================================================================================>
+
+Using uuencode to embed binaries in scripts and copy/paste transfer files between servers
+By Surya01:04No comments
+The uuendiv utility converts binary to text, and uudediv converts the text back to binary.   Wikipedia has a great article on the details of how this proces works (http://en.wikipedia.org/wiki/Uuencoding) 
+
+These utilities create some interesting possibilities.    In this posting I'll cover embeding binary files in scripts and cover how to copy/paste transfer files between servers.
+Embeding binary files in a script
+If you have a script that also needs to include a binary file, you can uuendiv it and include it within the script itself.  So if you are writing a script to install/setup a binary you could actually also embed the binary within the script itself.   
+
+Here is an example of what this would look like:
+#!/usr/bin/ksh
+echo this script will extract a binary file
+echo the script could also do any other normal scripting stuff here
+
+uudediv -o /tmp/testbinaryfile << 'ENDOFFILE'
+<insert uuendiv output of the binary here>
+ENDOFFILE
+
+echo the /tmp/testbinaryfile has been extracted
+To get the uuendiv output of the binary run a command like this:   uuendiv /usr/bin/ls /dev/stdout .  Take the output and replace the "<insert uuendiv output of the binary here>" text in the example with the uuendiv output.  
+When the script runs, the file will be extracted.
+Copy/Paste transfer files across servers
+If you have a relatively small binary file that you need to transfer between servers, you can easily transfer it by copying and pasting it using uuendiv/uudediv.  This can be a time saver in some circumstances.   It also might be helpful if you have a server that isn't connected to the network but for which you can get a console on through something like the HMC. 
+
+In this example, we will copy and paste the /usr/bin/ls binary between servers. 
+
+On the source server, type:
+uuendiv /usr/bin/ls /dev/stdout
+Then copy all of the output in to the clipboard.
+
+On the destination server, type:
+uudediv -o /tmp/ls
+Then press enter, and then paste in the uuendiv output from the source server.   The copy/pasted "ls" binary will be saved to /tmp/ls.   You can verify the source and destination "ls" files are identical by comparing the checksum of the files with the "csum" command.  
+
+
+====================================================================================================>
+
+Check permissions for intermediate directories on Linux/UNIX when troubleshooting permission problems
+By Surya01:03No comments
+I've seen several Linux/UNIX system administrators struggle with a scenario like this one:
+A user reports to the administrator they are trying to "cd" in to a directory but keep getting permission denied:
+$ cd /tmp/level1/level2/level3/level4/level5/level6
+ksh: /tmp/level1/level2/level3/level4/level5/level6: Permission denied.
+As the root user, the administartor checks the permissions on the directory:
+# ls -ald /tmp/level1/level2/level3/level4/level5/level6
+drwxrwxrwx    2 root     system          256 Dec 19 20:11 /tmp/level1/level2/level3/level4/level5/level6
+The administrator see's the permissions are rwxrwxrwx (777) and can't figure out why the user is getting a permission denied message when they try to CD in to the directory.
+
+What is going on here?   In order for a user to CD in to any directory on the system, they must also have at least read and execute permissions on EVERY parent directory all the way down to the root of the filesystem (/).
+
+So in the example above the user can't access the directory because they don't have read and execute permissions on one of the parent directories.
+
+An easy way to quickly see all the parent directory permissions is to run this one-liner as root (change the dir= to the directory you would like to check)
+
+dir=/tmp/level1/level2/level3/level4/level5/level6; while [ "$dir" != "/" ]; do ls -ald $dir; dir=`dirname $dir`; done
+
+When I run this in this example scenario, I get this output:
+# dir=/tmp/level1/level2/level3/level4/level5/level6; while [ "$dir" != "/" ]; do ls -ald $dir; dir=`dirname $dir`; done
+drwxrwxrwx    2 root     system          256 Dec 19 20:11 /tmp/level1/level2/level3/level4/level5/level6
+drwxr-xr-x    3 root     system          256 Dec 19 20:11 /tmp/level1/level2/level3/level4/level5
+drwxr-xr-x    3 root     system          256 Dec 19 20:11 /tmp/level1/level2/level3/level4
+drwx------    3 root     system          256 Dec 19 20:11 /tmp/level1/level2/level3
+drwxr-xr-x    3 root     system          256 Dec 19 20:11 /tmp/level1/level2
+drwxr-xr-x    3 root     system          256 Dec 19 20:11 /tmp/level1
+drwxrwxrwt   17 bin      bin            4096 Dec 19 20:25 /tmp
+And I can quickly see the reason the user can't access  /tmp/level1/level2/level3/level4/level5/level6 is because the permissions on /tmp/level1/level2/level3 are too restrictive.  
+
+====================================================================================================>
+
+Script to Compare two files in and out
+By Surya12:52No comments
+In my day today activities  you may come across a situation where in you need to compare two files  either of below situations.
+
+Q:
+1)  List the entries which are in File A and not in File B
+2) List the entries which are in File  B and not in File A
+3) List the entries which are common in File A and File B
+4) List the entries merging both File A and File B contents  with out duplicates.
+Solution Shell Script:
+#!/bin/sh
+echo "Enter an Option from the below"
+echo "enter Option 1 : to choose records which are in first file not there in second file"
+echo "enter Option 2 : to choose records which are not there in first file and there in second file"
+echo "enter Option 3 : to choose records which are common in both the file"
+echo "enter Option 4 : to merge two files with unique records"
+read option
+echo "you have choosen option $option"
+echo "enter first file name"
+read first_file
+echo "$first_file"
+echo "enter second file name"
+read second_file
+echo "$second_file"
+echo "enter output file name"
+read output_filename
+
+#### to choose records which are in first file not there in second file
+
+fun_1(){
+sort $first_file>${first_file}_sorted
+sort $second_file>${second_file}_sorted
+comm -23 ${first_file}_sorted ${second_file}_sorted>${output_filename}
+}
+
+#### to choose records which are not there in first file and there in second file
+
+fun_2(){
+sort $first_file>${first_file}_sorted
+sort $second_file>${second_file}_sorted
+comm -13 ${first_file}_sorted ${second_file}_sorted>${output_filename}
+}
+
+#### to choose records which are common in both the file
+
+fun_3(){
+sort $first_file>${first_file}_sorted
+sort $second_file>${second_file}_sorted
+comm -12 ${first_file}_sorted ${second_file}_sorted>${output_filename}
+}
+
+#### to merge two files with unique records
+
+fun_4(){
+sort $first_file $second_file|uniq>${output_filename}
+}
+
+#### check whether both the input files are exists and regular files then only we can proceed
+
+if [ -f $first_file -a -f $second_file ];then
+echo "both files are exists and regular files"
+
+#### according to the chosen option function will be called
+
+if [ $option -eq 1 -o $option -eq 2 -o $option -eq 3 -o $option -eq 4 ];then
+fun_${option}
+rm -f ${first_file}_sorted ${second_file}_sorted
+else
+echo "choose proper option"
+fi
+
+else
+echo "mentioned input files are not correct "
+fi
+Execution &O/P
+bash-4.2$ cat a.txt
+ORANGE2009040910002|10|1
+GREEN200903304001052|1101|2
+GREEN200903304001053|1101|2
+GREEN200903304001054|1101|2
+GREEN200903304001055|1101|2
+ORANGE2009040910001|10|3
+ORANGE2009040910004|10|1
+ORANGE2009040910006|10|1
+ORANGE2009040910003|10|1
+ORANGE2009040910008|10|1
+ORANGE2009040910005|10|1
+ORANGE2009040910010|10|1
+ORANGE2009040910007|10|1
+ORANGE2009040910012|10|1
+GREEN200903304001052|1101|2
+GREEN200903304001053|1101|2
+GREEN200903304001054|1101|2
+GREEN200903304001055|1101|2
+
+bash-4.2$ cat b.txt
+ORANGE2009040910002|10|1
+ORANGE2009040910001|10|3
+ORANGE2009040910004|10|1
+ORANGE2009040910006|10|1
+ORANGE2009040910003|10|1
+ORANGE2009040910008|10|1
+ORANGE2009040910005|10|1
+ORANGE2009040910010|10|1
+ORANGE2009040910007|10|1
+ORANGE2009040910012|10|1
+GREEN200903304001008|1101|2
+GREEN200903304001007|1101|2
+GREEN200903304001010|1101|2
+GREEN200903304001009|1101|2
+GREEN200903304001011|1101|2
+GREEN200903304001012|1101|2
+GREEN200903304001014|1101|2
+
+Execution:
+
+bash-4.2$ comm.sh
+Enter an Option from the below
+enter Option 1 : to choose records which are in first file not there in second file
+enter Option 2 : to choose records which are not there in first file and there in second file
+enter Option 3 : to choose records which are common in both the file
+enter Option 4 : to merge two files with unique records
+3
+you have choose option 3
+enter first file name
+a.txt
+a.txt
+enter second file name
+b.txt
+b.txt
+enter output file name
+c.txt
+both files are exists and regular files
+
+bash-4.2$ cat c.txt
+ORANGE2009040910001|10|3
+ORANGE2009040910002|10|1
+ORANGE2009040910003|10|1
+ORANGE2009040910004|10|1
+ORANGE2009040910005|10|1
+ORANGE2009040910006|10|1
+ORANGE2009040910007|10|1
+ORANGE2009040910008|10|1
+ORANGE2009040910010|10|1
+ORANGE2009040910012|10|1
+
+====================================================================================================>
+
+Merging lines in two files
+By Surya13:24No comments
+merge 1st line file1  2nd line as 1st line of 2nd file 
+
+#! /bin/sh
+echo "enter the first file name"
+read first_file
+echo "enter the second file name"
+read second_file
+echo "$first_file  $second_file"
+echo "enter output file name"
+read out_file
+
+merge(){
+paste -d"\n" $first_file $second_file|sed -e '/^$/d'>$out_file
+}
+
+merge;
+
+
+I/P:
+
+cat file1
+aaa
+bbb
+ccc
+bash-4.2$ cat file2
+a
+b
+c
+d
+e
+
+execution:
+
+bash-4.2$ merge.sh
+enter the first file name
+file1
+enter the second file name
+file2
+file1  file2
+enter output file name
+out
+
+O/P:
+
+bash-4.2$ cat out
+aaa
+a
+bbb
+b
+ccc
+c
+d
+e
+
+======================================================================================================================================
+Unsuccess login 
+
+I made this script to check hopefully this helps someone else out:
+
+#!/bin/sh
+
+###############################################################################
+# Script Name: aix_chk_user_expires.sh
+#
+# Author: Chris Alderson
+#
+# Purpose: Check when a user expires in AIX
+#
+# NOTES: Please change the value of $oozer to the id you desire to check against
+#
+##############################################################################
+
+# Set value to specify a user
+
+oozer='SOCVA'
+
+#get epoch time for the time since last updated
+time_since_last_update_in_epoch=$(lssec -f /etc/security/passwd -s $oozer -a lastupdate | cut -d= -f2)
+#get the max age number of weeks from luser
+max_age=$(lsuser -f $oozer | grep maxage | cut -d= -f2)
+#multiply maxage by 7 to get number of days password will last
+max_age_in_days=$(echo $((( max_age * 7 ))))
+# multiply number of days by how many seconds in a day to get total seconds until change
+# We will use this later to add to $time_since_last_update_in_epoch
+max_age_in_epoch=$(echo $((( $max_age_in_days * 86400 ))) )
+# Create new variable to store the total of max age in seconds and epoch of updated password
+time_until_expires_in_epoch=$(echo $((( $max_age_in_epoch + $time_since_last_update_in_epoch ))))
+
+#take epoch times and pass them to perl to give them a readible format
+time_last_updated=$(perl -le 'print scalar localtime $ARGV[0]' ${time_since_last_update_in_epoch})
+
+
+if [[ $max_age -eq 0 ]]; then
+
+    time_of_expiration=$(echo "non-expiring password")
+else
+    ##take epoch times and pass them to perl to give them a readible format
+    time_of_expiration=$(perl -le 'print scalar localtime $ARGV[0]' ${time_until_expires_in_epoch})
+fi
+
+
+
+echo "${oozer}'s password last updated: $time_last_updated"
+echo "${oozer}'s password will expire: $time_of_expiration"
+Output looks like this:
+
+user's password last updated: Mon Jul 31 17:00:13 2017
+user's password will expire: Mon Oct 23 17:00:13 2017
+
+
+=========================================================================================================================================================================>
+
+bash-4.2$ cat /home/trickle/SBEDWPSFTP.sh
+#!/bin/bash
+DAT1=`date`
+cd /data/REPORTS_DATA/OAO/INCOMING
+TODAYDATE=`date +%Y%m%d`
+MON_YR=`date +%b" "%d`
+logfile="/data/REPORTS/SBIMOB_$TODAYDATE"
+echo "Script Started at $TODAYDATE"
+echo "-------------------------------"
+filecnt=`ls -ltr | grep "$MON_YR" |awk '{print $9}' |wc -l`
+if [ $filecnt -gt 1 ]
+then
+for i in `ls -ltr | grep "$MON_YR" |awk '{print $9}'`
+do
+cp -pr $i /data/users/polling/.
+echo $i >> SbiMobFileList.csv
+cd /data/users/polling
+/usr/bin/sftp inb@10.0.235.80 << EOF
+cd /data/INB/ftp
+lcd /data/users/polling
+put $i
+EOF
+done
+fi
+
+
+#0 7 * * * /usr/bin/sh /home/SBIINBfileupload.sh >>/tmp/SBIINBfileupload.txt
+
+=========================================================================================================================================================================>
+
+Established:
+#!/bin/bash
+Established=$(netstat -an |grep -i ESTABLISHED|wc -l)
+echo "host.Total_established,established=$Established 1" | /opt/dynatrace/oneagent/agent/tools/dynatrace_ingest --verbose
+
+Fin_wait:
+#!/bin/bash
+FIN_WAIT=$(netstat -an |grep -i fin_wait|wc -l)
+echo "host.Total_fin_wait,fin_wait=$FIN_WAIT 1" | /opt/dynatrace/oneagent/agent/tools/dynatrace_ingest --verbose
+
+Close_wait:
+#!/bin/bash
+Close_wait=$(netstat -an |grep -i closed|wc -l)
+echo "host.Total_close_wait,close_wait=$Close_wait 1" | /opt/dynatrace/oneagent/agent/tools/dynatrace_ingest --verbose
+
+
+#!/bin/bash
+ESTABLISHED_COUNT=$(netstat -an |grep -c ESTABLISHED)
+FIN_WAIT_COUNT=$(netstat -an |grep -c FIN_WAIT)
+CLOSED_COUNT=$(netstat -an |grep -c CLOSED)
+
+echo "host.netstat_connection_status,status=ESTABLISHED $ESTABLISHED_COUNT" | /opt/dynatrace/oneagent/agent/tools/dynatrace_ingest --verbose
+echo "host.netstat_connection_status,status=FIN_WAIT $FIN_WAIT_COUNT" | /opt/dynatrace/oneagent/agent/tools/dynatrace_ingest --verbose
+echo "host.netstat_connection_status,status=CLOSED $CLOSED_COUNT" | /opt/dynatrace/oneagent/agent/tools/dynatrace_ingest --verbose
+
+#!/bin/bash
+ZOMBIE_COUNT=$(ps -ef|grep -c defunc)
+if [ "$ZOMBIE_COUNT" -eq 0 ]
+then
+    ZOMBIES_FOUND="FALSE"
+else
+    ZOMBIES_FOUND="TRUE"
+fi
+echo "host.ingest_zombie_processes,zombies_present=$ZOMBIES_FOUND $ZOMBIE_COUNT" | /opt/dynatrace/oneagent/agent/tools/dynatrace_ingest --verbose
+
+
+
+ansible -i copy.txt all -m shell -a " lsvg -l rootvg;lsvg -l datavg " -b > ping.txt
+ansible -i list_pv.txt all -m ping > ping.txt
+ansible -i copy.txt all -m shell -a " echo '+++++++++++ds_agent_status++++++++++++';lssrc -s ds_agent;echo '+++++++++++ds_agent_version++++++++++++'; lslpp -l |grep -i ds_agent " -b >ping.txt
+ansible -i copy.txt all -m shell -a "echo '+++++lspv++++++';lspv;echo '+++++rootvg++++++';lsvg -l rootvg;echo '+++++datavg++++++';lsvg -l datavg " -b > ping.txt
+
+cognos
+
+
+admin
+Adminjenkin@123
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+=========================================================================================================================================================================>
+
+
+
+
