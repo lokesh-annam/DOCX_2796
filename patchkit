@@ -1,0 +1,289 @@
+===================AIX Patching=====================
+Step1:- 
+	Need to download package in IBM Portal.
+	https://www.ibm.com/support/fixcentral/aix/entitlementInformation
+	Machine Type: 9119
+	Machine Serial Number: 84C5697 
+Step2:-
+	Take the pre-checks.
+	./scripts/serverinfo.sh
+#!/bin/bash
+date=`date +%H%M_%d%m%y`
+if [ ! -e /scripts/logs ]
+then
+        mkdir /scripts/logs
+fi
+log="/scripts/logs/serverinfo_$date"
+date | tee -a $log
+lssrc -a -h $HOSTNAME | tee -a $log
+	
+	# oslevel -s
+	# df -gt;df -gt | wc -l
+	# lspv;lspv | wc -l 
+	# lsvg -l rootvg;lsvg -l rootvg | wc -l 
+	# netstat -nr; netstat -nr | wc -l 
+	# which java
+	# java -version
+	
+Step3:-
+	# mksysb -ieX /mksysb_backup_UAT/lokesh/`hostname`_`date +%d%m%Y-%H%M`.mksysb  -->Taking backup
+	
+	/etc/exclude.rootvg 
+	^./var/tmp/*
+	^./audit/tempfile*
+Step4:-
+	If it is mirroring we need to un-mirror the rootvg: 
+	# lspv
+	# lsvg -l rootvg
+	# lsvg -p rootvg
+	# unmirrorvg rootvg -->un-mirror rootvg.
+	# lspv -l hdisk$ -->After mirroring checked the list of pvs.
+	# migratepv hdisk$ hdisk$ -->if any files are left we need to move the inactive disk to active disk.
+	# migratepv -l <lv_name> hdisk# hdisk#
+	# chpv -c hdisk# -->clear the bootimage of the inactive hard disk.
+	# lsvg -p rootvg
+	# reducevg rootvg hdisk$ -->Remove the hdisk from the rootvg disk. 
+	# lsvg -p rootvg
+	# alt_disk_copy -d hdisk$ -B -->Take the alt clone on hdisk. 
+	# lspv  		-->Confirm the "altinst_rootvg" created on hdisk.
+	# alt_rootvg_op -W -d hdisk$		-->Wake-up the alt_clone disk.
+	# chroot /alt_inst /usr/bin/oslevel -s	-->Check the osversion on wake-up disk.
+	# alt_rootvg_op -S		-->Sleep the alt_clone_disk
+	# bootinfo -b
+	# bootlist -m normal -o
+	# bootlist -m normal hdisk0 -->Bootlist order should be rootvg. (Change the bootlist to hdisk# remember alt_disk reside on hdisk#)
+	# bootlist -m normal -o
+	# bosboot -ad /dev/hdisk$	--> Run the bootimage on rootvg (hdisk$)
+	# bootinfo -s hdisk
+	
+	If it is already in Un-mirror state: 
+	# alt_disk_install -X altinst_rootvg -->removing the altclone.
+
+Step5:-
+	# smitty update_all		-->Do the preview first and commit next, once done follow below.
+	# shutdown -Fr now		-->For fast reboot. Once done the update need to reboot the server.
+
+	# lppchk -vm3			--> Check if ang broken fixes are there.
+	# lppchk -v				-->No output should displayed, only the prompt.
+	# instfix -i |grep ML		-->Confirm the new TL level are consistent.
+	
+	# smitty commit 			-->commit all the old applied filesets.
+	# install -p 				-->check if any os filesets in applied mode.
+		EX: installp -a -d/tmp/AIX_Lib/xlC.adt.include.16.01.0000.0003.bff
+	# mount <nim_server>:		-->mount directory which hold the TL package
+	<package holding directory> /mnt
+	
+INSTALL IFIXS:-
+	# emgr -P	--> List the installed IFIX 
+	# emgr -l	--> 
+	# emgr -r -L <efixlabel>	--> Remove the installed IFIX 
+	# emgr -e <efixlabel>	--> Install IFIX
+	
+
+	
+
+==================================================================================================	
+MIRRORING:- 
+		
+	# lspv
+	# lsvg -l rootvg
+	# lsvg -p rootvg
+	# lscfg -vpl hdisk#
+	# extendvg -f vg_name pv_name 
+		EX: # extendvg -f rootvg hdisk0
+	# mirrorvg -S vg_name pv_name
+		EX: # mirrorvg -S rootvg hdisk0
+	# mirrorvg -S -c 3 vg_name 		<-- We can do the mirroring will 
+	# lsvg rootvg | grep -i stale
+	# mirrorvg -s datavg
+	# lsvg datavg | grep -i stale
+	# bootinfo -b
+	# bootlist -m normal -o
+	# bootlist -m normal hdisk0 -->Bootlist order should be rootvg. (Change the bootlist to hdisk# remember alt_disk reside on hdisk#)
+	# bootlist -m normal -o
+	# bosboot -ad /dev/hdisk$
+	
+	
+===================================================================================================	
+UN-MIRRORING:-
+	# lspv 
+	# lsvg -l rootvg 
+	# lsvg -p rootvg
+	# unmirrorvg rootvg 
+	# lspv 
+	
+
+===================================================================================================	
+
+	# netstat -Aan |grep 8080
+		111/2049 -->NAS Port No	
+	# sysdumpdev -s /dev/sysdumpnull		-->if secondary dump device rsides on hdisk1.
+	# rmlv dump_lv		-->Remove the dump lv.
+
+	# mkgroup -a id=9 users=lp printq
+	# smitty install_all
+	ecs+4 
+	bos.rte.printers
+	/ -->search
+	past name
+
+	# find . -name 'pacct*' -type f -mtime +250 -exec rm -rf {} \;
+
+	# /usr/java8_64/jre/lib/security#cp -R cacerts /sysmonlogs/lokesh/
+
+java backup:-
+cp -pr /usr/java8_64 /usr/java8_64_bkp_24Feb2025
+cp -pr /usr/java8 /usr/java8_bkp_24Feb2025
+cp -pr /etc/java8_64 /etc/java8_64_bkp_24Feb2025
+cp -pr /etc/java8 /etc/java8_bkp_24Feb2025
+cp -pr /etc/java8_64/jre/lib/security /etc/java8_64/jre/lib/security_bkp_24Feb2025
+cp -pr /etc/java8/jre/lib/security /etc/java8/jre/lib/security_bkp_24Feb2025
+
+tar -cvf /Sit_sysmonlogs/rakesh/AIX_BKP_migration_24Feb2025/Java_Bkp/7200-TL05-SP7/`hostname`_`date +%d%m%Y-%H%M`_usr_java8_64bkp.tar /usr/java8_64
+tar -cvf /Sit_sysmonlogs/rakesh/AIX_BKP_migration_24Feb2025/Java_Bkp/7200-TL05-SP7/`hostname`_`date +%d%m%Y-%H%M`_Security_bkp.tar /etc/java8_64/jre/lib/security/
+tar -cvf /Sit_sysmonlogs/rakesh/AIX_BKP_migration_24Feb2025/Java_Bkp/7200-TL05-SP7/`hostname`_`date +%d%m%Y-%H%M`_etc_java8_64_bkp.tar /etc/java8_64
+
+Route add: 
+route add -net 10.189.115.146 -netmask 255.255.255.128 10.176.243.1
+route add -net 10.189.115.145 -netmask 255.255.255.128 10.189.115.184
+route add -net 10.189.115.148 -netmask 255.255.255.128 10.176.243.1
+route add -net 10.189.110.23 -netmask 255.255.255.128 10.176.242.1
+route add -net 10.189.110.22 -netmask 255.255.255.128 10.176.242.1
+route add -net 10.189.115.147 -netmask 255.255.255.128 10.189.115.184 
+route add -net 10.176.200.128 -netmask 255.255.255.128 10.176.243.1
+route add -net 10.176.200.141 -netmask 255.255.255.128 10.176.243.1
+route add -net 10.176.200.142 -netmask 255.255.255.128 10.176.243.1
+route add -net 10.176.200.133 -netmask 255.255.255.128 10.176.243.1
+route add -net 10.176.200.134 -netmask 255.255.255.128 10.176.243.1
+route add -net 10.176.195.204 -netmask 255.255.255.128 10.176.242.1
+
+route delete -net 10.189.115.147 -netmask 255.255.255.128 10.189.115.184
+route delete -net 10.189.115.148 -netmask 255.255.255.128 10.176.243.1
+
+https://community.ibm.com/HigherLogic/System/DownloadDocumentFile.ashx?DocumentFileKey=806ebc79-309d-170a-46bd-1ade793b2004&forceDialog=1
+
+https://www.ibm.com/support/pages/aix-toolbox-open-source-software-downloads-date <-- AIX Softwares
+
+emgr -e /sysmonlogs/lokesh/AIX_7.3_IFIX/libxml2_fix6/IJ50601s1a.240409.epkg.Z
+emgr -e /sysmonlogs/lokesh/AIX_7.3_IFIX/sendmail_fix4/IJ50428s1a.240315.epkg.Z
+emgr -e /sysmonlogs/lokesh/AIX_7.3_IFIX/kernel_fix7/IJ50934s1a.240418.epkg.Z
+
+
+emgr -e /Sit_sysmonlogs/lokesh/AIX_7.3_IFIX/libxml2_fix6/IJ50601s1a.240409.epkg.Z
+emgr -e /Sit_sysmonlogs/lokesh/AIX_7.3_IFIX/sendmail_fix4/IJ50428s1a.240315.epkg.Z
+emgr -e /Sit_sysmonlogs/lokesh/AIX_7.3_IFIX/kernel_fix7/IJ50934s1a.240418.epkg.Z
+
+Please share the proper details otherwise we close this by EOD
+
+MACs hmac-sha1,hmac-sha2-256,hmac-sha2-512,umac-64@openssh.com,umac-128@openssh.com,hmac-sha1-etm@openssh.com,hmac-sha2-256-etm@openssh.com,hmac-sha2-512-etm@openssh.com,umac-64-etm@openssh.com,umac-128-etm@openssh.com
+
+stopsrc -s sshd;startsrc -s sshd
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
