@@ -1,0 +1,13 @@
+Scheduling
+crontab
+Submits, edits, lists, or removes cron jobs for the cron daemon. The cron daemon logs its activities in /var/adm/cron/log. 
+Each crontab file entry contains six fields: minute hour day_of_month month weekday command
+crontab -l : lists the user's crontab file.
+crontab -e : edit the crontab file using an intermediate copy.
+at
+Runs commands at a later time.
+at -l : reports the current user's scheduled jobs.
+batch
+Runs jobs when the system load level permits.
+skulker
+Cleans up file systems by removing unwanted files. Remove the comment from the skulker entry of the root crontab to enable operation.
