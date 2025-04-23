@@ -1,0 +1,222 @@
+Chapter 9 : Device Management
+
+Device Terminology, Types of Devices, Device Configuration Databases, Configuration Manager (cfgmgr command),device Management commands, 
+Device States, Remove a device Configuration, Modifying an existing device configuration,
+
+# lsdev		--> displays general information about the logical and physical devices on the system.
+	#lsdev 	--> To display the total system devices
+	it will display the 4 fields
+	1) device name
+	2) state of device
+	3) location code of device
+	4) description of the device
+	DEVICE CLASS NAMES:
+	harddisks Class name is "disk" (hdisk0, hdisk1)
+	adapters class name is "adapter" (ent0, ent1, fcs0 fcs1, scsi0 )
+	cd-roms class name is "cdrom" (cd0, cd1, cd2)
+	processors class name is "processor" (proc0, proc1, proc2)
+	mother board - sys (sys0)
+	tape drive class name is "tape" (rmt0, rmt1, rmt2)
+	Memory 	--> mem (mem0, mem1)
+
+	-C - Devices defined in the ODM database (existing within the system).
+	-P - Predefined devices (all that the system can handle). In other words, a list of built-in device drivers.
+	-c device_class - Shows only devices of a certain class, such as disk, bus, adapter, or if.
+	-H - Displays the header.
+	# lsdev -P 	--> To display the total pre-defined devices models in the system.
+	# lsdev -C 	--> To display the total added devices in the system.
+	# lsdev -Pc <class name>
+	# lsdev -Cc <class name>
+	# lsdev -Pc disk 	--> To display system support disk models
+	# lsdev -CH 
+	# lsdev -Cc disk	--> To display the present added disks to the system.
+	# lsdev -Pc cdrom 	--> To dispay the supported cdrom models.
+	# lsdev -Cc cdrom 	--> To display the present added cdroms.
+	# lsdev -Cc sys 	--> to display the mother board
+	# lsdev -Cc processor	 --> To display the processors
+	# lsdev -Cc tape 	--> To display the tape drives.
+	# lsdev -Cc adapter |grep ent* 	--> To list the ethernet adapters and their status.
+	# lsdev -Cc if 	--> To list the Network interfaces and their status.
+
+Parent & Child Devices:
+	# lsdev -l <devicename> -F parent -> To display parent device.
+	# lsdev -l ent0 -F parent	-->above example pci3 is parent device of ent0 device.
+	# lsdev -p <devicename> --> To display the child devices of the parent device.
+
+# lsattr 	-->  displays the parameters of devices, some of which can be changed using the chdev command.
+			-E - Displays the currently set values.
+			-D - Displays the default values for the device.
+			-R - Displays the range of values that can be assigned to the individual attribute of the device.
+			-l deviceName - Specifies what device the command applies to. This is a mandatory parameter.
+			-a attribute - Specifies the attribute to which the command applies.
+	# lsattr -El <devicename>
+	# lsattr -El hdisk0
+	# lsattr -Rl hdisk0 -a queue_depth
+	1...256 (+1) #The parameter can range from 1 to 256 with a jump of 1.
+	# lsattr -Dl hdisk0 -a queue_depth
+	queue_depth 8 Queue DEPTH True #The default value of queue_depth for this device is 8.
+	# lsattr -El sys0
+	
+# lscfg 		--> displays detailed information about the devices in the system.
+				This way, we can determine the serial numbers vital product data (VPD) information of the devices in the system, their firmware versions, and their manufacturer
+				-v - Detailed information about the devices.
+				-p - Additional platform-specific information.
+				-l deviceName - Specifies the device to use in the command (without this parameter, all the devices are used).
+	lscfg -vpl <devicesname> --> To display the VPD information for the device.
+	# lscfg -vpl fcs0
+	
+# prtconf		-->  displays the system information in the most user-friendly manner.
+	# prtconf
+
+# lparstat
+	# lparstat -i	--> for the application, you can easily read its settings at the operating system level.
+
+# vmstat
+# cfgmgr		--> This command we will use to scan the new devices, which are added to the system.
+	Ex: # cfgmgr
+		# cfgmgr -l <devicename> --> To scan the particular device
+		# cfgmgr -v -> To scan new configure devices in verbose mode
+# rmdev			--> By using rmdev command we can remove the devices from the ODM/OS/system.
+					NOTE: The device should empty before delete.
+	Ex:	# rmdev -dl <devicename>	--> To remove the device from the OS/ODM
+		# rmdev -l <devicename> 	--> To move the device into defined state.
+		# cfgmgr -l <devicename>	--> To move the device from defined to available state.
+		# rmdev -Rdl <parentdevice> --> To delete parent device and child devices at a time.
+
+# chdev			--> By using chdev command we change the devices attributes values or settings.
+		# chdev -l <devicename> -a <attribute=value>
+		Note: while changing attributes if we got device busy error, we need to run below command to change the attributes.
+		# chdev -l <devicename> -a <attribute=value> -P --> This command will update on only ODM. after reboot the system it will reflect on the device.
+# diag 			--> we can replace the devices remotly from the Data Centers.
+# entstat		-->
+	
+Ex:
+On one of the Aix server (aix1) located on USA, we need to replace the failed device (hdiskX, 
+entX, cdrom etc). from India on aix1 server, how to perform this activity.
+1) First we have to collect the device loction code, model number, serial number, port number 
+and provide the details to DC Technician.
+2) We need to ensure the device should be empty not used by any resources.
+3) We can replace the device by using diag command by using below commands.
+a) #diag
+b) Click on enter key to continue
+c) Select the " Task Selection " option
+d) Select the "Hot Plug Task" option
+e) Select the "SCSI device" option for the hard disks
+F) Replace/Remove a Device Attached to an SCSI Hot Swap Enclosure Device
+G) Select failed "disk or device" which is need to be replace.
+h) Finally click on enter butten, the diag command will remove the device by using rmdev 
+command from ODM.
+and yellow color LED light will blinking on top of the disk.
+on "h" step we should not exit from the diag command untill confirmed by the DC Technician. 
+once DC technician confirmed after replace the failed disk with new one. we can exit from diag 
+by select the F10 option.
+While existing from the diag command, automatically diag command will scan the new disk.
+Note: if device hot swapable, Server downtime not required to replace the devices.
+if device non-hot swapable, Server downtime required to replace the devices.
+
+SMT (SIMULTANEOUS MULTITHREADING)
+SMT feature is available from P5 servers, if we enable SMT to any server/LPAR single physical 
+processor will become two logical processors.
+#smtctl -m <mode> -w <when>
+#smtctl -m on -w now --> To enable smt now
+#smtctl -m on -w boot --> To enable smt after reboot the server
+#bindprocessor -q (or) #sar --> To check the total logical Processors in system 
+#smtctl -m off -w now --> To disable SMT now
+#smtctl -m off -w boot --> To disable SMT after reboot system.
+#lsattr -El proc0 -> To check the SMT enabled or not and smt threads we can verify.
+
+# lsconf			--> 
+
+Available hardware platforms: MCA-based uni-processor models (rs6k), 
+                              MCA-based symmetric multiprocessor models (rs6ksmp), 
+							  ISA-bus models (rspc), PCI-bus models (CHRP). 
+AIX V5.2 is not supported on MCA and PReP architecture hardware. The "AIX Statement of Direction" gives a complete list of unsupported models.
+
+lscfg						<--Displays configuration, diagnostic and VPD information about the system.
+								lscfg -vp  : Displays the system model, machine serial, processor type, number of processors, processor clock speed, cpu type, total memory size, network information, filesystem information, paging space information, and devices information.
+								lscfg | grep proc | wc -l : lists the # of processors.
+
+prtconf or lsconf			<--Displays system configuration information.
+								prtconf -s : displays the processor clock speed.
+								prtconf -k : displays the kernel type in use.
+								prtconf -m : displays memory.
+
+snap						<--Gathers system configuration information.
+								snap -a : gathers system configuration information. The output is written to the /tmp/ibmsupt directory.
+
+uname						<--Displays the name of the current operating system.
+								uname -a : displays the machine ID and version banner.
+								uname -x : displays the operating system in use, the host name, the machine ID number of the hardware, the release number of the operating system, the operating system version and the system model name.
+
+mach						<--Displays the processor architecture of the machine.
+
+getconf						<--Displays system configuration variable values.
+								getconf HARDWARE_BITMODE : displays hardware bit mode (64 or 32 bit).
+								getconf KERNEL_BITMODE : displays kernel bit mode (64 or 32 bit).
+								getconf DISK_SIZE /dev/hdisk2 : displays disk size in MB.
+								getconf REAL_MEMORY : displays real memory size in MB.
+
+cfg2html					<--A system configuration to HTML converter (Open Source)
+
+file						<--Determines the file type.
+								file prog : displays user process bit mode of program prog. Returns:
+								executable (RISC System/6000) or object module not stripped (32 bit program),
+								or 64-bit XCOFF executable or object module not stripped (64 bit program).
+								file /unix : the returned link shows which kernel is running: unix_up = 32-bit uniprocessor kernel, unix_mp = 32-bit multiprocesssor kernel, unix_64 = 64-bit multiprocessor kernel.
+
+cfgmgr						<--Configures devices by running the programs in /etc/methods directory and optionally installs device software.
+								cfgmgr : runs the Phase 2 configuration rules (second boot phase for normal boot) (same as using the -s flag).
+								cfgmgr -v : makes devices available that where not powered on when the system started.
+								cfgmgr -l scsi1 : configures detected devices attached to the scsi1 adapter.
+								cfgmgr -i /usr/sys/inst.images : installs device software (using the directory /usr/sys/inst.images) automatically during configuration.
+
+chcons						<--Redirects the system console to device or file, effective next startup.
+								chcons -a login=enable /dev/tty0 : changes the system console to device /dev/tty0. Use /dev/lft0 for the default LFT display.
+								chcons /tmp/console.out : redirects the system console to file /tmp/console.out.
+
+lsdisp						<--Lists the displays and the default display currently available on the system.
+
+chdisp						<--Changes the display used by the LFT subsystem.
+								chdisp -p gda1 : changes the default display permanently to gda1.
+
+lsattr						<--Displays attribute characteristics and possible values of attributes for devices in the system.
+								lsattr -EHl sys0l sys0 : displays system attributes (realmem ...)
+								lsattr -EHl proc0 : displays the state, type and frequency of processor proc0.
+								lsattr -El rmt0 : lists the current attribute values for the tape device rmt0.
+								lsattr -El tty0 -a speed : lists the current value of the speed attribute for serial port tty0.
+
+lsdev						<--Displays devices in the system and their characteristics.
+								Examples:
+								lsdev -P -H : lists the Predefined (supported) Devices (in the PdDv object class).
+								lsdev -C -H : lists the Customized (configured/defined) Devices (in the CuDv object class).
+								lsdev -C -c disk : lists all the PVs (class disk) in the system along with the status and location code.
+
+listdgrp					<--Displays devices in a device class.
+								listdgrp disk : list the devices in the disk class.
+
+getdev						<--Lists devices that match the specified criteria.
+								getdev type=proc_rspc : lists all devices of type proc_rspc.
+
+getdgrp						<--Lists device classes that match the specified criteria.
+								getdgrp : display all device classes.
+
+chdev						<--Changes a device's characteristics.
+								chdev -l hdisk2 -a pv=yes : assigns a PVID to hdisk2.
+								chdev -P -l ent2 -a media_speed=Auto_Negotiation 
+								Setting jumbo frames on en2 looks like:
+								ifconfig en2 down detach
+								chdev -l ent2 -a jumbo_frames=yes
+								chdev -l en2 -a mtu=9000
+								chdev -l en2 -a state=up
+
+mkdev						<--Adds a device to the system.
+								mkdev -l hdisk2 : make the already defined disk device hdisk2 available to use.
+								mkdev -l hdisk1 -a pv=yes : makes an available disk a PV (assigning a PVID), if it does not already have one.
+								mkdev -c tty -t tty -s rs232 -p sa0 -w s1 -a login=enable -a term=ibm3151 : adds an ibm3151 RS232
+								terminal using adapter sa0 port s1 with login enabled.
+
+rmdev						<--Removes a device from the system.
+								rmdev -l tty0 -d : removes the tty0 device definition from the CuDv object class (ODM).
+								rmdev -l hdisk1 : unconfigures PV hdisk1 and changes its state from available to defined (definition is not removed from the CuDv object class (ODM).
+								 
+ 
