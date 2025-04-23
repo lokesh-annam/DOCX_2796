@@ -1,0 +1,20 @@
+#!/bin/ksh
+#Break the Mirror & Perform alt clone:
+#************************************
+for i in `lsvg -p rootvg |tail -1 |awk '{print $1}'`; do
+echo $i; unmirrorvg rootvg $i;reducevg rootvg $i;alt_disk_copy -d $i -B;lspv ;
+done
+
+#Verify alt_clone
+#**********************
+for j in `lspv |grep -i altinst_rootvg |awk '{print $1}'`; do
+echo $j; alt_rootvg_op -W -d $j;chroot /alt_inst /usr/bin/oslevel -s;chroot /alt_inst /usr/bin/lppchk -vm3;alt_rootvg_op -S;
+done
+
+
+#bosboot_on rootvg disk
+
+for k in `lspv |grep -w rootvg |awk '{print $1}'`; do
+echo $k;bosboot -ad /dev/$k
+done
+
