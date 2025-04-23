@@ -1,0 +1,273 @@
+===========ANSIBLE:-========================>
+Ansible is configuration management tool.
+It contains:-
+1. Variable
+2. Tasks
+3. Files
+4. Templates
+5. Modules 
+6. Handlers
+
+# ssh-keygen		--> It'll generate the private & public key.
+# ssh-copy-id -i ~/.ssh/mykey user@host
+.ssh/authorized_keys	--> 
+/etc/ansible/hosts		-->
+/etc/ansible/ansible.cfg	--> 
+ansible <ip_name or ip_group_name> -m ping
+ansible -i <inventry_name> <ip_name or ip_group_name> -m ping
+ansible-playbook -i text_file.txt yml_file.yml
+ansible-playbook -i backup.txt backup.yml
+
+
+ansible-playbook <playbook.yml> --syntax-check
+ansible-playbook user_lock.yml  --syntax-check
+ansible-playbook backup.yml  --syntax-check
+	-become		--> Become sudo access 
+	-e 		--> additional argument (status=diabled)
+	-c or --check 		--> You can use check mode to test playbooks before implementing them in a production environment.
+	
+	--syntax-check		-->
+
+===============================================================>
+						AD-HOC
+===============================================================>
+One task in one machine(localhost) DONE
+One task in one remote machine 	   DONE 
+One task in multiple remote machines using Inventory	DONE 
+One task in multiple remote machines using group in Inventory	DONE 
+
+	-m --> module name (Command)
+	-a --> Arguments of the module
+	-i --> Inventory name
+	-b --> Sudo privilizes 
+	--ask-become-pass	-->
+	--syntax-check		-->
+	
+ansible -i text_file.txt all -m shell -a "lsdev -Cc adapter" -b > text_file.txt
+ansible -i 10.189.112.22 -m file -a "path=/tmp/testfile state=touch mode=0444 group=group_name owner=owner_name"
+ansible -i backup.txt all -m shell -a "chsec -f /etc/security/login.cfg -s usw -a shells=/usr/bin/bash,/bin/sh,/bin/bsh,/bin/csh,/bin/ksh,/bin/tsh,/bin/ksh93,/bin/bash,/usr/bin/sh,/usr/bin/bsh,/usr/bin/csh,/usr/bin/ksh,/usr/bin/tsh,/usr/bin/ksh93,/usr/bin/rksh,/usr/bin/rksh93,/usr/sbin/uucp/uucico,/usr/sbin/sliplogin,/usr/sbin/snappd,/usr/bin/false; cat /etc/security/login.cfg | grep -i shells  " -b > ping.txt
+ansible -i DC_Servers_List.txt all -m shell -a "lspv ; df -gt | awk '$5 > 70 {print $0}' " -b > ping.txt
+ansible -i mountpoint_chk.txt all -m shell -a "df -gt ; cat /scripts/mntall " -b > ping.txt
+ansible localhost -m yum -a "name=httpd state=installed"
+ansible localhost -m copy -a "src=index.html dest=/var/www/html"
+ansible localhost -m service -a "name=httpd state=started" 
+
+========================================================================>
+Modules: 
+
+acl: access control list
+	-a 'path=/etc/foo.conf entity=joe etype=user permissions=r default=yes entry=default:user:joe:rw- state=present state=absent'
+archive: Creates a compressed archive of one or more files or trees
+assemble: 
+at: 
+authorized_key:
+copy: 
+	-a 'src=/tmp/textfile.txt dest=/home/'
+cron: 
+dnf: 
+debug: To print a msg
+	-a 'msg=Hello' 
+file: Set attributes of files, symlinks or directories.
+	-a 
+filesystem: Makes a filesystem
+find: Return a list of files based on specific criteria
+firewalld: Manage arbitrary ports/services with firewalld
+	-a 'service=httpd port=8080/tcp 161-162/udp zone=dmz/trusted/custom/drop/public permanent=yes state=enabled/disabled
+group: Add or remove groups
+hostname: Manage hostname	
+lineinfile: Manage lines in text files
+	-a 'path: /etc/selinux/config regexp: '^SELINUX=' line: SELINUX=enforcing state: absent insertafter: '^#Listen ' insertbefore: '^www.*80/tcp' backrefs: yes validate: /usr/sbin/visudo -cf %s create: yes owner: root group: root mode: '0644' ' 
+service: The state of a service that is service is running we use the service module.
+	-a 'name=httpd state=started enabled: yes' -become
+setup: To see the info of all the hosts, their configuration, and detailed info.
+shell: Run the UNIX Command.
+	-a 'ls -la'
+yum: Install a Software package.
+	-a 'name= httpd state=present' -become -u user_name
+	NOTE: -become can be used instead of -s in new version of ansible after version 2.6
+=======================================================================>
+					VARIABLES 
+=======================================================================>
+i. Built-in variables
+ii. Custom variables
+Variable can be defined by using vars keyword.
+Variable:- 
+	vars:
+      salutation: Hello World!
+	tasks:
+	- name:
+	  debug:
+	    msg: {{ salutation }}
+
+Variable With Array:-
+	vars:
+	  students:
+	    - 
+		- 
+		-
+		
+	tasks:
+	- name: 
+	  debug:
+	    msg: "{{ students[2] }}"
+
+Variable With Dictionaries:-
+	vars:
+	 students:
+	   Mark:
+	   city:
+	   Capital:
+	tasks: 
+	- name: Ansible Dictionary examples.
+	  debug: 
+		msg: "{{ students }}"
+
+Host and Group Variables:- 
+
+Conditional Variables:- 
+tasks:
+  - service: name=vsftpd state: started 
+    when: ansible_hosts == "node5"
+
+FOR VARIABLES WE CAN DECLARE SEPERATE FILE.	
+vars_files: 
+  - vars.yml 
+vars_prompt:
+  - name: "Version"
+    prompt: "Which version do you want to install?" 
+RUN VARIABLES IN UNDER TASAKS LEVEL ALSO
+  tasks: 
+  - name: include default step variables 
+    include_vars: default_step.yml 
+REGISTER VARIABLE:
+  - name:Ansible register var basic ex 
+    shell: find *.txt 
+	args: 
+	  chdir: "/root/dir/vars"
+	register: find_output 
+  - debug:
+    msg: prompt msg is {{ find_output.stdout }}
+ENVIRONMENT VARIABLE:
+	We can declare variables in inventory
+	EX: inventory.txt 
+		[web]
+		10.0.10.10.
+		10.10.10.1
+		10.8.10.9
+		
+		[web:vars]
+		name= "-- Environment variables in inventory --"
+		ansible_user= ec2-user 
+		ansible_ssh_private_key_file=remote.pem 
+		ansible_become= yes 
+		
+	EX: we can pass the variables in specific files.
+		group_vars
+			all_file
+				name: " Environment variable in group all file "
+			web_file
+				name: " Environment variable in group web file "
+			dev_file
+				name: " Environment variable in group dev file "
+		host_vars
+			host_file1
+				name: " Environment variable in host1 file "
+			host_file2
+				name: " Environment variable in host2 file "
+			host_file3
+				name: " Environment variable in host3 file "
+		inventory.txt
+		playbook.yml 
+	
+	EX:  We can pass the variables in CLI
+		-e - we can provide file name.
+		--extra-vars --> name= value 
+		EX: ansible-playbook play1.yml -i inventory -e name: user_name 
+FACT VARIABLE:
+	System variable which is set to ansible_xxxxxxx
+	ansible user factors to get system info.
+	
+
+  
+=======================Operations========================================>
+=======================Conditions========================================>
+=======================Method/functions========================================>
+=======================Loops========================================>
+
+---with_item:---
+tasks:
+  - name: Install packeges
+    yum: name= {{ item }} state=latest
+	with_item:
+	 - httpd
+	 - vsftpd 
+	 - ftp 
+	 - zsh
+
+
+===============================================================>
+						PlayBooks
+===============================================================>
+Do Multiple tasks(Playbook) in one machine(localhost)
+Do Multiple tasks(Playbook) in one remote machine 
+Do Multiple tasks(playbook) in Multiple remote machine using Inventory 
+Do Multiple tasks(Playbook) in Multiple remotre machine using group in Inventory
+Do Multiple tasks(Playbook) in Multiple remotre machine using group of group in Inventory
+Do Multiple tasks(Playbook) in Multiple remotre machine using environment directory Inventory
+	--syntax-check		-->
+	-C --check			-->
+ANSIBLE BEHAVIOURL PARAMETER:
+	ansible_connection=ssh (or) winrm (or) paramika
+	ansible_host=
+	ansible_port=
+	ansible_user=
+	ansible_password=
+	ansible_ssh_private_key_file=
+	ansible_ssh_common_args=
+	ansible_sftp_extra_args=
+	ansible_become=
+	ansible_become_user=
+	ansible_become_password=
+	
+	- name		-->
+	- hosts		-->
+	- become	-->
+	- remote_user		-->
+	- tasks		--> 
+	- roles		-->
+	- include	-->
+list 
+	EX:
+		fruits:
+		  - apple
+		  - mango
+		  - orange
+A dictionary is represented in a simple key:value form
+	EX: 
+	    martin:
+		  name: Martin D'vloper
+		  job: Developer
+		  skill: Java
+---
+- name: 
+  hosts: 
+  become: 
+  tasks:
+     - name: 
+	   ping: 
+...
+===============================================================>
+						Role
+===============================================================>
+Do one role in one machine(localhost)
+Do Multiple roles in one remote machine 
+Do Multiple roles in Multiple remote machine using Inventory.
+Do Multiple roles in Multiple remote machine using group in Inventory.
+Do Multiple roles in Multiple remote machine using group of group in Inventory.
+Do Multiple roles in Multiple remote machine using environment directory Inventory.
+========================Files=======================================>
+========================Templates=======================================>
+========================Handlers=======================================>
+========================vars=======================================>
+
+
