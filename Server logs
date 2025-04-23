@@ -1,0 +1,10 @@
+#Server logs
+#*****************
+lspv
+
+for j in `lspv |grep -i rootvg |awk '{print $1}'`;do
+echo $j;bosboot -ad /dev/$j;
+done
+
+bootlist -m normal `lspv |grep -i rootvg | awk 'NR==1 {first=$1} NR==2 {print first, $1}'`;df -gt; echo '+++df-gt_count+++';df -gt |wc -l;echo '+++lspv_count+++';lspv |wc -l;echo '+++lsvg_count+++';lsvg |wc -l;netstat -nr;ifconfig -a;bootlist -m normal -o
+
