@@ -1,0 +1,630 @@
+======================================LVM==================================================
+# bootinfo -s hdisk$	-->
+# chdev -l hdisk$ -a pv=yes	--> To assigning a Physical Volume ID from the physical volume.
+# chdev -l hdisk$ -a pv=clear	--> To clear a Physical Volume ID from the physical volume.
+# mkvg -y vgname -s ppsize hdisk$	--> To create Volume Group 	
+	Ex:- # mkvg -y datavg -s 128 hdisk$	
+
+TYPES OF VOLUME GROUP:-
+==========================
+VGTYPE		MAX-PV		MAX-LVS		MAX-PPS-PER-VG 		MAX-PP-SIZE
+-------------------------------------------------------------------
+Normal		32			256			32512				1GB
+Big vg 		128			512			130048				1GB 
+Scalable	1024		4096		2097152				128GB 
+
+# mkvg -B -y vgname -s ppsize pvname	--> To create Big Volume Group
+	Ex: mkvg -B bigvg -s 32 hdisk$
+# chvg -B bbvg
+# mkvg -S -y vgname -s ppsize pvname	--> To create Scalable Volume Group
+	Ex: mkvg -S bigvg -s 32 hdisk$
+# chvg -G bbvg
+# mklv -y lvname -t typeoflv vgname no.ofLPs pvname
+	Ex: # mklv -y oraclelv -t jfs2 datavg 80 hdisk$
+# crfs -v jfs2 -g bigvg -a size=10M -A yes -m /one 
+	drawbacks: we can't specify the lvname, region with the intro policy, which pvname it filesystem is create.
+# mklv -y twostep -t jfs bigvg 2 hdisk$
+# crfs -v jfs2 -d /dev/twostep -A yes -m /second	
+	
+CREATE A LOG DEVICE?
+# lsvg -y oraclejfs2log -t jfs2log datavg 1 hdisk$ 
+# logform -v jfs2 /dev/oraclejfs2log 
+# crfs -v jfs2 -d /dev/fslv00 -a log=/dev/oraclejfs2log -m /oralv 
+# mount /oralv
+
+DIFFERENCES BETWEEN THE JFS AND JFS2.
+FEATURE					 			JFS2 										JFS
+Block size 							512–4096 B 						4096 (fragments 512–4096)
+Maximum file size 					16 TB 							2 GB (JFS)
+																	64 GB (JFS - Large File Enabled)
+Maximum file system size 			32 TB 							1 TB
+Number of I-nodes 					Dynamic, without restrictions	Specified, set when creating the file system
+Directory organization 				B+ tree 						Linear
+Compression 						NO 								YES
+The default owner 					root:system 					sys:sys
+Extended Access Control List (ACL)	YES 							YES
+Limits (Quotas) 					YES (from AIX-5.3) 				YES
+Encryption 							YES (Encrypted File System)		NO
+Snapshots 							YES 							NO
+
+=============================================PAGING SPACE=======================================================================
+# lsps -a	--> To view paging space
+# lsps -s 	-->
+# mkps -a -n -s pp-size vgname pvname	--> Create the paging space. 
+	-a --> Active 
+	-n --> 
+	Ex: mkps -a -n -s 2 bigvg hdisk$ 
+# mklv -y pagingname -t paging vgname pp-size pvname	--> Create the paging space.
+# swapoff /dev/pagingname
+# swapon /dev/pagingname  
+# rmps pagingname 				--> Remove the paging space 
+# chps -s PP-size pagingname	--> Increase the paging space
+# chps -d PP-size pagingname	--> Decrease the paging space
+# chps -a {y|n} paging00	--> specifies that the paging space paging00 is active (y) or inactive (n) at subsequent system restarts.
+
+
+VOLUME GROUP -T FACTOR:- For a Small or a Big VG we can extend the volume group to have more than 1016 
+						PPs Per PV but this will reduce the number of MAX PVs, these 2 attributes are variable 
+						based on the volume group factor also known as "t-Factor".
+# chvg -t 2 bbvg
+CALCULATION:
+Normal VG: 32/factor = new value of MAX PVs
+Big VG: 128/factor= new value of MAX PVs
+"chvg -t" can be used online either increasing or decreasing the value of the factor.
+
+
+====================================================MIRRORING============================================================== 		
+# lspv
+# lsvg -l rootvg
+# lsvg -p rootvg
+# lscfg -vpl hdisk#
+# extendvg -f vg_name pv_name 
+	EX: # extendvg -f rootvg hdisk0
+# mirrorvg -S vg_name pv_name
+	EX: # mirrorvg -S rootvg hdisk0
+# mirrorvg -S -c 3 vg_name 		<-- We can do the mirroring will 
+# lsvg rootvg | grep -i stale
+# mirrorvg -s datavg
+# lsvg datavg | grep -i stale
+# bootinfo -b
+# bootlist -m normal -o
+# bootlist -m normal hdisk0 -->Bootlist order should be rootvg. (Change the bootlist to hdisk# remember alt_disk reside on hdisk#)
+# bootlist -m normal -o
+# bosboot -ad /dev/hdisk$
+
+====================================================UN-MIRRORING================================================================
+# lspv
+# lsvg -l rootvg
+# lsvg -p rootvg
+# unmirrorvg rootvg -->un-mirror rootvg.
+# lspv -l hdisk$ -->After mirroring checked the list of pvs.
+# lspv -l hdisk$ -->After mirroring checked the list of pvs.
+# migratepv hdisk$ hdisk$ -->if any files are left we need to move the inactive disk to active disk.
+# migratepv -l <lv_name> hdisk# hdisk#
+# chpv -c hdisk# -->clear the bootimage of the inactive hard disk.
+# lsvg -p rootvg
+# reducevg rootvg hdisk$ -->Remove the hdisk from the rootvg disk. 
+# lsvg -p rootvg
+# alt_disk_copy -d hdisk$ -B -->Take the alt clone on hdisk. 
+# lspv  		-->Confirm the "altinst_rootvg" created on hdisk.
+# alt_rootvg_op -W -d hdisk1		-->Wake-up the alt_clone disk.
+# chroot /alt_inst /usr/bin/oslevel -s	-->Check the osversion on wake-up disk.
+# alt_rootvg_op -S		-->Sleep the alt_clone_disk
+# bootinfo -b
+# bootlist -m normal -o
+# bootlist -m normal hdisk0 -->Bootlist order should be rootvg. (Change the bootlist to hdisk# remember alt_disk reside on hdisk#)
+# bootlist -m normal -o
+# bosboot -ad /dev/hdisk$
+# bootinfo -s hdisk
+
+IF IT IS ALREADY IN UN-MIRROR STATE: 
+# alt_disk_install -X altinst_rootvg -->removing the altclone.
+
+======================================AIX Patching===============================================================
+Step1:- 
+	Need to download package in IBM Portal.
+Step2:-
+	Take the pre-checks.
+	./scripts/serverinfo.sh
+	
+	# oslevel -s
+	# df -gt;df -gt | wc -l
+	# lspv;lspv | wc -l 
+	# lsvg -l rootvg;lsvg -l rootvg | wc -l 
+	# netstat -nr; netstat -nr | wc -l 
+	# which java
+	# java -version
+	
+Step3:-
+	#mksysb -ieX /mksysb_backup_UAT/lokesh/sbiicmpuatw16.mksysb  -->Taking backup
+	
+	/etc/exclude.rootvg 
+	^./var/tmp/*
+	^./audit/tempfile*
+Step4:-
+	If it is mirroring we need to un-mirror the rootvg: 
+	# lspv
+	# lsvg -l rootvg
+	# lsvg -p rootvg
+	# unmirrorvg rootvg -->un-mirror rootvg.
+	# lspv -l hdisk$ -->After mirroring checked the list of pvs.
+	# lspv -l hdisk$ -->After mirroring checked the list of pvs.
+	# migratepv hdisk$ hdisk$ -->if any files are left we need to move the inactive disk to active disk.
+	# migratepv -l <lv_name> hdisk# hdisk#
+	# chpv -c hdisk# -->clear the bootimage of the inactive hard disk.
+	# lsvg -p rootvg
+	# reducevg rootvg hdisk$ -->Remove the hdisk from the rootvg disk. 
+	# lsvg -p rootvg
+	# alt_disk_copy -d hdisk$ -B -->Take the alt clone on hdisk. 
+	# lspv  		-->Confirm the "altinst_rootvg" created on hdisk.
+	# alt_rootvg_op -W -d hdisk1		-->Wake-up the alt_clone disk.
+	# chroot /alt_inst /usr/bin/oslevel -s	-->Check the osversion on wake-up disk.
+	# alt_rootvg_op -S		-->Sleep the alt_clone_disk
+	# bootinfo -b
+	# bootlist -m normal -o
+	# bootlist -m normal hdisk0 -->Bootlist order should be rootvg. (Change the bootlist to hdisk# remember alt_disk reside on hdisk#)
+	# bootlist -m normal -o
+	# bosboot -ad /dev/hdisk$
+	# bootinfo -s hdisk
+	
+	If it is already in Un-mirror state: 
+	# alt_disk_install -X altinst_rootvg -->removing the altclone.
+
+Step5:-
+	# smitty update_all		-->Do the preview first and commit next, once done follow below.
+	# shutdown -Fr now		-->For fast reboot. Once done the update need to reboot the server.
+
+	# lppchk -vm3
+	# lppchk -v				-->No output should displayed, only the prompt.
+	# instfix -i |grep ML		-->Confirm the new TL level are consistent.
+	
+	# smitty commit 			-->commit all the old applied filesets.
+	# install -p 				-->check if any os filesets in applied mode.
+		EX: installp -a -d/tmp/AIX_Lib/xlC.adt.include.16.01.0000.0003.bff
+	# mount <nim_server>:		-->mount directory which hold the TL package
+	<package holding directory> /mnt
+	
+INSTALL IFIXS:-
+	# emgr -P
+	# emgr -r -L <efixlabel>
+	
+
+	
+
+==================================================================================================	
+
+# lsdev		--> displays general information about the logical and physical devices on the system.
+# lsattr 	-->  displays the parameters of devices, some of which can be changed using the chdev command.
+# lscfg 		--> displays detailed information about the devices in the system.
+# prtconf		-->  displays the system information in the most user-friendly manner.
+# lparstat
+# vmstat
+# sar
+# topas
+# netstat
+# nmon 
+
+===========================================================================================================
+Q01) 
+Q36) What will you do if a disk gets failed?
+Ans: diag command
+Q40) What is the command to see the error log?
+Ans: # errpt –a # errpt –d H [H/W] # errpt –d S [S/W]
+Q42) What is the command to increase the size of error log when it is full?
+Ans: #usr/lib/errdemon –s ____ [ size ]
+Q63) How will you check whether software is installed or not?
+Ans: # lslpp -L |grep -i   (software_name)
+Q65) How to remove a failed package installation?
+Ans: #installp -C
+Q01) How will you see the HMC version?
+Ans: # lshmc -v --> hmc model 
+     # lshmc -V	--> hmc version
+Q02) I have HMC, how will I get the # prompt through HMC?
+Ans: 
+Q03) What you are checking before doing LPM?
+Ans: 
+Q04) From which Power VM onwards LPM will supports? Is it support for P7 core also?
+Ans:
+Q05) what is the purpose of share attributes in vio's?
+Ans: The share attributes are used to control the allocation of virtual resources, Particularly CPU and Memory, between virtual server (LPAR's).
+	 1. Shared Processor Attributes (For Cpu Allocation)
+		a. Sharing Mode -
+			i. uncaped
+			ii. caped 
+			iii. dedicated 
+		b. Uncaped-weighted -
+	 2. Shared Memory Pool Attributes
+		a. Minimun Memory 
+		b. Desired Memory
+		c. Maximum Memory
+	 3. Virtual Adapter Share Attributes
+		a. ha_mode - Controls failover and redundancy.
+		b. Priority	- Determines traffic prioritization between virtual adapters. 
+Q06) What is use of user limits file?
+Ans: To control system resorce usage for users. 
+	 /etc/security/limits.conf 
+	 # ulimit -a 	--> Check current limits 
+	 # ulimit -n 	--> Change limits value 
+Q07) How will you see the wwpn number for running lpar?
+Ans: World Wide Port Number (WWPN) 
+	 # lscfg -vpl fcs#		--> LPAR 
+	 # lsdev -Cc adapter | grep fcs 	--> LPAR
+	 # lshwres -r virtualio -rsubtype fc --level lpar -m <ManagedSystem> --filter lpar_names=<LPARName>		-->HMC CLI
+	 $ lsmap -all -npiv		--> VIOS 	 
+Q08) How will you see the wwpn number of new lpar?
+Ans: # lshwres -r virtualio -rsubtype fc --level lpar -m <ManagedSystem> --filter lpar_names=<LPARName>		-->HMC CLI
+	 $ lsmap -all -npiv		--> VIOS 
+	 > Login HMC GUI > Systems > Managed Systems > Partition Configuration 
+	   New LPAR > Virtual Adapters > Virtual Fiber Channel Adapter > WWPN's 
+Q09) For new lpar how many wwpn number you can find how many wwpn no.s? why they are used for it?
+Ans: Two WWPNs per virtual fibre channel adapter assigned to the LPAR.
+	 If an LPAR has one virtual FC adapter > 2 WWPNs 
+	 If an LPAR has two virtual FC adapter > 4 WWPNs	 
+	 High Availability, Load Balancing
+Q10) What are the precautions for vios upgradation?
+Ans: 
+Q04) While creating the virtual Ethernet adapter for SEA what we have to select for that adapter?
+Ans: 
+Q11) In dual vio  which is primary? How to know?
+Q12) After up gradation of vios lpar showing some pv are in missing. To avoid that how will you configure it?
+Q13) If ha_mode is sharing what will happen?
+Q14) In dual vios for sea adapter ha_mode ? 
+Q15) what is control channel?
+Ans: The Control Channel is a dedicated virtual eathernet connection between two VIOS in  dual VIOS configuration.
+	 It is used for heartbreak communication and failover coordination between the primary and backup SEA.
+	 # mkdev -sea entX -vadapter entY -default entY -defaultedid VLAN_ID -attr ha_mode=auto ctl_chan=entZ
+	 Where:
+	 entX = Physical adapter backing the SEA
+	 entY = Virtual Ethernet adapter for VLAN traffic
+	 entZ = Virtual Ethernet adapter used for the control channel.
+	 #entstat -d entZ | grep "Control Channel"
+Q16) if  vio server has 4 sea howmany control channels are required? 
+Ans: 4 control channels, one for each SEA pair.
+Q17) The adapters which are going into  participate sea have to select check box of one of the field, what is that? 
+Q18) why we have select access external network?
+Q19) how can you increase max processing units value in caped mode?
+Ans: HMC GUI
+     Login > LPAR Management > Properties > Processor Configuration > Desired Processing Units > Ok 
+	 # lshwres -r proc --level lpar -m <Managed_System> --filter lpar_names=<lpar_name>
+	 # chhwres -r proc -m <Managed_System> -o s -p <lpar_name> --procunits <new_value>
+	 # chsyscfg -r lpar -m <Managed_System> -i "name=<lpar_name>,proc_units=<new_value>"
+Q20) npiv configuration?
+Ans: # lsmap -a npiv -all 
+Q21) which wwpn will you share with storage team?
+Q22) what is the vlan id for the control channel? 
+Q23) how will you see wwpn numbers after npiv configuration? 
+Q24) how to move I/O adapter which is in desired mode from one lpar to another lpar
+Q25) what are the demons for DLPAR
+Q26) how to check the DLPAR is working or not
+Ans: # lsrsrc -a 	--> If RMC Running Properly
+     # lssrc -a | grep rsct
+	 # lspartition -dlpar	--> HMC CLI
+Q27) what is capped
+Ans: LPAR can only use the assigned processing units. 
+     Can't borrow extra CPU cycles from the shared pool, even if it available.	 
+Q28) what is uncapped
+ANS: LPAR can use more CPU than assigned if available in the shared pool. 
+     borrow extra CPU cycles from the shared pool.
+Q29) What is virtual processor?
+Q30) how to create hmc user?
+Ans: # lshmcusr		--> List a user
+	 # mkhmcusr -u admin -a hmcsuperadmin --passwd abc1234	--> Create a user 
+	 # chhmcusr -u hscroot -t passwd		--> change the HMC password
+Q31) how to login into pesh shell in hmc
+Q32) what is hscpe in hmc
+Q33) What is virtual process?
+Q34) What is capped and uncapped? 
+Q35) What is a micro partition? 
+Q36) What is a virtual memory?
+VIO : 
+1. vios version worked on ? 
+2. how many vios in the frame - 2 or 4 vios servers ? 
+3. have configured etherchannel in vios ? 
+4. what is control channel ? 
+5. how do you assigned ip address for vioserver ( mean dedicated ethernet adapter or virtual or over SEA ? ) 
+6. give me the full syntax for creating SEA & adding a PV to a vhost ? 
+7. how do you find, which is the vhost for an vio client lpar ? 
+8. how do you find, which is the hmc on an lpar ? 
+9. what is VLAN ? 
+10. have you done the failover of SEA manually or tested it ? 
+11. what is the driver used for multipath, also what storage is used ? 
+12. what is trunk priority while creating virtual adapter ? 
+13. have you added additional VLAN ids ? how to do it 
+14. how to set the path priority of disks from client ? 
+15. what is the hmc version used ? 
+16. what is the difference between 1.5/2.1 vios servers versions ? 
+17. what is the major problem seen with vios failure ? 
+18. do you knew what is NPIV/LHEA ? ( FYI, THIS IS ONLY FOR YOUR GK )
+
+Also Read: Frequently Asked Interview Questions and Answers 
+VIOS Scenario & Troubleshooting based Interview Questions :
+In one ASMI one lpar is there,  I want to move the same lpar but it has different ASMI, how will you do it? Down time is required ?
+In the above scenario I don’t want downtime then how will you do it?
+In one core my lpar is created with dedicated processor, then it is possible to move to other core by using LPM?
+By using command line in HMC console the lpar is able to open but through GUI  I cant able to open then how can you troubleshoot it?
+One lpar have 3.5 cpu limits as a desired value when iam going to do dlpar from 3.5 to 4 it showing error like u cannot increase this value whatis the reason?
+If one lpar has 3.5 cpu limits how many minimum and maximum virtual processors required?
+============================================================
+IBM AIX Interview Questions
+
+Q01) How will you convert the jfs filesystem to jfs2 filesystem?
+Ans: We can't create a jfs filesystem directoly to jfs2.
+     First we need to take a backup of the filesystem and remove the filesystem .
+Q02) What procedure do you follow while migration?
+Ans: 
+Q03) Nimadm consist of how many steps?
+Ans: 
+Q04) What is difference between Etherchannel and link aggregation?
+Ans: Both servee the purpose of combining multiple physical network links into single logical interface
+     to improve bandwith and provide redundancy.
+Q05) In Ether channel one switch goes bad, what happen?
+Q06) In Link aggregation one adapter goes bad, what happen?
+Q07) Where you can find user limits?
+Ans: /etc/security/limits.conf 
+Q08) How to know Ethernet adapter is 2 port or 4 port?
+Ans: # lsdev -Cc adapter | grep entX 
+     # lscfg -vpl entX 
+	 # lsdev -El entX 
+Q09) When user login first time what are the files should be updated?
+Ans: /etc/passwd
+	 /etc/shadow 
+	 /etc/security/lastlog 
+	 /etc/security/failedlogin 
+	 /var/adm/wtmp	(last)
+	 /vat/adm/btmp (lastb)
+	 /var/spool/mail/username
+	 ~/.profile
+	 ~/.bashrc
+	 ~/.bash_history
+	 /var/log/auth.log 
+Q10) How to delete the datavg already we have a  backup?
+Ans: # lsvg datavg 
+	 # lsvg -l datavg	--> List the filesystems under datavg 
+	 # umount /filesystem 	--> Unmount the filesystem. or for fs $(lsvg -l datavg | awk 'NR>2 {print $7}'); do umount $fs; done
+	 # rmfs /filesystem		--> Remove filesystem
+	 # varyoff datavg		--> Vary off the valume group.
+	 # lsvg -l datavg		--> List logical volume. 
+	 # rmlv lv_name 	--> Remove LV or for lv $(lsvg -l datavg | awk 'NR>2 {print $1}'); do rmlv $lv; done
+	 # exportvg datavg 
+	 # reducevg datavg hdisk#  --> Remove hard disk 
+	 # chpv -C hdisk#	--> Clear hard disk 
+Q11) What are the prerequisites for  client while doing  migration by using nimadm? 
+Q12) While increasing the filesystem its throws an error?
+Ans: No space in the VG		--> add more disks with extendvg.
+	 The LV has no more partitions available	--> chlv -x <new_max_pp> lv_name to increase the max partitions.
+	 Filesystem can't be extended		--> Check if the LV is mirrored or at it's max size.
+	 LS size increase failed 		--> Run # lslc lv_name to verify LV attributes and ensure there's free pp.
+	 Filesystem corrupted after resizing	--> Run fsck -p /dev/ lv_name to check and repair.
+	 Checking error logs: errpt -a | more 
+Q13) Normal vg creation command?
+Ans: # mkvg -y vg_name hdiskX
+Q14) What is quorum?
+Ans: Quorum is a mechanisum used in VGs to prevent data correction in case of disk failure.
+	 If more than 50% of the PVs remain active, the vg stays online.
+	 If 50% or more PVs fail, the VG is automatically varied off. 
+	 # chpv -Qn vg_name 	--> Disable quorum 
+	 # chpv -Qy vg_name 	--> Enable quorum. 
+	 In High-availability environment (mirrored VGs with only 2 disks), disable quorum to avoid unnecessary downtime. 
+Q15) Vg contents what like vgda?
+Ans: The VGDA stores info about PVs, LVs and partitions, While VGSA tracks Partition states for mirroring. 
+	 # lsvg -p vg_name helps check VGDA distribution.
+	 # odmget -q "name=vg_name" CuAt	--> To check details VG metadate.
+Q16) How to see the IP address of the server?
+Ans: # ifconfig -a 
+Q17) If issue an ifconfig command can you see the subnetmask ?
+Ans: # lsattr -El en0 | grep -i netmask
+	 # netstat -nr 
+	 # smit tcpip	> Further Configuration > Network Interfaces > Network Interface Selection >  Change / Show Characteristics of a Network Interface
+Q18) What is uid and gid?
+Ans: UID (User ID) is a unique number assigned to each user in the system.
+	 It determines ownership of files, perissions, and system permissions.
+	 UID info is stored in the /etc/passwd file. 
+	 # lsuser user1 or id user1 
+	 
+	 GID (Group ID) is a unique number assigned to a group.
+	 Groups define shared access permissions for multiple users.
+	 Group info is stored in /etc/group 
+Q19) LV name consist how many max characters?
+Ans: LV name can have a max of 255 characters.
+Q20) While doing ftp its not allowing more than 3GB, what might be the reason?
+Ans: Check first Filesystem type jfs or jfs2 
+	 # ulimit -a
+	 # ulimit -f unlimited 
+	 # chuser fsize=-1 ftpuser
+Q21) How to change the fsize of the user?
+Ans: # chuser fsize=-1 ftpuser
+Q22) If in vg first pv is failed, if we reboot the server, it will boot or not, in case of mirrored vg?
+Q23) TL upgrade? 
+Ans: A TL (Technology Level) upgrade in AIX update the OS with new features and security fixes. 
+Q24) Is downtime is required to update TL? 
+Ans: Yes
+Q25) Have you done migration in your environment? 
+Q26) What are the pre-cautions have to take before migration?
+Q27) After migration how do you know migration is successful or not?
+Q28) How do you know backup will work or not which was taken before migration?
+Q29) Auto mount file which file read ?
+Ans: 
+Q30) How to set password never expire ?
+Ans: # chuser maxage=-1 user1 or for user in $(lsuser ALL);do chuser maxage=-1 $user done
+Q31) How will rename your datavgname ?
+Ans: # lsvg datavg		-->
+	 # lsvg -l datavg	-->
+	 # unmount /filesystem		--> 
+	 # varyoffvg datavg		--> Deactivate th VG 
+	 # exportvg datavg		--> Exporting removes the VG 
+	 # importvg -y newvg_name hdiskX	--> Now import the VG with the new name. 
+	 # mount all	--> Mount the file system.
+	 # cat /etc/filesystem 
+Q32) One file system mounted in nfs one client can read another cant write anything what is the reason ?
+Q33) What is the configuration file for paging device ?
+Ans: # lsps -a		--> Shows all paging spaces with their sizes, usage, and whether they are active.
+	 # odmget -q "type='paging'" CuAt	--> This returns ODM entries related to paging devices.
+	 # cat /etc/swapspaces
+Q34) What is Aduit file and location ?
+Ans: 
+Q35) How activate the paging?
+Ans: # swapon /dev/paging01 
+Q36) What is sysdump. 
+Ans: The sysdump in AIX is a mechanisum that capture the system's memory during a crash for post-mortem analysis.
+Q37) How do configure the primary dump.
+Ans: 
+Q38) How you delete the sysdump.
+Q39) what is the meaning histsize,account_locked,rlogin attribute in /etc/security/user? 
+Q40) maxage=13 menas how long the the user can user the passwd?
+Q41) what is mean by wwpn number? how will u see that?
+Q42) Differnce b/w etherchannel and link aggregation? 
+Q43) once tl updation completed if it is not expected level means what will u do? 
+Q44) Diference b/w normal vg ,big vg ,scallable vg? 
+Q45) LVM structure? 
+Q46) how to create the filesystems?how will u proceed? 
+Q47) lv types? 
+Q48) You have one BIG vg..which having 1016 pv.u trying to add one more pv, is it posiible to add one more pv?
+Q49) How will create user?
+Ans: mkuser
+Q50) stanza for /etc/passwd?and will it contain?
+Q51) stanza for /etc/security/password?
+Q52) how will create normal vg and meny pv"s having normal vg?
+Q53) how many types vg's?
+Q54) Is it reqiuere downtime to change normal to scalable vg and what will u do?
+Ans: 
+Q55) how will u see mac addres?
+Ans: # entstat -d en0 | grep "Hardware Address"
+	 # netstat -ia | grep en0
+Q56) have done TL upgradation tell me the prequisets ?
+Q57) how many types of lv's in aix?
+Ans: 1. Regular LV (JFS/JFS2) # mklv -t jfs2 vg_name 10
+	 2. Paging LV # mkps -s 32 -2 vg_name
+	 3. Raw LV used directly access by applications. # mklv -t rawlv vg_name 10 
+	 Special LVs in AIX:-
+	 1. Boot LV - /dev/hd5 
+	 2. Dump LV - /dev/lg_dumplv 
+	 3. Journal LV - /dev/jfs2log 
+Q58) how many types of vg in aix?
+Q59) how many pv's having scalable vg?
+Ans: Scalable VG supports upto 1024 PVs. To check the no.of PVs in a VG, I use lsvg -p vg_name. 
+Q60) how will change pp size in vg how will do this activity?
+Ans: PPs size can't be changed directoly. To change it, I create a new VG with desired pp size.
+	 # lsvg vg_name		--> Check current PP size.
+	 # mkvg -s 64 -y vg_name hdiskX		--> Create a new VG with the desired PP Size.
+	 # migratepv -l lv_name hdiskX hdiskY (or) migratepv hdiskX hdiskY	--> Migrate data from old to new VG
+	 # change the filesystem mount point.
+	 # exportvg vg_name		--> Remove old VG 
+	 # rmdev -dl hdiskX		--> Remove old disk
+Q61) why your using dump device?
+Ans: Dump device is used to capture system memory (RAM) 
+	 When a system crash (Panic) or critical error occurs. 
+	 This helps in troubleshooting and debugging system failures. 
+	 /dev/hd6	--> Primary dump device (Default Paging space)
+	 /dev/sysdump	--> Secondary dump device.
+	 # sysdumpdev -l	--> Check system dump device using.
+	 # sysdumpdev -p /dev/lvdump	--> To change the primary dump device. 
+	 # sysdumpdev -s /dev/lvbackup		--> To change the secondary dump device.
+Q62) How will you convert normal vg to big vg ?
+Ans: # chvg -B vg_name	--> 
+Q63) How will you confirm a vg is normal or big vg and scalable vg?
+Ans: # lsvg vg_name 
+	 Normal VG: 
+	 Max PPs per VG = 32512
+	 Max LV = 256 
+	 T-factor = 1
+	 Big VG:
+	 Max PPs per VG = 130048
+	 Max LV = 512
+	 T-factor = 2	 
+	 Scalable VG:
+	 Max PPs per VG = 2,097,152
+	 Max LV = 4096 
+	 T-factor = 16	 
+Q64) What is the significance of t-factor?
+Ans: T-factor is used to calculate max no.of LPs per PPs when creating or managing a VG.
+	 The T-factor determines the LP-to-PP ration in a VG.
+	 It helps extends the maximum filesystem size without increasing the PP size.
+	 Max_LPs = (Max_PPs in VG) * (T-factor)
+	 Normal VG (T=1 by default)
+	 # mkvg -y vg_name -s 32 hdiskX 
+	 Big VG (T=2 by default)
+	 # mkvg -B -T 2 -y vg_name hdiskX 
+	 Sclable VG (T=16 by default)
+	 # mkvg -S -T 16 -y vg_name hdiskX 
+Q65) How will you convert jfs type filesystem to jfs2 type filesystem?
+Q66) How will you unmirror rootvg?
+Ans: unmirrorvg rootvg -->un-mirror rootvg.
+Q67) How will you reduce pv in the vg?
+Ans: recucevg -v vgname hdiskX 
+Q68) How many types of vg’s are there?
+Q69) How many types of vg’s are there?
+Ans: Normal VG 
+	 Big BG 
+	 Scalable VG 
+Q70) what is the max filesystem size of jfs?
+Ans: 1 TB 
+Q71) How will you change the limits?
+Ans: # ulimit -a 
+	 # ulimit -f <value>
+	 # vi /etc/security/limits
+	 # chuser fsize=-1 nofiles=<value> nproc=<value> user1 
+Q72) Tell about /etc/passwd and /etc/security/passwd?
+Q73) How to clear the boot record of pv?
+Ans: # chpv -c hdiskX
+Q74) How will you set the boot record?
+Ans: # bootlist -m normal hdiskX hdiskY 
+Q75) How will you see the boot bevice?
+Ans: # bootlist -m normal -o 
+	 # lslv -m hd5 
+	 # bootinfo -b	--> Check boot image 
+Q76) How will you see the bootlist order?
+Ans: # bootlist -m normal -o 
+
+AIX SCENARIO BASED QUESTIONS 
+Oracle 9i is running after migration from 5.3 to 6.1 application people is not able to access what is the reason?
+One file  with data 10GB  exits I reduced 5GB  still it has showing 7GB?
+There are 4 pv’s in a vg , which pv’s are got corrupted how would you conform and how will resolve this ?
+One PV is showing as a missing state in a vg how will you recover it?
+I have a pv with 1 TB (1024 GB), I want to create  a normal vg by using this pv,  how much PP size it will take, explain this scenario? 
+While restoring the mksysb of one  server into another new server, ip address and hostname conflicts are occurred, how will you proceed?
+We have 4 lpars with same vlan , but sea is not configured, what will happen?
+How to remove 1 PV form VG consist of 10 PVs data spread over 10 PVs
+Oracle 9i is running after migration from 5.3 to 6.1 application people is not able to access what is the reason?
+One file  with data 10GB  exits I reduced 5GB  still it has showing 7GB?
+In NPIV 4 port adapter and one port is fails, how do replace the adapter.
+
+What is LVM and how to create it?
+what is Quorum?
+what is the use of lost+found
+what is the patching process?
+What is VGDA?
+	Ans: Volume Group Descriptor Area. It contains the information about volume group to which the physical volume belongs to. 
+		It also contains the information about physical partitions, logical partitions and logical volumes.
+How do I know if my volume group is normal, big, or scalable?
+	Ans: Run the lsvg command on the volume group and look at the value for MAX PVs. 
+		The value is 32 for normal, 128 for big and 1,024 for scalable volume group.
+What is zoning in a server?
+	Ans: Zoning helps ensure that only authorized devices can communicate with each other and access designated storage resources, 
+	improving security, performance, and manageability. Zoning is typically implemented in Fibre Channel networks, 
+	which are commonly used for high-speed data storage and retrieval.
+
+
+
+what is VIOS?
+what is the difference between eatherchannel and eathercable?
+what is FC?
+what is 
+
+The SRC (System Resource Controller)
+It is started when the system boots with the corresponding entry in /etc/inittab:
+srcmstr:23456789:respawn:/usr/sbin/srcmstr # System Resource Controller
+# lssrc -a #Display all defined subsystems.
+# lssrc -s automountd #Automountd before stopping.
+# stopsrc -s automountd #Stop automountd.
+# lssrc -s automountd #Automountd after stopping.
+# lssrc -g nfs #Group of nfs subsystems before startup.
+# startsrc -g nfs #Start subsystems belonging to the nfs group
+# lssrc -g nfs #Group of nfs subsystems after startup.
+# refresh -s inetd #Refresh the inetd subserver configuration.
+
+============================================================
+
+# mkvg -y vg_name -s 16 hdiskX	--> Create a VG with a specific PP size.
+# mkvg -y vg_name -p 64 hdiskX	--> Create a VG with a specific max number of PVs.
+# mkvg -B -y vg_name hdiskX		--> Create a Big VG (Support upto 128 PV & 512 LV)
+# mkvg -S -y vg_name hdiskX		--> Create a Scalable VG (Support upto 1024 PVs to 4096 LVs)
