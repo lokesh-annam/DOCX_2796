@@ -1,0 +1,83 @@
+SYSTEM RESOURCE CONTROLLER (SRC):-
+SRC: By Using SRC we can manage the demons, SRC commands are:
+DEMONS/DEAMONS OR SERVICES:
+Demon is a process or protocal, it is running on the background of the server, the Demons or managed by the SRC commands such as (startsrc, stopsrc and lssrc). 
+We have several deamons on Aix/Unix.
+Ex:
+Network Deamons
+Installation Deamon
+Error demon
+Telenet/SSH demons
+NFS Demons
+LVM Deamons etc.
+
+lssrc						<--By using lssrc command we can list demons status.
+	# lssrc -a		--> displays the status of all subsystems.
+	# lssrc -g tcpip	--> display the status of the tcpip subsystem group.
+	# lssrc -g nfs 		--> To display all NFS group deamons status.
+	# lssrc -s <Demon> 	--> To display the single deamon status, or particular demon status.
+startsrc					<--By startsrc we can start the Deamons.
+	#startsrc -g <groupname> 	--> To start the group of deamons at a time.
+	#startsrc -s <deamon> 		--> To start the single demon.
+stopsrc						<--By using stopsrc we can stop the deamons or services.
+	# stopsrc -g <groupname> 	--> To stop the group of deamons at a time.
+    # stopsrc -s <Deamon> 		--> To stop the single demon.
+refresh						<--Requests a refresh of a subsystem or group of subsystems.
+	# refresh -g tcpip : refresh the group tcpip.
+	# refresh -s inetd : refresh the inetd subsystem (re-reads /etc/inetd.conf).
+	NOTE: 
+	1) All Deamons are presented on /etc/services file or /etc/inetd.conf configuration files.
+	2) If any demons are commented (#) on above configuration files, the demons will not work.
+	3) Except errdemon, all demons are managed by SRC commands.
+chssys						<--Changes a subsystem definition in the subsystem object class.
+mkssys						<--Adds a subsystem definition to the subsystem object class.
+rmssys						<--Removes a subsystem definition from the subsystem object class.
+mkserver					<--Adds a subserver definition to the subserver object class.
+rmserver					<--Removes a subserver definition from the subserver object class.
+
+=======================Services=================================================
+display services:-
+	lssrc -a	
+start services:-	
+	startsrc -s <subsystem>
+	startsrc -g <group>
+stop services:-
+	stopsrc -s <subsystem>
+	stopsrc -g <group>
+	reload service	refresh -s <subsystem>
+	
+restart service:-
+	stopsrc -s <subsystem>
+	startsrc -s <subsystem>
+service status:- 	
+	lssrc -a
+service dependencies:-	
+service dependants:-	
+Service notifications:-	
+service logging, etc:-
+	/var/adm/ras
+	/etc/syslog.conf
+	/etc/rc.tcpip	
+change service startup:-	n/a
+Add a new service:-
+
+
+================SMIT(System Management Interface Tool)=====================>
+smitty mode is graphical mode interface
+NOTE: 
+* --> We should fill the field
++ --> We have listing options
+/ --> We have to specify the path of location/directory
+Function Keys:
+Ex: F1 or esc+1 --> both are same
+F2 or esc+2 --> both are same
+F1 --> Help 
+F2 --> Refresh the current window
+F3 --> Cancel the current window
+F4 --> List the available options
+F5 --> Reset the filled fields
+F6 --> To list the command
+F7 --> Select the multiple items/resources
+F9 --> To take the new shell
+F10 --> Exit from the smitty
+Enter --> if everything ok, then click on enter key to continue.
