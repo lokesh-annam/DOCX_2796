@@ -1,0 +1,243 @@
+===========================================================================
+LIN_01. Enable MD5 and Shadow passwords
+===========================================================================
+setup
+OR
+authconfig-tui
+OR
+To implement
+authconfig --enablemd5 --enableshadow --update
+To Verify
+cat /etc/pam.d/system-auth| egrep "md5|shadow" 
+
+ -----OUTPUT-----
+password    sufficient    pam_unix.so md5 shadow nullok try_first_pass use_autht
+
+===========================================================================
+LIN_02. Disable Remote root login
+
+cat /etc/securetty
+echo console > /etc/securetty;cat /etc/securetty
+===========================================================================
+LIN_03. Disable remote login by unauthenticated users
+===========================================================================
+cat /etc/hosts.equiv
+rm /etc/hosts.equiv
+ls /etc/hosts.equiv
+===========================================================================
+LIN_04. Configure SSH to be used for remote administration
+
+
+
+grep -i disable /etc/xinetd.d/telnet		----> disable         = yes
+/etc/rc.d/init.d/xinetd restart
+/sbin/chkconfig telnet off
+===========================================================================
+LIN_05. Set password for boot loader (password=inb)
+
+/sbin/grub-md5-crypt
+Open /etc/grub.conf and add the password parameter below the splashimage parameter line.
+Splashimage=(hd0,1)/grub/splash.xpm.gz 
+password –md5 <1$0sGDT1$YGdKWptG4RKVvMqb2kKqu>
+
+chmod 0600 /etc/grub.conf
+grub-install /dev/<boot device>
+
+===========================================================================
+LIN_06. Disable CTRL-ALT-DEL functionality
+
+cat /etc/inittab
+vi /etc/inittab
+
+Note: In RHEL6 you have to edit the /etc/init/control-alt-delete.conf file to achive the same.
+
+To do in RHEL6 & later version:
+
+cp /etc/init/control-alt-delete.conf /etc/init/control-alt-delete.conf_`date +%d_%m_%Y`;sed -i 's,^exec.*,exec /usr/bin/logger -p authpriv.notice -t init "Ctrl-Alt-Del was pressed and ignored",'  /etc/init/control-alt-delete.conf;cat /etc/init/control-alt-delete.conf;initctl reload-configuration
+
+
+===========================================================================
+LIN_07. Set null shell for all default user accounts
+
+usermod -s /sbin/nologin lp;usermod -s /sbin/nologin sync ;usermod -s /sbin/nologin shutdown ;usermod -s /sbin/nologin halt 
+usermod -s /sbin/nologin news ;usermod -s /sbin/nologin uucp ;usermod -s /sbin/nologin operator ;usermod -s /sbin/nologin games 
+usermod -s /sbin/nologin gopher ;usermod -s /sbin/nologin adm ;usermod -s /sbin/nologin ftp ;usermod -s /sbin/nologin nobody 
+usermod -s /sbin/nologin nscd;usermod -s /sbin/nologin tomcat
+
+Verify 
+cat /etc/passwd| egrep -v "bash|nologin"
+OR
+cat /etc/passwd | awk -F":" '{print $1 "    " $7}'	
+
+===========================================================================
+LIN_08. Enable strong password policy
+
+
+vim /etc/login.defs 
+
+PASS_MIN_LEN=8 
+Set password expiry to
+PASS_MAX_DAYS=45 
+PASS_MIN_DAYS=7 
+PASS_WARN=14
+===========================================================================
+LIN_09. Password protect Single User mode
+
+cp /etc/inittab /etc/inittab_`date +%d_%m_%Y`;ls -lrth /etc/inittab*
+
+vi /etc/inittab 
+id:5:initdefault: 
+~~:S:wait:/sbin/sulogin 		
+
+
+/sbin/init q
+===========================================================================
+LIN_10. Modify UIDs of users with duplicate root UID
+
+grep "0" /etc/passwd		-----UID 0 other that root needs to modify with command "usermod –u <changed UID> username"
+
+cat /etc/passwd |cut -d : -f 1,3| grep 0
+
+
+===========================================================================
+LIN_11. Set login banner
+
+Add below banner to /etc/issue /etc/issue.net  and cat /etc/motd file:
+
+"This system is for the use of authorized users only. Individuals using this computer system without authority, or in excess of 
+their authority, are subject to having all of their activities on this system monitored and recorded by system personnel. In the 
+course of monitoring individuals improperly using this system, or in the course of system maintenance, the activities of 
+authorized users may also be monitored. Anyone using this system expressly consents to such monitoring and is advised that if 
+such monitoring reveals possible evidence of criminal activity, system personnel may provide the evidence of such monitoring to 
+law enforcement officials."
+
+
+cat /etc/issue > /etc/issue.net;cat /etc/issue > /etc/motd
+cat /etc/issue ;echo;cat /etc/issue.net;echo;cat /etc/motd
+
+
+
+===========================================================================
+LIN_12. Set FTP and Telnet banners
+
+cat /etc/issue.net			--------Above banner must be there
+grep -i banner /etc/vsftpd/vsftpd.conf  --------ftpd_banner="Authorized uses only. All activity may be monitored and reported.\\n\\n"
+
+===========================================================================
+LIN_13. Configure secure Umask
+
+grep -i umask /etc/bashrc;echo;grep -i umask /home/*/.bashrc;echo;grep -i umask /home/*/.bash_profile
+
+===========================================================================
+LIN_14. Configure secure FTP settings
+
+touch /etc/vsftpd.ftpusers;
+chown root:root /etc/vsftpd/ftpusers /etc/vsftpd/user_list /etc/vsftpd.ftpusers;
+chmod 600 /etc/vsftpd/ftpusers /etc/vsftpd/user_list /etc/vsftpd.ftpusers;
+cat /etc/passwd | awk -F ":" '{print $1}' > /etc/vsftpd.ftpusers
+cat /etc/passwd | awk -F ":" '{print $1}' > /etc/vsftpd.user_list
+chmod 744 /var/ftp/pub/upload
+
+===========================================================================
+LIN_15. Remove SUID bit for key files
+
+find / -perm -4755 -print 		--------Remove SUID permission from located files if require.
+
+chmod u-s <filename>
+
+/usr/sbin/usernetctl
+
+	
+chmod u-s /usr/bin/sudoedit;chmod u-s /usr/bin/rsh;chmod u-s /usr/bin/newgrp;chmod u-s /usr/bin/Xorg;
+chmod u-s /usr/bin/chfn;chmod u-s /usr/bin/gpasswd;chmod u-s /usr/bin/sudo;chmod u-s /usr/bin/rcp;
+chmod u-s /usr/lib64/nspluginwrapper/plugin-config;chmod u-s /usr/sbin/usernetctl;chmod u-s /usr/sbin/userisdnctl;chmod u-s /bin/ping6;
+chmod u-s /bin/mount;chmod u-s /bin/umount;chmod u-s /sbin/umount.nfs4;chmod u-s /sbin/mount.nfs;chmod u-s /sbin/mount.nfs4;
+chmod u-s /sbin/umount.nfs;
+
+===========================================================================
+LIN_16. Set sticky bit on temporary folders
+
+cd /;ls -la		-------------Here u needs to check the dir/file with drwxrwxrwx. this perm & run below cmd on them.
+
+chmod 1777 /tmp
+
+===========================================================================
+LIN_17. Secure file permissions for passwd, shadow and group files
+
+cd /etc;chown root:root passwd shadow group;chmod 644 passwd group;chmod 400 shadow
+
+
+===========================================================================
+LIN_18. Set system resource limit for users
+
+cp /etc/security/limits.conf /etc/security/limits.conf-Before-SCD
+
+vi /etc/security/limits.conf 		--------(Add below lines)
+
+* hard core 0 
+* hard fsize 102400 
+* hard nproc 150
+===========================================================================
+LIN_19. Set strong permissions for CRON and AT
+
+echo "root" > /etc/cron.allow;chown root /etc/cron.allow;chmod 600 /etc/cron.allow;cp -p /etc/cron.allow /etc/at.allow
+cat /etc/passwd | cut -f1 -d: | grep -v root > /etc/cron.deny;chown root /etc/cron.deny;chmod 600 /etc/cron.deny
+cp -p /etc/cron.deny /etc/at.deny
+===========================================================================
+
+LIN_20. User home directory permission is not secured
+
+chown <username>:<user primary group> <user home directory>
+chmod 740 <user home directory>
+
+===========================================================================
+LIN_21. Audit user authentication
+
+vi /etc/syslog.conf		--------Add below line at the end
+
+authpriv.* /var/log/secure
+
+
+touch /var/log/secure;chown root /var/log/secure;chmod 600 /var/log/secure
+
+===========================================================================
+LIN_22. Set strong permission on log files
+
+chmod 600 /var/log/messages;chmod 600 /var/log/wtmp;chmod 600 /var/log/xferlog;chmod 600 /var/log/cron;chmod 600 /var/log/lastlog
+
+===========================================================================
+LIN_23. Non-essential services are enabled on the system
+
+chkconfig anacron off;chkconfig apmd off;chkconfig atd off;chkconfig autofs off;chkconfig avahi-daemon off;
+chkconfig bluetooth off;chkconfig pand off;
+chkconfig hidd off;chkconfig capi off;chkconfig cups off;chkconfig dhcpd off;chkconfig httpd off;chkconfig ip6tables off;
+chkconfig iptables off;
+chkconfig irda off;chkconfig mdmonitor off;chkconfig NetworkManager off;chkconfig named off;chkconfig nfs off;chkconfig nscd off;
+chkconfig ntpd off;
+chkconfig portmap off;chkconfig rpcgssd off;chkconfig rpcidmapd off;chkconfig rpcsvcgssd off;chkconfig sendmail off;chkconfig smartd off;
+chkconfig winbind off;chkconfig sendmail off;chkconfig ypbind off
+
+===========================================================================
+LIN_24. Set strong preliminary network settings
+
+vi /etc/sysctl.conf		------Edit the file as per below parameter
+
+
+grep ipv4.ip_forward /etc/sysctl.conf;grep default.rp /etc/sysctl.conf;grep tcp_syncook /etc/sysctl.conf
+grep -i ignore_broadcast /etc/sysctl.conf;grep accept_redirect /etc/sysctl.conf;grep all.send_redirec /etc/sysctl.conf
+grep all.rp_filter /etc/sysctl.conf;grep all.accept_source /etc/sysctl.conf;grep tcp_max_syn_back /etc/sysctl.conf
+
+Set the value of the parameters as following in /etc/sysctl.conf file 
+net.ipv4.icmp_echo_ignore_broadcasts = 1 
+net.ipv4.conf.all.accept_redirects = 0 
+net.ipv4.conf.all.send_redirects = 0 
+net.ipv4.conf.all.rp_filter = 1 
+net.ipv4.tcp_max_syn_backlog = 4096 
+
+net.ipv4.conf.all.accept_source_route = 0 
+net.ipv4.ip_forward = 0
+net.ipv4.conf.default.rp_filter = 1
+net.ipv4.tcp_syncookies = 1
+
+
+
