@@ -1,0 +1,268 @@
+echo 9. Warning Banners    >> `hostname`_SCD13.txt
+echo 9.1. Create Warnings for Standard Login Services    >> `hostname`_SCD13.txt
+echo "======================before==============================="         >> `hostname`_SCD13.txt
+cat /etc/motd     >> `hostname`_SCD13.txt
+cat /etc/issue     >> `hostname`_SCD13.txt
+ls -ld /etc/motd /etc/issue     >> `hostname`_SCD13.txt
+chown root:root /etc/issue     >> `hostname`_SCD13.txt
+chmod 644 /etc/issue    >> `hostname`_SCD13.txt
+echo "======================after==============================="         >> `hostname`_SCD13.txt
+ls -ld /etc/motd /etc/issue     >> `hostname`_SCD13.txt
+cat /etc/motd     >> `hostname`_SCD13.txt
+cat /etc/issue     >> `hostname`_SCD13.txt
+echo "==============================================================================================================================="         >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo 9.2. Enable a Warning Banner for the SSH Service    >> `hostname`_SCD13.txt
+cat /etc/ssh/sshd_config |grep -i banner     >> `hostname`_SCD13.txt
+echo "==============================================================================================================================="         >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo 9.3 Enable a Warning Banner for the GNOME Service     >> `hostname`_SCD13.txt
+cat  /etc/gdm/Init/Default |grep -i zenity     >> `hostname`_SCD13.txt
+echo "==============================================================================================================================="         >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo 9.4. Enable a Warning Banner for the FTP service      >> `hostname`_SCD13.txt
+cat  /etc/proftpd.conf |grep -i DisplayConnect     >> `hostname`_SCD13.txt
+echo "==============================================================================================================================="         >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo 9.5. Check that the Banner Setting for telnet is Null     >> `hostname`_SCD13.txt
+cat /etc/default/telnetd |grep -i banner      >> `hostname`_SCD13.txt
+echo "==============================================================================================================================="         >> `hostname`_SCD13.txt
+
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo "10.1. Check for Remote Consoles"     >> `hostname`_SCD13.txt
+echo "==============================="     >> `hostname`_SCD13.txt
+echo "Perform the following to verify that the result is as recommended:"     >> `hostname`_SCD13.txt
+/usr/sbin/consadm -p     >> `hostname`_SCD13.txt
+echo "(No output should be returned.)"     >> `hostname`_SCD13.txt
+echo "==============================="     >> `hostname`_SCD13.txt
+echo "==================================="     >> `hostname`_SCD13.txt
+
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo "10. System Maintenance"     >> `hostname`_SCD13.txt
+echo "10.2. Verify System File Permissions"     >> `hostname`_SCD13.txt
+echo "==============================================================================================================================="         >> `hostname`_SCD13.txt
+echo "===========this point is already implemented================"     >> `hostname`_SCD13.txt
+ls -lrt /var/spool/cron/crontabs*     >> `hostname`_SCD13.txt
+echo "==============================================================================================================================="     >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo "10.3. Verify System Account Default Passwords"     >> `hostname`_SCD13.txt
+echo "============================================="     >> `hostname`_SCD13.txt
+echo "Verify that each of the following accounts are locked:"     >> `hostname`_SCD13.txt
+for user in aiuser dhcpserv dladm ftp gdm netadm netcfg noaccess nobody nobody4 openldap pkg5srv svctag unknown webservd xvm; do stat=`passwd -s ${user} | awk '{ print $2 }'`; if [ "${stat}" != "LK" ]; then echo "Account ${user} is not locked."; fi; done     >> `hostname`_SCD13.txt
+echo "(No output should be returned.)"     >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo "10.4. Ensure Password Fields are Not Empty"      >> `hostname`_SCD13.txt
+echo "==================================="     >> `hostname`_SCD13.txt
+echo "Perform the following to verify that the result is as recommended"     >> `hostname`_SCD13.txt
+logins -p     >> `hostname`_SCD13.txt
+echo "(No output should be returned.)"      >> `hostname`_SCD13.txt
+echo "==================================="          >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo 10.5 Verify No UID 0 Accounts Exist Other than root     >> `hostname`_SCD13.txt
+echo "==================================="     >> `hostname`_SCD13.txt
+echo "Perform the following to verify that the result is as recommended:"     >> `hostname`_SCD13.txt
+logins -o | awk -F: '($2 == 0) { print $1 }'     >> `hostname`_SCD13.txt
+echo "Must return :root"            >> `hostname`_SCD13.txt
+echo "==================================="     >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+
+
+echo 10.6. Ensure root PATH Integrity     >> `hostname`_SCD13.txt
+echo "============================before=========================="      >> `hostname`_SCD13.txt
+ls -ld /usr/sbin /usr/bin     >> `hostname`_SCD13.txt
+
+if [ "`echo $PATH | grep :: `" != "" ]; then
+echo "Empty Directory in PATH (::)"
+fi
+
+if [ "`echo $PATH | grep :$`" != "" ]; then
+echo "Trailing : in PATH"
+fi
+
+p=`echo $PATH | sed -e 's/::/:/' -e 's/:$//' -e 's/:/ /g'`
+set -- $p
+while [ "$1" != "" ];
+do
+if [ "$1" = "." ]; then
+echo "PATH contains ." shift
+continue
+fi
+
+if [ -d $1 ]; then
+dirperm=`ls -ld $1 | cut -f1 -d" "`
+if [ `echo $dirperm | cut -c6 ` != "-" ]; then
+echo "Group Write permission set on directory $1"
+fi
+if [ `echo $dirperm | cut -c9 ` != "-" ]; then
+echo "Other Write permission set on directory $1"
+fi
+fi
+shift
+done   >>   `hostname`_SCD13.txt
+echo "============================after=========================="      >> `hostname`_SCD13.txt
+ls -ld /usr/sbin /usr/bin     >> `hostname`_SCD13.txt
+echo "==============================================================================================================================="         >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo 10.7. Check Permissions on User Home Directories    >> `hostname`_SCD13.txt
+echo "======================This point is already implemented============================="         >> `hostname`_SCD13.txt
+for i in `logins -ox | \awk -F: '($8 == "PS" && $1 != "root") { print $6 } '|grep -i "expo"`; do echo $i; ls -ld $i; done     >> `hostname`_SCD13.txt
+echo "==============================================================================================================================="         >> `hostname`_SCD13.txt
+
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo "10.8. Check Permissions on User "." (Hidden) Files "         >> `hostname`_SCD13.txt
+echo "======================implementation steps==============================="         >> `hostname`_SCD13.txt
+echo "===========================before==========================="     >> `hostname`_SCD13.txt
+for i in `logins -ox | \awk -F: '($8 == "PS") { print $6 }' |grep -i "export"`; do echo $i; ls -la $i*;done     >> `hostname`_SCD13.txt
+for dir in `logins -ox | \awk -F: '($8 == "PS") { print $6 }' |grep -i "expo"`; do for file in $dir/.[A-Za-z0-9]*; do if [ ! -h "$file" -a -f "$file" ]; then chmod go-w "$file"; fi; done;done;      >> `hostname`_SCD13.txt
+echo "=======================after=============================="     >> `hostname`_SCD13.txt
+for i in `logins -ox | \awk -F: '($8 == "PS") { print $6 }' |grep -i "export"`; do echo $i; ls -la $i*;done     >> `hostname`_SCD13.txt
+echo "==============================================================================================================================="         >> `hostname`_SCD13.txt
+
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo "10.9. Check Permissions on User .netrc Files "         >> `hostname`_SCD13.txt
+echo "======================implementation steps==============================="         >> `hostname`_SCD13.txt
+echo "======================before===================="
+for i in `logins -ox | \awk -F: '($8 == "PS") { print $6 }' |grep -i "export"`; do echo $i; ls -lrh  $i*; done     >> `hostname`_SCD13.txt
+for dir in `logins -ox | \awk -F: '($8 == "PS") { print $6 }' |grep -i "expo"`; do rm -f $dir/.netrc; done     >> `hostname`_SCD13.txt
+echo "=========================after===================="     >> `hostname`_SCD13.txt
+for i in `logins -ox | \awk -F: '($8 == "PS") { print $6 }' |grep -i "export"`; do echo $i; ls -lrh  $i*; done     >> `hostname`_SCD13.txt
+echo "==============================================================================================================================="         >> `hostname`_SCD13.txt
+
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo 10.10. Check for Presence of User .rhosts Files    >> `hostname`_SCD13.txt
+echo "======================implementation steps==============================="         >> `hostname`_SCD13.txt
+echo "============================before===================="     >> `hostname`_SCD13.txt
+ls -lrt  /.rhosts*  /.shosts* /etc/hosts.equiv*     >> `hostname`_SCD13.txt
+for file in /.rhosts* /.shosts* /etc/hosts.equiv*; do rm -rf $file; done     >> `hostname`_SCD13.txt
+echo "============================after===================="     >> `hostname`_SCD13.txt
+ls -lrt  /.rhosts*  /.shosts* /etc/hosts.equiv*     >> `hostname`_SCD13.txt
+echo "==============================================================================================================================="         >> `hostname`_SCD13.txt
+
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo 10.11. Check Groups in passwd    >> `hostname`_SCD13.txt
+echo "======================implementation steps==============================="         >> `hostname`_SCD13.txt
+logins -xo | awk -F: '($3 == "") { print $1 }'    >> `hostname`_SCD13.txt
+echo "==============================================================================================================================="         >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo 10.12. Check That Users Are Assigned Home Directories    >> `hostname`_SCD13.txt
+echo "======================This point is already implemented==============================="         >> `hostname`_SCD13.txt
+for i in `logins -ox | awk -F: '($8 == "PS" && $1 != "root") { print $6 }'`; do echo $i; ls -ld $i; done     >> `hostname`_SCD13.txt
+echo "==============================================================================================================================="         >> `hostname`_SCD13.txt
+
+
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo 10.13. Check That Defined Home Directories Exist    >> `hostname`_SCD13.txt
+echo "======================implementation steps==============================="         >> `hostname`_SCD13.txt
+logins -xo | while read line; do user=`echo ${line} | awk -F: '{ print $1 }'`; home=`echo ${line} | awk -F: '{ print $6 }'`; if [ ! -d "${home}" ]; then echo ${user}; fi; done       >>  `hostname`_SCD13.txt
+echo "==============================================================================================================================="         >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo 10.14. Check User Home Directory Ownership     >> `hostname`_SCD13.txt
+echo "============================before=========================="      >> `hostname`_SCD13.txt
+for i in `logins -ox | awk -F: '($8 == "PS" && $1 != "root")  { print $6 }' |egrep -v "SOCVA|oracle|grid|root"`; do echo $i; ls -ld $i; done      >> `hostname`_SCD13.txt
+#for i in `logins -ox | awk -F: '($8 == "PS" && $1 != "root") { print $6 }'|egrep -v "SOCVA|oracle|grid|root"`; do chmod o-w $i; done      >> `hostname`_SCD13.txt
+echo "============================after=============================="      >> `hostname`_SCD13.txt
+for i in `logins -ox | awk -F: '($8 == "PS" && $1 != "root")  { print $6 }' |egrep -v "SOCVA|oracle|grid|root"`; do echo $i; ls -ld $i; done      >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo 10.15. Check for Duplicate UIDs     >> `hostname`_SCD13.txt
+logins -o | awk -F: '($2 == 0) { print $1 }'      >> `hostname`_SCD13.txt
+
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo 10.16. Check for Duplicate GIDs    >> `hostname`_SCD13.txt
+getent group | cut -f3 -d":" | sort -n | uniq -c |\
+while read x ; do
+[ -z "${x}" ] && break
+set - $x
+if [ $1 -gt 1 ]; then
+grps=`getent group | nawk -F: '($3 == n) { print $1}' n=$2 | xargs`
+echo "Duplicate GID ($2): ${grps}"
+fi
+done     >> `hostname`_SCD13.txt
+echo "==============================================================================================================================="         >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+
+echo 10.17. Check That Reserved UIDs Are Assigned to System Accounts    >> `hostname`_SCD13.txt
+echo "======================implementation steps==============================="         >> `hostname`_SCD13.txt
+logins -o | awk -F: '($2 == 0) { print $1 }'     >> `hostname`_SCD13.txt
+echo "==============================================================================================================================="         >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo 10.18. Check for Presence of User .netrc Files     >> `hostname`_SCD13.txt
+echo "=================================before===================="     >> `hostname`_SCD13.txt
+logins -ox |awk -F: '($8 == "PS") { print $6 }'     >> `hostname`_SCD13.txt
+for dir in `logins -ox | awk -F: '($8 == "PS") { print $6 }'`;do rm -f $dir/.netrc;done     >> `hostname`_SCD13.txt
+echo "============================after======================"     >> `hostname`_SCD13.txt
+logins -ox |awk -F: '($8 == "PS") { print $6 }'     >> `hostname`_SCD13.txt
+
+
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo 10.19. Check for Presence of User .forward Files     >> `hostname`_SCD13.txt
+for dir in `logins -ox | awk -F: '($8 == "PS") { print $6 }'`;  do ls -l ${dir}/.forward 2>/dev/null; done     >> `hostname`_SCD13.txt
+echo "==============================================================================================================================="         >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo 10.20. Find World Writable Files     >> `hostname`_SCD13.txt
+echo "exact command not mentioned in scd document for searching worl writebale files"     >> `hostname`_SCD13.txt
+echo $PATH     >> `hostname`_SCD13.txt
+echo "==============================================================================================================================="         >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo 10.22. Find Un-owned Files and Directories     >> `hostname`_SCD13.txt
+echo "command mentioned "find / \( -nouser -o -nogroup \) –print"  is not working "     >> `hostname`_SCD13.txt
+echo "==============================================================================================================================="         >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo 10.23. Find Files and Directories with Extended Attributes    >> `hostname`_SCD13.txt
+echo "======================before==============================="         >> `hostname`_SCD13.txt
+ls -ld /etc/shadow    >> `hostname`_SCD13.txt
+chown root:sys /etc/shadow    >> `hostname`_SCD13.txt
+chmod 400 /etc/shadow    >> `hostname`_SCD13.txt
+ls -ld /etc/shadow    >> `hostname`_SCD13.txt
+echo "==============================================================================================================================="         >> `hostname`_SCD13.txt
