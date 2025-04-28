@@ -1,0 +1,2421 @@
+#!/bin/bash
+#####Tile :- SBI SCD V13
+#####Purpose :- Implementation,Verification and artifacts collection of SCD V13 on RHEL 7 and AIX Servers
+#####Version 13.1
+if [ "$(id -u)" -ne 0 ]
+then
+        echo "=========================================="
+        echo "Script needs to be executed with root user"
+        echo "=========================================="
+        exit
+fi
+if [ "$(uname)" == "Linux" ]
+then
+        ECHO="echo -e"
+else
+        ECHO="echo"
+fi
+cdate="$(date '+%d%m%Y_%H%M%S')"
+DHM=$(date '+%d%m%Y_%H%M')
+OKCOLOR="\033[42;30m"
+KOCOLOR="\033[41;30m"
+COCOLOR="\033[43;30m"
+BASECOLOR="\033[40;37m"
+EXIT_STATUS=0
+printok()
+        {
+        $ECHO "$OKCOLOR $1 $BASECOLOR"
+        }
+printko()
+        {
+        $ECHO "$KOCOLOR $1 $BASECOLOR"
+        }
+output()
+{
+        $ECHO "Execute Command:- $cmd"
+        $ECHO "Output:-"
+        eval $cmd
+        $ECHO ".........................................................................................................................."
+}
+msg_header()
+{
+        $ECHO "====================================================="
+        $ECHO "$@"
+        $ECHO "====================================================="
+}
+sub_msg_ok()
+{
+        $ECHO  "$OKCOLOR $@ $BASECOLOR --> $OKCOLOR PASS $BASECOLOR"
+        $ECHO "....................................................."
+}
+sub_msg_ko()
+{
+        $ECHO "$KOCOLOR $@ $BASECOLOR --> $KOCOLOR FAILED $BASECOLOR"
+        $ECHO "....................................................."
+}
+info_msg()
+{
+        $ECHO "$COCOLOR $@ $BASECOLOR"
+        $ECHO "....................................................."
+}
+backup_file()
+{
+        SCD_BKP_DIR="/root/SCD13_bkp_config_$DHM"
+        mkdir -p $SCD_BKP_DIR
+        cp $1 $SCD_BKP_DIR/$(echo $1 | awk -F '/' '{print $NF}')_$DHM
+}
+check_status()
+{
+if [ $? -eq $EXIT_STATUS ]
+then
+        sub_msg_ok "$@"
+else
+        sub_msg_ko "$@"
+fi
+}
+
+check_implement()
+{
+if [ $(grep "$@" $FILENAME | wc -l) -ge 1 ]
+then
+        sub_msg_ok "$CTRL_NO $@ $FILENAME"
+else
+        echo "$@"  | sed 's/*[[:space:]]*//g'>> $FILENAME
+        sub_msg_ok "$CTRL_NO $@ $FILENAME"
+fi
+}
+
+linux_implement()
+{
+        echo "======================================================================"
+        echo "                LINUX SCD Implementation Started"
+        echo "======================================================================"
+        rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-release
+        rpm -qa --last > $SCD_BKP_DIR/rpm_qa_last_"$DHM".txt
+        sysctl -a >  $SCD_BKP_DIR/sysctl_a_"$DHM".txt 2>> /dev/null
+        systemctl --all list-unit-files > $SCD_BKP_DIR/systemctl_all_list-unit-files_"$DHM".txt
+
+        msg_header "2.1. Filesystem Configuration"
+
+        cmd='chmod 1777 /tmp/ /var/tmp/ /dev/shm'
+        EXIT_STATUS=0
+        $cmd
+        check_status 2.1.1 $cmd
+
+        cmd='mount -o remount,nodev,nosuid,noexec /home /tmp'
+        EXIT_STATUS=0
+        $cmd
+        check_status 2.1.2 $cmd
+
+        backup_file /etc/fstab
+        cmd="sed -i -e '/tmp.*/s/defaults.*/defaults,nodev,noexec,nosuid 1 2/g' /etc/fstab"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 2.1.3 $cmd
+        cmd="sed -i -e '/home /s/defaults.*/defaults,nodev,noexec,nosuid 1 2/g' /etc/fstab"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 2.1.3 $cmd
+
+        backup_file /etc/modprobe.d/CIS.conf
+        CTRL_NO="2.1.4.1"
+        CONFIG="install cramfs /bin/true"
+        FILENAME="/etc/modprobe.d/CIS.conf"
+        check_implement "$CONFIG"
+        CTRL_NO="2.1.4.2"
+        CONFIG="install freevxfs /bin/true"
+        check_implement "$CONFIG"
+        CTRL_NO="2.1.4.3"
+        CONFIG="install jffs2 /bin/true"
+        check_implement "$CONFIG"
+        CTRL_NO="2.1.4.4"
+        CONFIG="install hfs /bin/true"
+        check_implement "$CONFIG"
+        CTRL_NO="2.1.4.5"
+        CONFIG="install hfsplus /bin/true"
+        check_implement "$CONFIG"
+        CTRL_NO="2.1.4.6"
+        CONFIG="install squashfs /bin/true"
+        check_implement "$CONFIG"
+
+        msg_header "2.2. Configure Software Updates"
+        backup_file /etc/yum.conf
+        cmd='sed -i -e '/gpgcheck/s/gpgcheck.*/gpgcheck=1/' /etc/yum.conf'
+        EXIT_STATUS=0
+        $cmd
+        check_status 2.2.1 $cmd
+        backup_file /etc/yum.repos.d/base.repo
+        cmd='sed -i -e '/gpgcheck/s/gpgcheck.*/gpgcheck=1/' /etc/yum.repos.d/base.repo'
+        EXIT_STATUS=0
+        $cmd
+        check_status 2.2.2 $cmd
+
+        msg_header "2.3. Advanced Intrusion Detection Environment (AIDE)"
+        cmd='yum install aide -y'
+        EXIT_STATUS=0
+        $cmd
+        check_status 2.3.1 $cmd
+        #cmd='aide --init && mv /var/lib/aide/aide.db.new.gz /var/lib/aide/aide.db.gz &'
+        #EXIT_STATUS=0
+        #eval $cmd
+        #check_status 2.3.2 $cmd
+
+        msg_header "3.1. Remove Legacy Services"
+        cmd='systemctl disable telnet.socket'
+        EXIT_STATUS=1
+        eval $cmd
+        check_status 3.1.1 $cmd
+
+        cmd='yum erase telnet* -y'
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 3.1.2 $cmd
+        cmd='yum erase rsh -y'
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 3.1.3 \& 3.1.4 $cmd
+        cmd='yum erase ypbind -y'
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 3.1.5 $cmd
+        cmd='yum erase ypserv -y'
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 3.1.6 $cmd
+        cmd='systemctl disable tftp.socket'
+        EXIT_STATUS=1
+        eval $cmd
+        check_status 3.1.7 $cmd
+        cmd='yum erase tftp-server -y'
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 3.1.8 $cmd
+        cmd='yum erase talk -y'
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 3.1.9 $cmd
+        cmd='yum erase ntalk -y'
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 3.1.10 $cmd
+        cmd='yum erase xinetd -y'
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 3.1.11 3.1.12 3.1.13 3.1.14 3.1.15 3.1.16 3.1.17  $cmd
+        cmd='systemctl disable tcpmux-server'
+        EXIT_STATUS=1
+        eval $cmd
+        check_status 3.1.18 $cmd
+        cmd='rpm -e $(rpm -qa | grep  xorg-x11*) --nodeps'
+        EXIT_STATUS=1
+        eval $cmd
+        check_status 3.1.19 $cmd
+        cmd='yum erase avahi -y'
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 3.1.20 $cmd
+        cmd='yum erase cups -y'
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 3.1.21 $cmd
+        cmd='yum erase dhcp -y'
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 3.1.22 $cmd
+        cmd='yum erase openldap-servers -y'
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 3.1.23 $cmd
+        #cmd='yum erase nfs-utils rpcbind -y'
+        #EXIT_STATUS=0
+        #eval $cmd
+        #check_status 3.1.24 $cmd
+      	#cmd='yum erase bind -y'
+        #EXIT_STATUS=0
+        #eval $cmd
+        #check_status 3.1.25 $cmd
+        cmd='yum erase vsftpd -y'
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 3.1.26 $cmd
+        #cmd='yum erase httpd -y'
+        #EXIT_STATUS=0
+        #eval $cmd
+        #check_status 3.1.27 $cmd
+        cmd='yum erase dovecot -y'
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 3.1.28 $cmd
+        cmd='yum erase samba -y'
+        EXIT_STATUS=0
+        eval $cmd
+        #check_status 3.1.29 $cmd
+        #cmd='yum erase squid -y'
+        #EXIT_STATUS=0
+        #eval $cmd
+        check_status 3.1.30 $cmd
+        cmd='yum erase snmpd -y'
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 3.1.31 $cmd
+
+        msg_header 4.1. Configure Network Time Protocol
+        cmd="sed -i 's/^OPTIONS=.*/OPTIONS=\"-u chrony\"/g' /etc/sysconfig/chronyd || echo 'OPTIONS=\"-u chrony\"' >> /etc/sysconfig/chronyd"
+        eval $cmd
+        check_status 4.1 $cmd
+
+        msg_header 4.2. Configure Mail Transfer Agent for Local-Only Mode
+        backup_file /etc/postfix/main.cf
+        cmd="sed -i -e '/^inet_interfaces/s/inet_interfaces.*/inet_interfaces = localhost/g' /etc/postfix/main.cf"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 4.2.1 $cmd
+        cmd="systemctl restart postfix"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 4.2.2 $cmd
+
+        msg_header 4.3. Check for Unconfined Daemons
+        cmd='ps -eZ | egrep "initrc" | egrep -vw "tr|ps|egrep|bash|awk" | tr ":" " " | awk "{ print $NF }"'
+        EXIT_STATUS=0
+        echo -e "$COCOLOR"
+        eval $cmd
+        echo -e "$BASECOLOR"
+        check_status 4.3. $cmd
+
+        msg_header 5. Network Configuration and Firewalls
+        backup_file /etc/sysctl.conf
+        cmd="/sbin/sysctl -w net.ipv4.ip_forward=0;/sbin/sysctl -w net.ipv4.conf.all.send_redirects=0;/sbin/sysctl -w net.ipv4.conf.default.send_redirects=0;/sbin/sysctl -w net.ipv4.conf.all.accept_source_route=0;/sbin/sysctl -w net.ipv4.conf.default.accept_source_route=0;/sbin/sysctl -w net.ipv4.conf.all.accept_redirects=0;/sbin/sysctl -w net.ipv4.conf.default.accept_redirects=0;/sbin/sysctl -w net.ipv4.conf.all.secure_redirects=0;/sbin/sysctl -w net.ipv4.conf.default.secure_redirects=0;/sbin/sysctl -w net.ipv4.conf.all.log_martians=1;/sbin/sysctl -w net.ipv4.conf.default.log_martians=1;/sbin/sysctl -w net.ipv4.icmp_echo_ignore_broadcasts=1;/sbin/sysctl -w net.ipv4.icmp_ignore_bogus_error_responses=1;/sbin/sysctl -w net.ipv4.conf.all.rp_filter=1;/sbin/sysctl -w net.ipv4.conf.default.rp_filter=1;/sbin/sysctl -w net.ipv4.tcp_syncookies=1;/sbin/sysctl -w net.ipv6.conf.all.accept_ra=0;/sbin/sysctl -w net.ipv6.conf.default.accept_ra=0;/sbin/sysctl -w net.ipv6.conf.all.accept_redirects=0;/sbin/sysctl -w net.ipv6.conf.default.accept_redirects=0;/sbin/sysctl -w net.ipv6.conf.all.disable_ipv6=1"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 5.1 5.2 $cmd
+        for i in net.ipv4.ip_forward*[[:space:]]*=*[[:space:]]*0 net.ipv4.conf.all.send_redirects*[[:space:]]*=*[[:space:]]*0 net.ipv4.conf.default.send_redirects*[[:space:]]*=*[[:space:]]*0 net.ipv4.conf.all.accept_source_route*[[:space:]]*=*[[:space:]]*0 net.ipv4.conf.default.accept_source_route*[[:space:]]*=*[[:space:]]*0 net.ipv4.conf.all.accept_redirects*[[:space:]]*=*[[:space:]]*0 net.ipv4.conf.default.accept_redirects*[[:space:]]*=*[[:space:]]*0 net.ipv4.conf.all.secure_redirects*[[:space:]]*=*[[:space:]]*0 net.ipv4.conf.default.secure_redirects*[[:space:]]*=*[[:space:]]*0 net.ipv4.conf.all.log_martians*[[:space:]]*=*[[:space:]]*1 net.ipv4.conf.default.log_martians*[[:space:]]*=*[[:space:]]*1 net.ipv4.icmp_echo_ignore_broadcasts*[[:space:]]*=*[[:space:]]*1 net.ipv4.icmp_ignore_bogus_error_responses*[[:space:]]*=*[[:space:]]*1 net.ipv4.conf.all.rp_filter*[[:space:]]*=*[[:space:]]*1 net.ipv4.conf.default.rp_filter*[[:space:]]*=*[[:space:]]*1 net.ipv4.tcp_syncookies*[[:space:]]*=*[[:space:]]*1 net.ipv6.conf.all.accept_ra*[[:space:]]*=*[[:space:]]*0 net.ipv6.conf.default.accept_ra*[[:space:]]*=*[[:space:]]*0 net.ipv6.conf.all.accept_redirects*[[:space:]]*=*[[:space:]]*0 net.ipv6.conf.default.accept_redirects*[[:space:]]*=*[[:space:]]*0 net.ipv6.conf.all.disable_ipv6*[[:space:]]*=*[[:space:]]*1
+        do
+                cmd="grep -q "$i" /etc/sysctl.conf || echo "$i" | sed 's/\*\[\[\:space\:\]\]\*/ /g' >> /etc/sysctl.conf"
+                EXIT_STATUS=0
+                eval $cmd
+                check_status 5.1 5.2 $cmd
+        done
+        #msg_header 5.3. Install TCP Wrappers
+        #cmd="echo 'ALL: ALL' > /etc/hosts.deny;chown root:root /etc/hosts.allow;chmod 644 /etc/hosts.allow;chown root:root /etc/hosts.deny;chmod 644 /etc/hosts.deny"
+        #EXIT_STATUS=0
+        #eval $cmd
+        #check_status 5.3 $cmd
+
+        msg_header 5.4. Uncommon Network Protocols
+        CTRL_NO="5.4.1"
+        CONFIG="install dccp /bin/true"
+        FILENAME="/etc/modprobe.d/CIS.conf"
+        check_implement "$CONFIG"
+        CTRL_NO="5.4.2"
+        CONFIG="install sctp /bin/true"
+        FILENAME="/etc/modprobe.d/CIS.conf"
+        check_implement "$CONFIG"
+        CTRL_NO="5.4.3"
+        CONFIG="install rds /bin/true"
+        FILENAME="/etc/modprobe.d/CIS.conf"
+        check_implement "$CONFIG"
+        CTRL_NO="5.4.4"
+        CONFIG="install tipc /bin/true"
+        FILENAME="/etc/modprobe.d/CIS.conf"
+        check_implement "$CONFIG"
+
+        msg_header 5.5. Enable Server Firewall
+        cmd="systemctl enable firewalld && systemctl restart firewalld"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 5.5 $cmd
+
+        msg_header 6.1. Configure rsyslog
+        cmd="yum install rsyslog rsyslog-ng -y"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 6.1.1 $cmd
+        cmd="systemctl enable rsyslog"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 6.1.2 $cmd
+
+        backup_file /etc/rsyslog.conf
+        for i in auth,user.\*[[:space:]]*/var/log/messages kern.\*[[:space:]]*/var/log/kern.log daemon.\*[[:space:]]*/var/log/daemon.log syslog.\*[[:space:]]*/var/log/syslog lpr,news,uucp,local0,local1,local2,local3,local4,local5,local6.\*[[:space:]]*/var/log/unused.log
+        do
+              cmd="grep -q "^$i" /etc/rsyslog.conf || echo "$i" | sed 's/\[\[\:space\:\]\]\*/ /g' >> /etc/rsyslog.conf"
+              EXIT_STATUS=0
+              eval $cmd
+              check_status 6.1.3 $cmd
+        done
+        cmd="pkill -HUP rsyslogd"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 6.1.3 $cmd
+        cmd="chown root:root /var/log/messages /var/log/kern.log /var/log/daemon.log /var/log/syslog /var/log/unused.log; chmod og-rwx /var/log/messages /var/log/kern.log /var/log/daemon.log /var/log/syslog /var/log/unused.log"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 6.1.4 $cmd
+        for i in \$ModLoad*[[:space:]]*imtcp.so \$InputTCPServerRun*[[:space:]]*514 \$WorkDirectory*[[:space:]]*/var/lib/rsyslog
+        do
+              cmd="grep -q "^\\$i" /etc/rsyslog.conf || echo "\\$i" | sed 's/\*\[\[\:space\:\]\]\*/ /g' >> /etc/rsyslog.conf"
+              EXIT_STATUS=0
+              eval $cmd
+              check_status 6.1.7 $cmd
+        done
+        cmd="pkill -HUP rsyslogd"
+        EXIT_STATUS=0
+        eval $cmd
+
+        msg_header 6.2. Configure System Accounting
+        cmd="systemctl enable auditd"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 6.2.1 $cmd
+
+        cmd="sed -i -e 's/^max_log_file*[[:space:]]*=.*/max_log_file = 8/g' -e 's/^space_left_action*[[:space:]]*=.*/space_left_action = email/g' -e 's/action_mail_acct*[[:space:]]*=.*/action_mail_acct = root/g' -e 's/max_log_file_action*[[:space:]]*=.*/max_log_file_action = keep_logs/g' /etc/audit/auditd.conf"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 6.2.2.1 $cmd
+
+        cmd="grep -q '^-a always,exit -F arch=b64 -S chmod -S fchmod -S fchmodat -F auid>=1000 -F auid!=4294967295 -k perm_mod' /etc/audit/rules.d/audit.rules || echo '-a always,exit -F arch=b64 -S chmod -S fchmod -S fchmodat -F auid>=1000 -F auid!=4294967295 -k perm_mod' >> /etc/audit/rules.d/audit.rules"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 6.2.2.1 $cmd
+        cmd="grep -q '^-a always,exit -F arch=b32 -S adjtimex -S settimeofday -S stime -k time-change' /etc/audit/rules.d/audit.rules || echo '-a always,exit -F arch=b32 -S adjtimex -S settimeofday -S stime -k time-change' >> /etc/audit/rules.d/audit.rules"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 6.2.2.1 $cmd
+        cmd="grep -q '^-a always,exit -F arch=b32 -S clock_settime -k time-change -w /etc/localtime -p wa -k time-change' /etc/audit/rules.d/audit.rules || echo '-a always,exit -F arch=b32 -S clock_settime -k time-change -w /etc/localtime -p wa -k time-change' >> /etc/audit/rules.d/audit.rules"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 6.2.2.1 $cmd
+        cmd="grep -q '^-a always,exit -F arch=b64 -S adjtimex -S settimeofday -k time-change' /etc/audit/rules.d/audit.rules || echo '-a always,exit -F arch=b64 -S adjtimex -S settimeofday -k time-change' >> /etc/audit/rules.d/audit.rules"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 6.2.2.2 $cmd
+        cmd="grep -q '^-a always,exit -F arch=b32 -S adjtimex -S settimeofday -S stime -k time-change' /etc/audit/rules.d/audit.rules || echo '-a always,exit -F arch=b32 -S adjtimex -S settimeofday -S stime -k time-change' >> /etc/audit/rules.d/audit.rules"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 6.2.2.2 $cmd
+        cmd="grep -q '^-a always,exit -F arch=b64 -S clock_settime -k time-change' /etc/audit/rules.d/audit.rules || echo '-a always,exit -F arch=b64 -S clock_settime -k time-change' >> /etc/audit/rules.d/audit.rules"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 6.2.2.2 $cmd
+        cmd="grep -q '^-a always,exit -F arch=b32 -S clock_settime -k time-change' /etc/audit/rules.d/audit.rules || echo '-a always,exit -F arch=b32 -S clock_settime -k time-change' >> /etc/audit/rules.d/audit.rules"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 6.2.2.2 $cmd
+        cmd="grep -q '^-w /etc/localtime -p wa -k time-change' /etc/audit/rules.d/audit.rules || echo '-w /etc/localtime -p wa -k time-change' >> /etc/audit/rules.d/audit.rules"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 6.2.2.2 $cmd
+        cmd="grep -q '^-w /etc/group -p wa -k identity' /etc/audit/rules.d/audit.rules || echo '-w /etc/group -p wa -k identity' >> /etc/audit/rules.d/audit.rules"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 6.2.2.3 $cmd
+        cmd="grep -q '^-w /etc/passwd -p wa -k identity' /etc/audit/rules.d/audit.rules || echo '-w /etc/passwd -p wa -k identity' >> /etc/audit/rules.d/audit.rules"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 6.2.2.3 $cmd
+        cmd="grep -q '^-w /etc/gshadow -p wa -k identity' /etc/audit/rules.d/audit.rules || echo '-w /etc/gshadow -p wa -k identity' >> /etc/audit/rules.d/audit.rules"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 6.2.2.3 $cmd
+        cmd="grep -q '^-w /etc/shadow -p wa -k identity' /etc/audit/rules.d/audit.rules || echo '-w /etc/shadow -p wa -k identity' >> /etc/audit/rules.d/audit.rules"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 6.2.2.3 $cmd
+        cmd="grep -q '^-w /etc/security/opasswd -p wa -k identity' /etc/audit/rules.d/audit.rules || echo '-w /etc/security/opasswd -p wa -k identity' >> /etc/audit/rules.d/audit.rules"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 6.2.2.3 $cmd
+        cmd="grep -q '^-a always,exit -F arch=b32 -S sethostname -S setdomainname -k system-locale' /etc/audit/rules.d/audit.rules || echo '-a always,exit -F arch=b32 -S sethostname -S setdomainname -k system-locale' >> /etc/audit/rules.d/audit.rules"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 6.2.2.4 $cmd
+        cmd="grep -q '^-w /etc/issue -p wa -k system-locale' /etc/audit/rules.d/audit.rules || echo '-w /etc/issue -p wa -k system-locale' >> /etc/audit/rules.d/audit.rules"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 6.2.2.4 $cmd
+        cmd="grep -q '^-w /etc/issue.net -p wa -k system-locale' /etc/audit/rules.d/audit.rules || echo '-w /etc/issue.net -p wa -k system-locale' >> /etc/audit/rules.d/audit.rules"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 6.2.2.4 $cmd
+        cmd="grep -q '^-w /etc/hosts -p wa -k system-locale' /etc/audit/rules.d/audit.rules || echo '-w /etc/hosts -p wa -k system-locale' >> /etc/audit/rules.d/audit.rules"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 6.2.2.4 $cmd
+        cmd="grep -q '^-w /etc/sysconfig/network -p wa -k system-locale' /etc/audit/rules.d/audit.rules || echo '-w /etc/sysconfig/network -p wa -k system-locale' >> /etc/audit/rules.d/audit.rules"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 6.2.2.4 $cmd
+        cmd="grep -q '^-a always,exit -F arch=b64 -S sethostname -S setdomainname -k system-locale' /etc/audit/rules.d/audit.rules || echo '-a always,exit -F arch=b64 -S sethostname -S setdomainname -k system-locale' >> /etc/audit/rules.d/audit.rules"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 6.2.2.4 $cmd
+        cmd="grep -q '^-a always,exit -F arch=b32 -S sethostname -S setdomainname -k system-locale' /etc/audit/rules.d/audit.rules || echo '-a always,exit -F arch=b32 -S sethostname -S setdomainname -k system-locale' >> /etc/audit/rules.d/audit.rules"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 6.2.2.4 $cmd
+        cmd="grep -q '^-w /etc/issue -p wa -k system-locale' /etc/audit/rules.d/audit.rules || echo '-w /etc/issue -p wa -k system-locale' >> /etc/audit/rules.d/audit.rules"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 6.2.2.4 $cmd
+        cmd="grep -q '^-w /etc/issue.net -p wa -k system-locale' /etc/audit/rules.d/audit.rules || echo '-w /etc/issue.net -p wa -k system-locale' >> /etc/audit/rules.d/audit.rules"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 6.2.2.4 $cmd
+        cmd="grep -q '^-w /etc/hosts -p wa -k system-locale' /etc/audit/rules.d/audit.rules || echo '-w /etc/hosts -p wa -k system-locale' >> /etc/audit/rules.d/audit.rules"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 6.2.2.4 $cmd
+        cmd="grep -q '^-w /etc/sysconfig/network -p wa -k system-locale' /etc/audit/rules.d/audit.rules || echo '-w /etc/sysconfig/network -p wa -k system-locale' >> /etc/audit/rules.d/audit.rules"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 6.2.2.4 $cmd
+        cmd="grep -q '^-w /etc/selinux/ -p wa -k MAC-policy' /etc/audit/rules.d/audit.rules || echo '-w /etc/selinux/ -p wa -k MAC-policy' >> /etc/audit/rules.d/audit.rules"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 6.2.2.5 $cmd
+        cmd="grep -q '^-w /var/log/lastlog -p wa -k logins' /etc/audit/rules.d/audit.rules || echo '-w /var/log/lastlog -p wa -k logins' >> /etc/audit/rules.d/audit.rules"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 6.2.2.6 $cmd
+        cmd="grep -q '^-w /var/run/faillock/ -p wa -k logins' /etc/audit/rules.d/audit.rules || echo '-w /var/run/faillock/ -p wa -k logins' >> /etc/audit/rules.d/audit.rules"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 6.2.2.6 $cmd
+        cmd="grep -q '^-w /var/run/utmp -p wa -k session' /etc/audit/rules.d/audit.rules || echo '-w /var/run/utmp -p wa -k session' >> /etc/audit/rules.d/audit.rules"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 6.2.2.7 $cmd
+        cmd="grep -q '^-w /var/log/wtmp -p wa -k session' /etc/audit/rules.d/audit.rules || echo '-w /var/log/wtmp -p wa -k session' >> /etc/audit/rules.d/audit.rules"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 6.2.2.7 $cmd
+        cmd="grep -q '^-w /var/log/btmp -p wa -k session' /etc/audit/rules.d/audit.rules || echo '-w /var/log/btmp -p wa -k session' >> /etc/audit/rules.d/audit.rules"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 6.2.2.7 $cmd
+        cmd="grep -q '^-a always,exit -F arch=b32 -S creat -S open -S openat -S truncate -S ftruncate -F exit=-EACCES -F auid>=1000 -F auid!=4294967295 -k access' /etc/audit/rules.d/audit.rules || echo '-a always,exit -F arch=b32 -S creat -S open -S openat -S truncate -S ftruncate -F exit=-EACCES -F auid>=1000 -F auid!=4294967295 -k access' >> /etc/audit/rules.d/audit.rules"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 6.2.2.8 $cmd
+        cmd="grep -q '^-a always,exit -F arch=b32 -S creat -S open -S openat -S truncate -S ftruncate -F exit=-EPERM -F auid>=1000 -F auid!=4294967295 -k access' /etc/audit/rules.d/audit.rules || echo '-a always,exit -F arch=b32 -S creat -S open -S openat -S truncate -S ftruncate -F exit=-EPERM -F auid>=1000 -F auid!=4294967295 -k access' >> /etc/audit/rules.d/audit.rules"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 6.2.2.8 $cmd
+        cmd="grep -q '^-a always,exit -F arch=b64 -S creat -S open -S openat -S truncate -S ftruncate -F exit=-EACCES -F auid>=1000 -F auid!=4294967295 -k access' /etc/audit/rules.d/audit.rules || echo '-a always,exit -F arch=b64 -S creat -S open -S openat -S truncate -S ftruncate -F exit=-EACCES -F auid>=1000 -F auid!=4294967295 -k access' >> /etc/audit/rules.d/audit.rules"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 6.2.2.8 $cmd
+        cmd="grep -q '^-a always,exit -F arch=b32 -S creat -S open -S openat -S truncate -S ftruncate -F exit=-EACCES -F auid>=1000 -F auid!=4294967295 -k access' /etc/audit/rules.d/audit.rules || echo '-a always,exit -F arch=b32 -S creat -S open -S openat -S truncate -S ftruncate -F exit=-EACCES -F auid>=1000 -F auid!=4294967295 -k access' >> /etc/audit/rules.d/audit.rules"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 6.2.2.8 $cmd
+        cmd="grep -q '^-a always,exit -F arch=b64 -S creat -S open -S openat -S truncate -S ftruncate -F exit=-EPERM -F auid>=1000 -F auid!=4294967295 -k access' /etc/audit/rules.d/audit.rules || echo '-a always,exit -F arch=b64 -S creat -S open -S openat -S truncate -S ftruncate -F exit=-EPERM -F auid>=1000 -F auid!=4294967295 -k access' >> /etc/audit/rules.d/audit.rules"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 6.2.2.8 $cmd
+        cmd="grep -q '^-a always,exit -F arch=b32 -S creat -S open -S openat -S truncate -S ftruncate -F exit=-EPERM -F auid>=1000 -F auid!=4294967295 -k access' /etc/audit/rules.d/audit.rules || echo '-a always,exit -F arch=b32 -S creat -S open -S openat -S truncate -S ftruncate -F exit=-EPERM -F auid>=1000 -F auid!=4294967295 -k access' >> /etc/audit/rules.d/audit.rules"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 6.2.2.8 $cmd
+        cmd="grep -q '^-a always,exit -F arch=b32 -S mount -F auid>=1000 -F auid!=4294967295 -k mounts' /etc/audit/rules.d/audit.rules || echo '-a always,exit -F arch=b32 -S mount -F auid>=1000 -F auid!=4294967295 -k mounts' >> /etc/audit/rules.d/audit.rules"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 6.2.2.9 $cmd
+        cmd="grep -q '^-a always,exit -F arch=b64 -S mount -F auid>=1000 -F auid!=4294967295 -k mounts' /etc/audit/rules.d/audit.rules || echo '-a always,exit -F arch=b64 -S mount -F auid>=1000 -F auid!=4294967295 -k mounts' >> /etc/audit/rules.d/audit.rules"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 6.2.2.9 $cmd
+        cmd="grep -q '^-w /etc/sudoers -p wa -k scope' /etc/audit/rules.d/audit.rules || echo '-w /etc/sudoers -p wa -k scope' >> /etc/audit/rules.d/audit.rules"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 6.2.2.10 $cmd
+        cmd="grep -q '^-w /etc/sudoers.d -p wa -k scope' /etc/audit/rules.d/audit.rules || echo '-w /etc/sudoers.d -p wa -k scope' >> /etc/audit/rules.d/audit.rules"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 6.2.2.10 $cmd
+        cmd="grep -q '^-w /var/log/sudo.log -p wa -k actions' /etc/audit/rules.d/audit.rules || echo '-w /var/log/sudo.log -p wa -k actions' >> /etc/audit/rules.d/audit.rules"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 6.2.2.10 $cmd
+        cmd="pkill -HUP -P1 auditd; service auditd restart"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 6.2.3 $cmd
+
+        msg_header 6.4. Ensure file deletion events by users are collected
+        cmd="grep -q '^-a always,exit -F arch=b32 -S unlink -S unlinkat -S rename -S renameat -F auid>=1000 -F auid!=4294967295 -k delete' /etc/audit/rules.d/audit.rules || echo '-a always,exit -F arch=b32 -S unlink -S unlinkat -S rename -S renameat -F auid>=1000 -F auid!=4294967295 -k delete' >> /etc/audit/rules.d/audit.rules"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 6.4.1 $cmd
+        cmd="grep -q '^-a always,exit -F arch=b64 -S unlink -S unlinkat -S rename -S renameat -F auid>=1000 -F auid!=4294967295 -k delete' /etc/audit/rules.d/audit.rules || echo '-a always,exit -F arch=b64 -S unlink -S unlinkat -S rename -S renameat -F auid>=1000 -F auid!=4294967295 -k delete' >> /etc/audit/rules.d/audit.rules"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 6.4.2 $cmd
+        cmd="grep -q '^-a always,exit -F arch=b32 -S unlink -S unlinkat -S rename -S renameat -F auid>=1000 -F auid!=4294967295 -k delete -a always,exit -F arch=b32 -S unlink -S unlinkat -S rename -S renameat -F auid>=1000 -F auid!=4294967295 -k delete' /etc/audit/rules.d/audit.rules || echo '-a always,exit -F arch=b32 -S unlink -S unlinkat -S rename -S renameat -F auid>=1000 -F auid!=4294967295 -k delete -a always,exit -F arch=b32 -S unlink -S unlinkat -S rename -S renameat -F auid>=1000 -F auid!=4294967295 -k delete' >> /etc/audit/rules.d/audit.rules"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 6.4.3 $cmd
+        cmd="grep -q '^-a always,exit -F arch=b64 -S unlink -S unlinkat -S rename -S renameat -F auid>=1000 -F auid!=4294967295 -k delete -a always,exit -F arch=b32 -S unlink -S unlinkat -S rename -S renameat -F auid>=1000 -F auid!=4294967295 -k delete' /etc/audit/rules.d/audit.rules || echo '-a always,exit -F arch=b64 -S unlink -S unlinkat -S rename -S renameat -F auid>=1000 -F auid!=4294967295 -k delete -a always,exit -F arch=b32 -S unlink -S unlinkat -S rename -S renameat -F auid>=1000 -F auid!=4294967295 -k delete' >> /etc/audit/rules.d/audit.rules"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 6.4.4 $cmd
+
+
+        msg_header 6.3. Ensure the audit configuration is immutable
+        cmd="sed -i -e '/^-e 2/d' /etc/audit/rules.d/audit.rules;echo '-e 2' >> /etc/audit/rules.d/audit.rules;pkill -HUP -P1 auditd; service auditd restart"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 6.3 $cmd
+
+        msg_header 6.6. Ensure auditing for processes that start prior to auditd is enabled
+        cmd="grep -q 'audit=1' /etc/default/grub"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 6.6 $cmd
+
+        msg_header 6.7. Ensure auditd service is enabled
+        cmd="systemctl enable auditd"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 6.7 $cmd
+
+        msg_header 6.8. Ensure system is disabled when audit logs are full
+        cmd="sed -i -e 's/^space_left_action*[[:space:]]*=.*/space_left_action = email/g' -e 's/^action_mail_acct*[[:space:]]*=.*/action_mail_acct = root/g' -e 's/admin_space_left_action*[[:space:]]*=.*/admin_space_left_action = halt/g' /etc/audit/auditd.conf"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 6.8 $cmd
+
+        msg_header 7.1. Restrict access to Cron
+        cmd="chown root:root /etc/crontab;chmod 640 /etc/crontab"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 7.1 $cmd
+
+        msg_header 7.2. Configure SSH
+        backup_file /etc/ssh/sshd_config
+        cmd="sed -i -e 's/^Protocol*[[:space:]].*/Protocol 2/g' -e 's/^LogLevel*[[:space:]].*/LogLevel INFO/g' -e 's/^X11Forwarding*[[:space:]].*/X11Forwarding no/g' -e 's/^MaxAuthTries*[[:space:]].*/MaxAuthTries 3/g' -e 's/IgnoreRhosts*[[:space:]].*/IgnoreRhosts yes/g' -e 's/HostbasedAuthentication*[[:space:]].*/HostbasedAuthentication no/g' -e 's/PermitUserEnvironment*[[:space:]].*/PermitUserEnvironment no/g' -e 's/^MACs*[[:space:]].*/MACs hmac-sha1,umac-64@openssh.com,hmac-ripemd160,hmac-sha2-256,hmac-sha2-512,hmac-ripemd160@openssh.com/g' -e 's/^ClientAliveInterval*[[:space:]].*/ClientAliveInterval 300/g' -e 's/^ClientAliveCountMax*[[:space:]].*/ClientAliveCountMax 0/g' -e 's/^MaxStartups*[[:space:]].*/MaxStartups 10:30:60/g' -e 's/^AllowTcpForwarding*[[:space:]].*/AllowTcpForwarding no/g' -e 's/^LoginGraceTime*[[:space:]].*/LoginGraceTime 60/g' -e 's/^#MaxSessions*[[:space:]].*/MaxSessions 10/g' -e 's/^Banner*[[:space:]].*/Banner \/etc\/issue.net/g' /etc/ssh/sshd_config; chown root:root /etc/ssh/sshd_config; chmod 644 /etc/ssh/sshd_config"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 7.2 $cmd
+        for i in Protocol.*[[:space:]].*2 LogLevel.*[[:space:]].*INFO X11Forwarding.*[[:space:]].*no MaxAuthTries.*[[:space:]].*3 IgnoreRhosts.*[[:space:]].*yes HostbasedAuthentication.*[[:space:]].*no PermitUserEnvironment.*[[:space:]].*no ClientAliveInterval.*[[:space:]].*300 ClientAliveCountMax.*[[:space:]].*0 AllowTcpForwarding*[[:space:]].*no LoginGraceTime*[[:space:]].*60 MaxSessions*[[:space:]].*10 MaxStartups*[[:space:]].*10:30:60 Banner.*[[:space:]].*/etc/issue.net Port.*[[:space:]].*22 Port.*[[:space:]].*27041 MACs.*[[:space:]].*hmac-sha1,umac-64@openssh.com,hmac-ripemd160,hmac-sha2-256,hmac-sha2-512,hmac-ripemd160@openssh.com Ciphers.*[[:space:]].*aes128-ctr,aes192-ctr,aes256-ctr AllowGroups DenyUsers DenyGroups
+        do
+              cmd="grep -q "^$i" /etc/ssh/sshd_config || echo "$i" | sed 's/\.\*\[\[\:space\:\]\]\.\*/ /g' >> /etc/ssh/sshd_config"
+              EXIT_STATUS=0
+              eval $cmd
+              check_status 7.2 $cmd
+        done
+
+        msg_header 7.3. Configure PAM
+        backup_file /etc/pam.d/password-auth-ac
+        backup_file /etc/pam.d/system-auth-ac
+        cmd="authconfig --passalgo=sha512 --update"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 7.3.1 $cmd
+        for i in retry=3 try_first_pass
+        do
+              cmd="grep -q \"^password.*[[:space:]].*requisite.*[[:space:]].*pam_pwquality.so.*[[:space:]].*$i\" /etc/pam.d/password-auth-ac || sed -i \"/^password.*[[:space:]].*requisite.*[[:space:]].*pam_pwquality.so.*[[:space:]].*/s/$/ $i/g\"  /etc/pam.d/password-auth-ac"
+              EXIT_STATUS=0
+              eval $cmd
+              check_status 7.3.2 7.3.4 7.3.5 $cmd
+        done
+        cmd="grep -q \"^password.*[[:space:]].*requisite.*[[:space:]].*pam_pwquality.so\" /etc/pam.d/password-auth-ac || echo 'password requisite pam_pwquality.so try_first_pass retry=3' >> /etc/pam.d/password-auth-ac"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 7.3.2 7.3.4 7.3.5 $cmd
+        for i in retry=3 try_first_pass
+        do
+              cmd="grep -q \"^password.*[[:space:]].*requisite.*[[:space:]].*pam_pwquality.so.*[[:space:]].*$i\" /etc/pam.d/system-auth-ac || sed -i \"/^password.*[[:space:]].*requisite.*[[:space:]].*pam_pwquality.so.*[[:space:]].*/s/$/ $i/g\"  /etc/pam.d/system-auth-ac"
+              EXIT_STATUS=0
+              eval $cmd
+              check_status 7.3.2 7.3.4 7.3.5 $cmd
+        done
+        cmd="grep -q "^password.*[[:space:]].*requisite.*[[:space:]].*pam_pwquality.so" /etc/pam.d/system-auth-ac || echo 'password requisite pam_pwquality.so try_first_pass retry=3' >> /etc/pam.d/system-auth-ac"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 7.3.2 7.3.4 7.3.5 $cmd
+
+
+        for i in preauth audit silent deny=3 unlock_time=900
+        do
+              cmd="grep -q \"^auth.*[[:space:]].*required.*[[:space:]].*pam_faillock.so.*[[:space:]].*$i\" /etc/pam.d/password-auth-ac || sed -i \"/^auth.*[[:space:]].*required.*[[:space:]].*pam_faillock.so*[[:space:]].*/s/$/ $i/g\"  /etc/pam.d/password-auth-ac"
+              EXIT_STATUS=0
+              eval $cmd
+              check_status 7.3.2 7.3.4 7.3.5 $cmd
+        done
+        cmd="grep -q \"^auth.*[[:space:]].*required.*[[:space:]].*pam_faillock.so\" /etc/pam.d/password-auth-ac || echo 'auth required pam_faillock.so preauth audit silent deny=3 unlock_time=900' >> /etc/pam.d/password-auth-ac"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 7.3.2 7.3.4 7.3.5 $cmd
+        for i in preauth audit silent deny=3 unlock_time=900
+        do
+              cmd="grep -q \"^auth.*[[:space:]].*required.*[[:space:]].*pam_faillock.so.*[[:space:]].*$i\" /etc/pam.d/system-auth-ac || sed -i \"/^auth.*[[:space:]].*required.*[[:space:]].*pam_faillock.so.*[[:space:]].*/s/$/ $i/g\"  /etc/pam.d/system-auth-ac"
+              EXIT_STATUS=0
+              eval $cmd
+              check_status 7.3.2 7.3.4 7.3.5 $cmd
+        done
+        cmd="grep -q \"^auth.*[[:space:]].*required.*[[:space:]].*pam_faillock.so\" /etc/pam.d/system-auth-ac || echo 'auth required pam_faillock.so preauth audit silent deny=3 unlock_time=900' >> /etc/pam.d/system-auth-ac"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 7.3.2 7.3.4 7.3.5 $cmd
+
+        cmd="grep -q \"^auth.*[[:space:]].*pam_unix.so\" /etc/pam.d/password-auth-ac || echo 'auth pam_unix.so' >> /etc/pam.d/password-auth-ac"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 7.3.2 7.3.4 7.3.5 $cmd
+        cmd="grep -q \"^auth.*[[:space:]].*pam_unix.so\" /etc/pam.d/system-auth-ac || echo 'auth pam_unix.so' >> /etc/pam.d/system-auth-ac"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 7.3.2 7.3.4 7.3.5 $cmd
+
+        cmd="grep -q \"^auth.*[[:space:]].*\[default=die\]\" /etc/pam.d/password-auth-ac || echo 'auth  [default=die]' >> /etc/pam.d/password-auth-ac"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 7.3.2 7.3.4 7.3.5 $cmd
+        cmd="grep -q \"^auth.*[[:space:]].*\[default=die\]\" /etc/pam.d/system-auth-ac || echo 'auth  [default=die]' >> /etc/pam.d/system-auth-ac"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 7.3.2 7.3.4 7.3.5 $cmd
+
+        for i in pam_faillock.so authfail audit deny=3 unlock_time=900
+        do
+              cmd="grep -q \"^auth.*[[:space:]].*\[default=die\].*$i\" /etc/pam.d/password-auth-ac || sed -i \"/^auth.*[[:space:]].*\[default=die\].*/s/$/ $i/g\"  /etc/pam.d/password-auth-ac"
+              EXIT_STATUS=0
+              eval $cmd
+              check_status 7.3.2 7.3.4 7.3.5 $cmd
+        done
+        for i in pam_faillock.so authfail audit deny=3 unlock_time=900
+        do
+              cmd="grep -q \"^auth.*[[:space:]].*\[default=die\].*$i\" /etc/pam.d/system-auth-ac || sed -i \"/^auth.*[[:space:]].*\[default=die\].*/s/$/ $i/g\"  /etc/pam.d/system-auth-ac"
+              EXIT_STATUS=0
+              eval $cmd
+              check_status 7.3.2 7.3.4 7.3.5 $cmd
+        done
+
+        cmd="grep -q \"^auth.*[[:space:]].*sufficient.*[[:space:]].*pam_faillock.so\" /etc/pam.d/password-auth-ac || echo 'auth sufficient pam_faillock.so' >> /etc/pam.d/password-auth-ac"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 7.3.2 7.3.4 7.3.5 $cmd
+        cmd="grep -q \"^auth.*[[:space:]].*sufficient.*[[:space:]].*pam_faillock.so\" /etc/pam.d/system-auth-ac || echo 'auth sufficient pam_faillock.so' >> /etc/pam.d/system-auth-ac"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 7.3.2 7.3.4 7.3.5 $cmd
+        for i in authsucc audit deny=3 unlock_time=900
+        do
+              cmd="grep -q \"^auth.*[[:space:]].*sufficient.*[[:space:]].*pam_faillock.so.*$i\" /etc/pam.d/password-auth-ac || sed -i \"/^auth.*[[:space:]].*sufficient.*[[:space:]].*pam_faillock.so.*/s/$/ $i/g\"  /etc/pam.d/password-auth-ac"
+              EXIT_STATUS=0
+              eval $cmd
+              check_status 7.3.2 7.3.4 7.3.5 $cmd
+        done
+        for i in authsucc audit deny=3 unlock_time=900
+        do
+              cmd="grep -q \"^auth.*[[:space:]].*sufficient.*[[:space:]].*pam_faillock.so.*$i\" /etc/pam.d/system-auth-ac || sed -i \"/^auth.*[[:space:]].*sufficient.*[[:space:]].*pam_faillock.so.*/s/$/ $i/g\"  /etc/pam.d/system-auth-ac"
+              EXIT_STATUS=0
+              eval $cmd
+              check_status 7.3.2 7.3.4 7.3.5 $cmd
+        done
+
+        cmd="grep -q \"^password.*[[:space:]].*sufficient.*[[:space:]].*remember=5\" /etc/pam.d/password-auth-ac || sed -i \"/^password.*[[:space:]].*sufficient.*/s/$/ remember=5/g\"  /etc/pam.d/password-auth-ac"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 7.3.2 7.3.4 7.3.5 $cmd
+        cmd="grep -q \"^password.*[[:space:]].*sufficient.*[[:space:]].*remember=5\" /etc/pam.d/system-auth-ac || sed -i \"/^password.*[[:space:]].*sufficient.*/s/$/ remember=5/g\"  /etc/pam.d/system-auth-ac"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 7.3.2 7.3.4 7.3.5 $cmd
+        cmd="sed -i -e 's/^minlen.*[[:space:]].*/minlen = 8/g' -e 's/^dcredit.*[[:space:]].*/dcredit = -1/g' -e 's/^ucredit.*[[:space:]].*/ucredit = -1/g' -e 's/^ocredit.*[[:space:]].*/ocredit = -1/g' -e 's/^lcredit.*[[:space:]].*/lcredit = -1/g' /etc/security/pwquality.conf"
+        EXIT_STATUS=0
+        eval $cmd
+
+        check_status 7.3.3 $cmd
+        for i in minlen.*[[:space:]].*=.*[[:space:]].*8 dcredit.*[[:space:]].*=.*[[:space:]].*\-\1 ucredit.*[[:space:]].*=.*[[:space:]].*-1 ocredit.*[[:space:]].*=.*[[:space:]].*-1 lcredit.*[[:space:]].*=.*[[:space:]].*-1
+        do
+              cmd="grep -q "^$i" /etc/security/pwquality.conf || echo "$i" | sed 's/\.\*\[\[\:space\:\]\]\.\*/ /g' >> /etc/security/pwquality.conf"
+              EXIT_STATUS=0
+              eval $cmd
+              check_status 7.3.3 $cmd
+        done
+
+        msg_header 7.4. Restrict Access to the su Command
+        backup_file /etc/pam.d/su
+        cmd="grep -q '^auth.*[[:space:]].*required.*[[:space:]].*pam_wheel.so.*[[:space:]].*use_uid' /etc/pam.d/su || echo 'auth required pam_wheel.so use_uid' >> /etc/pam.d/su"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 7.4 $cmd
+
+        msg_header 7.5. Ensure permissions on bootloader config are configured
+        cmd="chown root:root /boot/grub2/grub.cfg ; chmod og-rwx /boot/grub2/grub.cfg  "
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 7.5 $cmd
+
+        msg_header 7.6. Disable Automounting
+        cmd="systemctl disable autofs"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 7.6 $cmd
+
+        msg_header 7.7. Ensure audit logs are not automatically deleted
+        cmd="sed -i -e 's/max_log_file_action.*[[:space:]].*/max_log_file_action = keep_logs/g' /etc/audit/auditd.conf"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 7.7 $cmd
+
+        msg_header 7.8. Ensure no world writable files exist
+        cmd="df --local -P | egrep 'rootvg|rhel|boot' | awk {'if (NR!=1) print \$6'} | xargs -I '{}' find '{}' -xdev -type f -perm -0002 | xargs -I '{}' chmod o-w '{}'"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 7.8 $cmd
+
+        msg_header 8.1. Set Shadow Password Suite Parameters
+        backup_file /etc/login.defs
+        cmd="sed -i -e 's/^PASS_MAX_DAYS.*/PASS_MAX_DAYS 90/g' -e 's/^PASS_MIN_DAYS.*/PASS_MIN_DAYS 2/g' -e 's/^PASS_WARN_AGE.*/PASS_WARN_AGE 14/g' -e 's/^PASS_MIN_LEN.*/PASS_MIN_LEN 8/g' /etc/login.defs"
+        EXIT_STATUS=0
+        eval $cmd
+        for i in PASS_MAX_DAYS.*[[:space:]].*90 PASS_MIN_DAYS.*[[:space:]].*2 PASS_WARN_AGE.*[[:space:]].*14 PASS_MIN_LEN.*[[:space:]].*8
+        do
+                cmd="grep -q '$i' /etc/login.defs || echo $i | sed 's/\.\*\[\[\:space\:\]\]\.\*/ /g' >> /etc/login.defs"
+                eval $cmd
+                check_status 8.1 $cmd
+        done
+        check_status 8.1 $cmd
+
+        msg_header 8.2. Disable System Accounts
+        info_msg Check with IAM Team
+
+        msg_header 8.3. Set Default Group for root Account
+        cmd="usermod -g0 root"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 8.3 $cmd
+
+        msg_header 8.4. Set Default umask for Users
+        backup_file /etc/bashrc
+        backup_file /etc/profile
+        backup_file /etc/profile.d/cis.sh
+        cmd="sed -i -e 's/umask.*/umask 027/g'  /etc/profile.d/cis.sh /etc/bashrc /etc/profile"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 8.4 $cmd
+        cmd="grep -q "umask.*[[:space:]].*027" /etc/profile || echo 'umask 027' >> /etc/profile"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 8.4 $cmd
+        cmd="grep -q "umask.*[[:space:]].*027" /etc/bashrc || echo 'umask 027' >> /etc/bashrc"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 8.4 $cmd
+        cmd="grep -q "umask.*[[:space:]].*027" /etc/profile.d/cis.sh || echo 'umask 027' >> /etc/profile.d/cis.sh"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 8.4 $cmd
+
+        msg_header 8.5. Lock Inactive User Accounts
+        backup_file /etc/shadow
+        cmd="sed -i '/^root/! s~^\([^:]*\):\([^:]*\):\([^:]*\):\([^:]*\):\([^:]*\):\([^:]*\):\([^:]*\)~\1:\2:\3:\4:\5:\6:35~' /etc/shadow"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 8.5 $cmd
+        cmd="sed -i 's/INACTIVE=.*/INACTIVE=30/g' /etc/default/useradd"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 8.5.1 $cmd
+
+        msg_header 8.6. Disabled aotomounting
+        cmd="systemctl disable autofs"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 8.6 $cmd
+
+        msg_header 9.1. Set Warning Banner for Standard Login Services
+        cmd="chown root:root /etc/motd /etc/issue /etc/issue.net;chmod 644 /etc/motd /etc/issue /etc/issue.net"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 9.1 $cmd
+
+        msg_header 9.2. Remove OS Information from Login Warning Banners
+        echo 'Authorized users only. All activity may be monitored and reported.' > /etc/motd
+        echo 'Authorized users only. All activity may be monitored and reported.' > /etc/issue
+        echo 'Authorized users only. All activity may be monitored and reported.' > /etc/issue.net
+        cmd="grep -q 'Authorized users only. All activity may be monitored and reported.' /etc/motd /etc/issue /etc/issue.net"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 9.2 $cmd
+
+        msg_header 9.3. Set GNOME Warning Banner
+        info_msg Not Applicable as X11 packages has been removed as per the SCD policy
+
+        msg_header 10.1. Verify System File Permissions
+        cmd="chown root:root /etc/passwd /etc/shadow /etc/gshadow /etc/group;chmod 644 /etc/passwd /etc/group;chmod 000 /etc/shadow /etc/gshadow"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 10.1 $cmd
+
+        msg_header 10.2. Review User and Group Settings
+        info_msg Check with IAM Team
+
+        msg_header 11.2. Enable TLS 1.2 \& Above protocol
+        info_msg Not Applicable as HTTPD package is not installed
+
+        msg_header 11.3. Disable weak encryption protocol
+        info_msg Not Applicable as HTTPD package is not installed
+
+        echo -e "\033[46;30m"
+        msg_header Log file generated at /tmp/$(hostname)_SCD_LINUX_V13_log_impl_"$cdate".txt
+        echo -e "\033[40;37m"
+
+}
+
+linux_verification()
+{
+        echo "======================================================================"
+        echo "                  LINUX SCD Verification Started"
+        echo "======================================================================"
+        msg_header 2.1. Filesystem Configuration
+        cmd="ls -ld /tmp/ /var/tmp/ /dev/shm | grep drwxrwxrwt | wc -l"
+        [[ $(eval $cmd) -eq 3 ]] && sub_msg_ok 2.1.1 $cmd || sub_msg_ko 2.1.1 $cmd
+        cmd="egrep 'defaults,nodev,noexec,nosuid' /etc/fstab | wc -l"
+        [[ $(eval $cmd) -eq 2 ]] && sub_msg_ok 2.1.2 $cmd || sub_msg_ko 2.1.2 $cmd
+        cmd="egrep 'install\s+cramfs\s+/bin/true|install\s+freevxfs\s+/bin/true|install\s+jffs2\s+/bin/true|install\s+hfs\s+/bin/true|install\s+hfsplus\s+/bin/true|install\s+squashfs\s+/bin/true' /etc/modprobe.d/CIS.conf | wc -l"
+        [[ $(eval $cmd) -eq 6 ]] && sub_msg_ok 2.1.2 $cmd || sub_msg_ko 2.1.2 $cmd
+
+        msg_header 2.2. Configure Software Updates
+        cmd="grep 'gpgcheck.*[[:space:]].*=.*[[:space:]].*0' /etc/yum.conf /etc/yum.repos.d/*.repo | wc -l"
+        [[ $(eval $cmd) -eq 0 ]] && sub_msg_ok 2.2 $cmd || sub_msg_ko 2.2 $cmd
+
+        msg_header 2.3. Advanced Intrusion Detection Environment
+        cmd="rpm -qa | grep -i aide | wc -l"
+        [[ $(eval $cmd) -eq 1 ]] && sub_msg_ok 2.3 $cmd || sub_msg_ko 2.3 $cmd
+
+        msg_header 3. OS Services
+        cmd="systemctl list-unit-files --type=service --state=enabled --no-pager  | egrep 'telnet|rlogin|rexec|rsh|ypserv|tftp.socket|ntalk|xinetd|avahi-daemon|dhcpd|slapd|nfs|rpcbind|named|vsftpd|httpd|dovecot|smb|squid|snmpd' | wc -l"
+        [[ $(eval $cmd) -eq 0 ]] && sub_msg_ok 3 $cmd || sub_msg_ko 3 $cmd
+        cmd="rpm -qa | egrep 'telnet|ypbind|talk|xorg-11' | wc -l"
+        [[ $(eval $cmd) -eq 0 ]] && sub_msg_ok 3 $cmd || sub_msg_ko 3 $cmd
+
+        msg_header 4.1. Configure Network Time Protocol
+        cmd="cat /etc/chrony.conf | grep 'server.*[[:space:]].*10.' | wc -l"
+        [[ $(eval $cmd) -ge 2 ]] && sub_msg_ok 4.1 $cmd || sub_msg_ko 4.1 $cmd
+
+        msg_header 4.1.1 Chrony SYNC status
+        cmd="chronyc sources |  grep '\*' | wc -l"
+        [[ $(eval $cmd) -eq 1 ]] && sub_msg_ok 4.1.1 $cmd || sub_msg_ko 4.1.1 $cmd
+
+        msg_header 4.2. Configure Mail Transfer Agent for Local-Only Mode
+        cmd="grep '^inet_interfaces.*[[:space:]]=.*[[:space:]]localhost' /etc/postfix/main.cf  | wc -l"
+        [[ $(eval $cmd) -eq 1 ]] && sub_msg_ok 4.1.1 $cmd || sub_msg_ko 4.1.1 $cmd
+
+        msg_header 4.3. Check for Unconfined Daemons
+        cmd="ps -eZ | egrep 'initrc' | egrep -vw 'tr|ps|egrep|bash|awk' | tr ':' ' ' | awk '{ print $NF }'"
+        sub_msg_ok 4.3.
+
+        msg_header 5.1. Modify Network Parameters and 5.2. IPv6
+        for i in net.ipv4.ip_forward=0 net.ipv4.conf.all.send_redirects=0 net.ipv4.conf.default.send_redirects=0 net.ipv4.conf.all.accept_source_route=0  net.ipv4.conf.default.accept_source_route=0 net.ipv4.conf.all.accept_redirects=0 net.ipv4.conf.default.accept_redirects=0 net.ipv4.conf.all.secure_redirects=0 net.ipv4.conf.default.secure_redirects=0 net.ipv4.conf.all.log_martians=1  net.ipv4.conf.default.log_martians=1 net.ipv4.icmp_echo_ignore_broadcasts=1 net.ipv4.icmp_ignore_bogus_error_responses=1  net.ipv4.conf.all.rp_filter=1 net.ipv4.conf.default.rp_filter=1 net.ipv4.tcp_syncookies=1 net.ipv6.conf.all.accept_ra=0 net.ipv6.conf.default.accept_ra=0 net.ipv6.conf.all.accept_redirects=0 net.ipv6.conf.default.accept_redirects=0 net.ipv6.conf.all.disable_ipv6=1
+        do
+               cmd="grep \"$(echo $i | sed 's/=/*[[:space:]]*=*[[:space:]]*/g')\" /etc/sysctl.conf | wc -l"
+               [[ $(eval $cmd) -eq 1 ]] && sub_msg_ok 5.1 and 5.2 $cmd || sub_msg_ko 5.1 and 5.2 $cmd
+        done
+
+        msg_header 5.3. Install TCP Wrappers
+        cmd="grep 'ALL: ALL' /etc/hosts.deny | wc -l"
+        [[ $(eval $cmd) -eq 1 ]] && sub_msg_ok 5.3.4 $cmd || sub_msg_ko 5.3.4 $cmd
+
+        cmd="stat -c%u%g%a  /etc/hosts.allow /etc/hosts.deny  | grep '00644' | wc -l"
+        [[ $(eval $cmd) -eq 2 ]] && sub_msg_ok 5.3.4 $cmd || sub_msg_ko 5.3.4 $cmd
+
+        msg_header 5.4. Uncommon Network Protocols
+        cmd="egrep 'install\s+dccp\s+/bin/true|install\s+sctp\s+/bin/true|install\s+rds\s+/bin/true|install\s+tipc\s+/bin/true' /etc/modprobe.d/CIS.conf | wc -l"
+        [[ $(eval $cmd) -eq 4 ]] && sub_msg_ok 2.1.2 $cmd || sub_msg_ko 2.1.2 $cmd
+
+        msg_header 5.5. Enable Server Firewall
+        cmd="systemctl list-unit-files --type=service --state=enabled --no-pager  | egrep 'firewall' | wc -l"
+        [[ $(eval $cmd) -eq 1 ]] && sub_msg_ok 5.5. $cmd || sub_msg_ko 5.5. $cmd
+
+        msg_header 6.1. Configure rsyslog
+        cmd="rpm -qa | grep -i ^rsyslog | wc -l"
+        [[ $(eval $cmd) -ge 1 ]] && sub_msg_ok 6.1.1 $cmd || sub_msg_ko 6.1.1 $cmd
+
+        cmd="systemctl list-unit-files --type=service --state=enabled --no-pager  | egrep 'rsyslog' | wc -l"
+        [[ $(eval $cmd) -eq 1 ]] && sub_msg_ok 6.1.2 $cmd || sub_msg_ko 6.1.2 $cmd
+
+        for i in auth,user.*[[:space:]]/var/log/messages kern.*[[:space:]]/var/log/kern.log daemon.*[[:space:]]/var/log/daemon.log syslog.*[[:space:]]/var/log/syslog lpr,news,uucp,local0,local1,local2,local3,local4,local5,local6.*[[:space:]]/var/log/unused.log
+        do
+               cmd="grep $i /etc/rsyslog.conf | wc -l"
+               [[ $(eval $cmd) -eq 1 ]] && sub_msg_ok 6.1.3 $cmd || sub_msg_ko 6.1.3 $cmd
+        done
+
+        cmd="stat -c%u%g%a /var/log/messages /var/log/kern.log /var/log/daemon.log /var/log/syslog | grep '^00.00$' | wc -l"
+        [[ $(eval $cmd) -eq 4 ]] && sub_msg_ok 6.1.4 $cmd || sub_msg_ko 6.1.4 $cmd
+
+        cmd="egrep '^\\\$ModLoad*[[:space:]]*imtcp.so|^\\\$InputTCPServerRun*[[:space:]]*514' /etc/rsyslog.conf | wc -l"
+        [[ $(eval $cmd) -eq 2 ]] && sub_msg_ok 6.1.7 $cmd || sub_msg_ko 6.1.7 $cmd
+
+        msg_header 6.2. Configure System Accounting \& 6.3. Ensure the audit configuration is immutable \& 6.4. Ensure file deletion events by users are collected
+        cmd="systemctl list-unit-files --type=service --state=enabled --no-pager  | egrep 'auditd' | wc -l"
+        [[ $(eval $cmd) -eq 1 ]] && sub_msg_ok 6.2.1. $cmd || sub_msg_ko 6.2.1. $cmd
+
+        cmd="egrep '^max_log_file.*[[:space:]].*=.*[[:space:]].*8|^space_left_action.*[[:space:]].*=.*[[:space:]].*email|^action_mail_acct.*[[:space:]].*=.*[[:space:]].*root|^max_log_file_action.*[[:space:]].*=.*[[:space:]].*keep_logs' /etc/audit/auditd.conf | wc -l"
+        [[ $(eval $cmd) -eq 4 ]] && sub_msg_ok 6.2.2. $cmd || sub_msg_ko 6.2.2. $cmd
+
+audit_rules="-w /etc/selinux/ -p wa -k MAC-policy
+-a always,exit -F arch=b64 -S chmod -S fchmod -S fchmodat -F auid>=1000 -F auid!=4294967295 -k perm_mod
+-a always,exit -F arch=b64 -S mount -F auid>=1000 -F auid!=4294967295 -k mounts
+-a always,exit -F arch=b32 -S adjtimex -S settimeofday -S stime -k time-change
+-a always,exit -F arch=b32 -S clock_settime -k time-change -w /etc/localtime -p wa -k time-change
+-a always,exit -F arch=b64 -S adjtimex -S settimeofday -k time-change
+-a always,exit -F arch=b64 -S clock_settime -k time-change
+-w /etc/localtime -p wa -k time-change
+-w /etc/group -p wa -k identity
+-w /etc/passwd -p wa -k identity
+-w /etc/gshadow -p wa -k identity
+-w /etc/shadow -p wa -k identity
+-w /etc/security/opasswd -p wa -k identity
+-a always,exit -F arch=b32 -S sethostname -S setdomainname -k system-locale
+-w /etc/issue -p wa -k system-locale
+-w /etc/issue.net -p wa -k system-locale
+-w /etc/hosts -p wa -k system-locale
+-w /etc/sysconfig/network -p wa -k system-locale
+-a always,exit -F arch=b64 -S sethostname -S setdomainname -k system-locale
+-w /var/log/lastlog -p wa -k logins
+-w /var/run/faillock/ -p wa -k logins
+-w /var/run/utmp -p wa -k session
+-w /var/log/wtmp -p wa -k session
+-w /var/log/btmp -p wa -k session
+-a always,exit -F arch=b32 -S creat -S open -S openat -S truncate -S ftruncate -F exit=-EACCES -F auid>=1000 -F auid!=4294967295 -k access
+-a always,exit -F arch=b32 -S creat -S open -S openat -S truncate -S ftruncate -F exit=-EPERM -F auid>=1000 -F auid!=4294967295 -k access
+-a always,exit -F arch=b64 -S creat -S open -S openat -S truncate -S ftruncate -F exit=-EACCES -F auid>=1000 -F auid!=4294967295 -k access
+-a always,exit -F arch=b64 -S creat -S open -S openat -S truncate -S ftruncate -F exit=-EPERM -F auid>=1000 -F auid!=4294967295 -k access
+-a always,exit -F arch=b32 -S mount -F auid>=1000 -F auid!=4294967295 -k mounts
+-w /etc/sudoers -p wa -k scope
+-w /etc/sudoers.d -p wa -k scope
+-w /var/log/sudo.log -p wa -k actions
+-a always,exit -F arch=b32 -S unlink -S unlinkat -S rename -S renameat -F auid>=1000 -F auid!=4294967295 -k delete
+-a always,exit -F arch=b64 -S unlink -S unlinkat -S rename -S renameat -F auid>=1000 -F auid!=4294967295 -k delete
+-a always,exit -F arch=b32 -S unlink -S unlinkat -S rename -S renameat -F auid>=1000 -F auid!=4294967295 -k delete -a always,exit -F arch=b32 -S unlink -S unlinkat -S rename -S renameat -F auid>=1000 -F auid!=4294967295 -k delete
+-a always,exit -F arch=b64 -S unlink -S unlinkat -S rename -S renameat -F auid>=1000 -F auid!=4294967295 -k delete -a always,exit -F arch=b32 -S unlink -S unlinkat -S rename -S renameat -F auid>=1000 -F auid!=4294967295 -k delete
+-e 2"
+        echo "$audit_rules" | while IFS= read -r line
+        do
+               cmd="grep $(echo \'$line\' | sed 's/-/\\-/g') /etc/audit/audit.rules | wc -l"
+               [[ $(eval $cmd) -ge 1 ]] && sub_msg_ok 6.2 $cmd || sub_msg_ko 6.2 $cmd
+        done
+
+        msg_header 6.6. Ensure auditing for processes that start prior to auditd is enabled
+        cmd="grep 'audit=1'  /etc/default/grub | wc -l"
+        [[ $(eval $cmd) -ge 1 ]] && sub_msg_ok 6.6 $cmd || sub_msg_ko 6.6 $cmd
+
+        msg_header 6.7. Ensure auditd service is enabled
+        cmd="systemctl list-unit-files --type=service --state=enabled --no-pager  | egrep 'auditd' | wc -l"
+        [[ $(eval $cmd) -eq 1 ]] && sub_msg_ok 6.7. $cmd || sub_msg_ko 6.7. $cmd
+
+        msg_header 6.8. Ensure system is disabled when audit logs are full
+        cmd="egrep 'space_left_action.*[[:space:]].*=.*[[:space:]].*email|action_mail_acct.*[[:space:]].*=.*[[:space:]].*root|admin_space_left_action.*[[:space:]].*=.*[[:space:]].*halt' /etc/audit/auditd.conf | wc -l"
+        [[ $(eval $cmd) -eq 3 ]] && sub_msg_ok 6.8. $cmd || sub_msg_ko 6.8. $cmd
+
+        msg_header 7.1. Restrict access to Cron
+        cmd="stat -c%u%g%a  /etc/crontab  | grep '00640' | wc -l"
+        [[ $(eval $cmd) -eq 1 ]] && sub_msg_ok 7.1 $cmd || sub_msg_ko 7.1 $cmd
+
+        msg_header 7.2. Configure SSH
+        for i in ^Protocol.*[[:space:]].*2 ^LogLevel.*[[:space:]].*INFO ^X11Forwarding.*[[:space:]].*no ^MaxAuthTries.*[[:space:]].*3 ^IgnoreRhosts.*[[:space:]].*yes ^HostbasedAuthentication.*[[:space:]].*no ^PermitUserEnvironment.*[[:space:]].*no ^MACs hmac-sha1,umac-64@openssh.com,hmac-ripemd160,hmac-sha2-256,hmac-sha2-512,hmac-ripemd160@openssh.com ClientAliveInterval 300 ClientAliveCountMax 0 ^AllowTcpForwarding*[[:space:]].*no ^LoginGraceTime*[[:space:]].*60 MaxSessions*[[:space:]].*10 MaxStartups*[[:space:]].*10:30:60 AllowUsers AllowGroups DenyUsers DenyGroups Banner.*[[:space:]].*/etc/issue.net
+        do
+               cmd="egrep '$i' /etc/ssh/sshd_config | wc -l"
+               [[ $(eval $cmd) -ge 1 ]] && sub_msg_ok 7.2 $cmd || sub_msg_ko 7.2 $cmd
+        done
+
+        msg_header 7.3. Configure PAM
+        for i in password requisite pam_pwquality.so try_first_pass retry=3 pam_faillock.so preauth audit silent deny=3 unlock_time=900 \\[default=die\\] pam_faillock.so authfail audit deny=3 unlock_time=900 authsucc audit deny=3 remember=5
+        do
+               cmd="egrep '$i' /etc/pam.d/password-auth /etc/pam.d/system-auth | wc -l"
+               [[ $(eval $cmd) -ge 2 ]] && sub_msg_ok 7.3 $cmd || sub_msg_ko 7.3 $cmd
+        done
+        for i in minlen.*[[:space:]].*=.*[[:space:]].*8 dcredit.*[[:space:]].*=.*[[:space:]].*-1 ucredit.*[[:space:]].*=.*[[:space:]].*-1 ocredit.*[[:space:]].*=.*[[:space:]].*-1 lcredit.*[[:space:]].*=.*[[:space:]].*-1
+        do
+               cmd="egrep '$i' /etc/security/pwquality.conf | wc -l"
+               [[ $(eval $cmd) -ge 1 ]] && sub_msg_ok 7.3 $cmd || sub_msg_ko 7.3 $cmd
+        done
+        msg_header 7.4. Restrict Access to the su Command
+        cmd="egrep 'pam_wheel.so.*[[:space:]].*use_uid'  /etc/pam.d/su | grep -v '#' | wc -l"
+        [[ $(eval $cmd) -ge 1 ]] && sub_msg_ok 7.4 $cmd || sub_msg_ko 7.4 $cmd
+
+        msg_header 7.5. Ensure permissions on bootloader config are configured
+        cmd="stat -c%u%g%a /boot/grub2/grub.cfg | grep '^00.00$' | wc -l"
+        [[ $(eval $cmd) -ge 1 ]] && sub_msg_ok 7.5 $cmd || sub_msg_ko 7.5 $cmd
+
+        msg_header 7.6. Disable Automounting
+        cmd="systemctl list-unit-files --type=service --state=enabled --no-pager  | egrep 'autofs' | wc -l"
+        [[ $(eval $cmd) -eq 0 ]] && sub_msg_ok 7.6 $cmd || sub_msg_ko 7.6 $cmd
+
+        msg_header 7.7. Ensure audit logs are not automatically deleted
+        cmd="grep 'max_log_file_action.*[[:space:]].*=.*[[:space:]].*keep_logs'  /etc/audit/auditd.conf"
+        [[ $(eval $cmd) -eq 0 ]] && sub_msg_ok 7.7 $cmd || sub_msg_ko 7.7 $cmd
+
+        msg_header 7.8. Ensure no world writable files exist
+        echo -e "$COCOLOR $(df --local -P | egrep 'rootvg|rhel|boot' | awk {'if (NR!=1) print $6'} | xargs -I '{}' find '{}' -xdev -type f -perm -0002) $BASECOLOR"
+
+        msg_header 8.1. Set Shadow Password Suite Parameters
+        for i in PASS_MAX_DAYS.*[[:space:]].*90 PASS_MIN_DAYS.*[[:space:]].*2 PASS_WARN_AGE.*[[:space:]].*14 PASS_MIN_LEN.*[[:space:]].*8
+        do
+               cmd="egrep '$i'  /etc/login.defs | wc -l"
+               [[ $(eval $cmd) -ge 1 ]] && sub_msg_ok 8.1 $cmd || sub_msg_ko 8.1 $cmd
+        done
+
+        msg_header 8.3. Set Default Group for root Account
+        cmd="id -g root | grep '0' | wc -l"
+        [[ $(eval $cmd) -eq 1 ]] && sub_msg_ok 8.3 $cmd || sub_msg_ko 8.3 $cmd
+
+        msg_header 8.4. Set Default umask for Users
+        cmd="grep umask /etc/bashrc  /etc/profile | grep -v  027 | wc -l"
+        [[ $(eval $cmd) -eq 0 ]] && sub_msg_ok 8.4 $cmd || sub_msg_ko 8.4 $cmd
+
+        msg_header 8.5. Lock Inactive User Accounts
+        cmd="awk -F':' '\$7 != 35 {print \$0}' /etc/shadow | grep -v root | wc -l"
+        [[ $(eval $cmd) -eq 0 ]] && sub_msg_ok 8.5 $cmd || sub_msg_ko 8.5 $cmd
+        cmd="grep 'INACTIVE=30' /etc/default/useradd | wc -l"
+        [[ $(eval $cmd) -eq 1 ]] && sub_msg_ok 8.5.1 $cmd || sub_msg_ko 8.5.1 $cmd
+
+        msg_header 8.6. Disabled automounting
+        cmd="systemctl list-unit-files --type=service --state=enabled --no-pager  | egrep 'autofs' | wc -l"
+        [[ $(eval $cmd) -eq 0 ]] && sub_msg_ok 8.6 $cmd || sub_msg_ko 8.6 $cmd
+
+        msg_header 9.1. Set Warning Banner for Standard Login Services
+        cmd="stat -c%u%g%a  /etc/motd /etc/issue /etc/issue.net  | grep '00644' | wc -l"
+        [[ $(eval $cmd) -eq 3 ]] && sub_msg_ok 9.1 $cmd || sub_msg_ko 9.1 $cmd
+
+        msg_header 9.3. Set GNOME Warning Banner
+        info_msg Not Applicable as X11 packages are removed as per SCD V13
+
+        msg_header 10.1. Verify System File Permissions
+        cmd="stat -c%u%g  /etc/passwd /etc/shadow /etc/gshadow /etc/group  | grep '00' | wc -l"
+        [[ $(eval $cmd) -eq 4 ]] && sub_msg_ok 10.1 $cmd || sub_msg_ko 10.1 $cmd
+        cmd="stat -c%a  /etc/passwd /etc/group  | grep '644' | wc -l"
+        [[ $(eval $cmd) -eq 2 ]] && sub_msg_ok 10.1 $cmd || sub_msg_ko 10.1 $cmd
+        cmd="stat -c%a  /etc/shadow /etc/gshadow  | grep '0' | wc -l"
+        [[ $(eval $cmd) -eq 2 ]] && sub_msg_ok 10.1 $cmd || sub_msg_ko 10.1 $cmd
+
+        msg_header 11.1. Restrict Cipher list
+        cmd="egrep 'aes256-ctr|aes192-ctr|aes128-ctr' /etc/ssh/sshd_config | wc -l"
+        [[ $(eval $cmd) -ge 1 ]] && sub_msg_ok 11.1 $cmd || sub_msg_ko 11.1 $cmd
+
+        msg_header 11.2. Enable TLS 1.2 \& Above protocol and 11.3. Disable weak encryption protocol
+        info_msg HTTPD package is not installed as per SCD
+        echo -e "\033[46;30m"
+        msg_header Log file generated at /tmp/$(hostname)_SCD_LINUX_V13_log_veri_"$cdate".txt
+        echo -e "\033[40;37m"
+}
+linux_artifacts()
+{
+        echo "======================================================================"
+        echo "               LINUX SCD Artifacts Collection Started"
+        echo "======================================================================"
+        msg_header 2.1. Filesystem Configuration
+        cmd="ls -ld /tmp/ /var/tmp/ /dev/shm"
+        output
+        cmd="egrep 'defaults,nodev,noexec,nosuid' /etc/fstab"
+        output
+        cmd="egrep 'install\s+cramfs\s+/bin/true|install\s+freevxfs\s+/bin/true|install\s+jffs2\s+/bin/true|install\s+hfs\s+/bin/true|install\s+hfsplus\s+/bin/true|install\s+squashfs\s+/bin/true' /etc/modprobe.d/CIS.conf "
+        output
+
+        msg_header 2.2. Configure Software Updates
+        cmd="grep 'gpgcheck=1' /etc/yum.conf /etc/yum.repos.d/*.repo"
+        output
+
+        msg_header 2.3. Advanced Intrusion Detection Environment
+        cmd="rpm -qa | grep -i aide"
+        output
+
+        msg_header 3. OS Services
+        cmd="systemctl list-unit-files --type=service --state=disabled --no-pager  | egrep 'telnet|rlogin|rexec|rsh|ypserv|tftp.socket|ntalk|xinetd|avahi-daemon|dhcpd|slapd|nfs|rpcbind|named|vsftpd|httpd|dovecot|smb|squid|snmpd'"
+        output
+        cmd="rpm -qa | egrep 'telnet|ypbind|talk|xorg-11'"
+        output
+
+        msg_header 4.1. Configure Network Time Protocol
+        cmd="cat /etc/chrony.conf | grep 'server.*[[:space:]].*10.'"
+        output
+        cmd="grep 'OPTIONS=\"-u chrony\"' /etc/sysconfig/chronyd"
+        output
+        msg_header 4.1.1 Chrony SYNC status
+        cmd="chronyc sources |  grep '\*'"
+        output
+
+        msg_header 4.2. Configure Mail Transfer Agent for Local-Only Mode
+        cmd="grep '^inet_interfaces.*[[:space:]]=.*[[:space:]]localhost' /etc/postfix/main.cf"
+        output
+
+        msg_header 4.3. Check for Unconfined Daemons
+        cmd="ps -eZ | egrep 'initrc' | egrep -vw 'tr|ps|egrep|bash|awk' | tr ':' ' ' | awk '{ print \$NF }'"
+        output
+
+        msg_header 5.1. Modify Network Parameters and 5.2. IPv6
+        cmd="egrep 'net.ipv4.ip_forward=0|net.ipv4.conf.all.send_redirects=0|net.ipv4.conf.default.send_redirects=0|net.ipv4.conf.all.accept_source_route=0|net.ipv4.conf.default.accept_source_route=0|net.ipv4.conf.all.accept_redirects=0|net.ipv4.conf.default.accept_redirects=0|net.ipv4.conf.all.secure_redirects=0|net.ipv4.conf.default.secure_redirects=0|net.ipv4.conf.all.log_martians=1|net.ipv4.conf.default.log_martians=1|net.ipv4.icmp_echo_ignore_broadcasts=1|net.ipv4.icmp_ignore_bogus_error_responses=1|net.ipv4.conf.all.rp_filter=1|net.ipv4.conf.default.rp_filter=1|net.ipv4.tcp_syncookies=1|net.ipv6.conf.all.accept_ra=0|net.ipv6.conf.default.accept_ra=0|net.ipv6.conf.all.accept_redirects=0|net.ipv6.conf.default.accept_redirects=0|net.ipv6.conf.all.disable_ipv6=1' /etc/sysctl.conf"
+        output
+
+        msg_header 5.3. Install TCP Wrappers
+        cmd="grep 'ALL: ALL' /etc/hosts.deny"
+        output
+        cmd="stat -c%u%g%a  /etc/hosts.allow /etc/hosts.deny"
+        output
+
+        msg_header 5.4. Uncommon Network Protocols
+        cmd="egrep 'install\s+dccp\s+/bin/true|install\s+sctp\s+/bin/true|install\s+rds\s+/bin/true|install\s+tipc\s+/bin/true' /etc/modprobe.d/CIS.conf"
+        output
+
+        msg_header 5.5. Enable Server Firewall
+        cmd="systemctl list-unit-files --type=service --state=enabled --no-pager  | egrep 'firewall'"
+        output
+
+        msg_header 6.1. Configure rsyslog
+        cmd="rpm -qa | grep -i ^rsyslog "
+        output
+        cmd="systemctl list-unit-files --type=service --state=enabled --no-pager  | egrep 'rsyslog'"
+        output
+        cmd="egrep 'auth,user.*[[:space:]]/var/log/messages|kern.*[[:space:]]/var/log/kern.log|daemon.*[[:space:]]/var/log/daemon.log|syslog.*[[:space:]]/var/log/syslog|lpr,news,uucp,local0,local1,local2,local3,local4,local5,local6.*[[:space:]]/var/log/unused.log' /etc/rsyslog.conf"
+        output
+        cmd="stat -c%u%g%a /var/log/messages /var/log/kern.log /var/log/daemon.log /var/log/syslog"
+        output
+        cmd="egrep '^\\\$ModLoad*[[:space:]]*imtcp.so|^\\\$InputTCPServerRun*[[:space:]]*514' /etc/rsyslog.conf"
+        output
+
+        msg_header 6.2. Configure System Accounting \& 6.3. Ensure the audit configuration is immutable \& 6.4. Ensure file deletion events by users are collected
+        cmd="systemctl list-unit-files --type=service --state=enabled --no-pager  | egrep 'auditd'"
+        output
+        cmd="egrep '^max_log_file.*[[:space:]].*=.*[[:space:]].*8|^space_left_action.*[[:space:]].*=.*[[:space:]].*email|^action_mail_acct.*[[:space:]].*=.*[[:space:]].*root|^max_log_file_action.*[[:space:]].*=.*[[:space:]].*keep_logs' /etc/audit/auditd.conf "
+        output
+        cmd="egrep '-w /etc/selinux/ -p wa -k MAC-policy|\
+-a always,exit -F arch=b64 -S chmod -S fchmod -S fchmodat -F auid>=1000 -F auid!=4294967295 -k perm_mod|\
+-a always,exit -F arch=b64 -S mount -F auid>=1000 -F auid!=4294967295 -k mounts|\
+-a always,exit -F arch=b32 -S adjtimex -S settimeofday -S stime -k time-change|\
+-a always,exit -F arch=b32 -S clock_settime -k time-change -w /etc/localtime -p wa -k time-change|\
+-a always,exit -F arch=b64 -S adjtimex -S settimeofday -k time-change|\
+-a always,exit -F arch=b64 -S clock_settime -k time-change|\
+-w /etc/localtime -p wa -k time-change|\
+-w /etc/group -p wa -k identity|\
+-w /etc/passwd -p wa -k identity|\
+-w /etc/gshadow -p wa -k identity|\
+-w /etc/shadow -p wa -k identity|\
+-w /etc/security/opasswd -p wa -k identity|\
+-a always,exit -F arch=b32 -S sethostname -S setdomainname -k system-locale|\
+-w /etc/issue -p wa -k system-locale|\
+-w /etc/issue.net -p wa -k system-locale|\
+-w /etc/hosts -p wa -k system-locale|\
+-w /etc/sysconfig/network -p wa -k system-locale|\
+-a always,exit -F arch=b64 -S sethostname -S setdomainname -k system-locale|\
+-w /var/log/lastlog -p wa -k logins|\
+-w /var/run/faillock/ -p wa -k logins|\
+-w /var/run/utmp -p wa -k session|\
+-w /var/log/wtmp -p wa -k session|\
+-w /var/log/btmp -p wa -k session|\
+-a always,exit -F arch=b32 -S creat -S open -S openat -S truncate -S ftruncate -F exit=-EACCES -F auid>=1000 -F auid!=4294967295 -k access|\
+-a always,exit -F arch=b32 -S creat -S open -S openat -S truncate -S ftruncate -F exit=-EPERM -F auid>=1000 -F auid!=4294967295 -k access|\
+-a always,exit -F arch=b64 -S creat -S open -S openat -S truncate -S ftruncate -F exit=-EACCES -F auid>=1000 -F auid!=4294967295 -k access|\
+-a always,exit -F arch=b64 -S creat -S open -S openat -S truncate -S ftruncate -F exit=-EPERM -F auid>=1000 -F auid!=4294967295 -k access|\
+-a always,exit -F arch=b32 -S mount -F auid>=1000 -F auid!=4294967295 -k mounts|\
+-w /etc/sudoers -p wa -k scope|\
+-w /etc/sudoers.d -p wa -k scope|\
+-w /var/log/sudo.log -p wa -k actions|\
+-a always,exit -F arch=b32 -S unlink -S unlinkat -S rename -S renameat -F auid>=1000 -F auid!=4294967295 -k delete|\
+-a always,exit -F arch=b64 -S unlink -S unlinkat -S rename -S renameat -F auid>=1000 -F auid!=4294967295 -k delete|\
+-a always,exit -F arch=b32 -S unlink -S unlinkat -S rename -S renameat -F auid>=1000 -F auid!=4294967295 -k delete -a always,exit -F arch=b32 -S unlink -S unlinkat -S rename -S renameat -F auid>=1000 -F auid!=4294967295 -k delete|\
+-a always,exit -F arch=b64 -S unlink -S unlinkat -S rename -S renameat -F auid>=1000 -F auid!=4294967295 -k delete -a always,exit -F arch=b32 -S unlink -S unlinkat -S rename -S renameat -F auid>=1000 -F auid!=4294967295 -k delete|\
+-e 2' /etc/audit/audit.rules"
+        cmd=$(echo "$cmd" | sed 's/-/\\-/g')
+        output
+
+        msg_header 6.6. Ensure auditing for processes that start prior to auditd is enabled
+        cmd="grep 'audit=1'  /etc/default/grub"
+        output
+
+        msg_header 6.7. Ensure auditd service is enabled
+        cmd="systemctl list-unit-files --type=service --state=enabled --no-pager  | egrep 'auditd'"
+        output
+
+        msg_header 6.8. Ensure system is disabled when audit logs are full
+        cmd="egrep 'space_left_action.*[[:space:]].*=.*[[:space:]].*email|action_mail_acct.*[[:space:]].*=.*[[:space:]].*root|admin_space_left_action.*[[:space:]].*=.*[[:space:]].*halt' /etc/audit/auditd.conf"
+        output
+
+        msg_header 7.1. Restrict access to Cron
+        cmd="stat -c%u%g%a  /etc/crontab"
+        output
+
+        msg_header 7.2. Configure SSH
+        cmd="egrep '^Protocol.*[[:space:]].*2|^LogLevel.*[[:space:]].*INFO|^X11Forwarding.*[[:space:]].*no|^MaxAuthTries.*[[:space:]].*3|^IgnoreRhosts.*[[:space:]].*yes|^HostbasedAuthentication.*[[:space:]].*no|^PermitUserEnvironment.*[[:space:]].*no|^AllowTcpForwarding*[[:space:]].*no|^LoginGraceTime*[[:space:]].*60|MaxSessions*[[:space:]].*10|MaxStartups*[[:space:]].*10:30:60|^MACs|ClientAliveInterval.*[[:space:]].*300|ClientAliveCountMax.*[[:space:]].*0|AllowUsers|AllowGroups|DenyUsers|DenyGroups|Banner.*[[:space:]].*/etc/issue.net' /etc/ssh/sshd_config"
+        output
+
+        msg_header 7.3. Configure PAM
+        cmd="egrep 'password.*[[:space:]].*requisite.*[[:space:]].*pam_pwquality.so.*[[:space:]].*try_first_pass.*[[:space:]].*retry=3|auth.*[[:space:]].*required.*[[:space:]].*pam_faillock.so.*[[:space:]].*preauth.*[[:space:]].*audit.*[[:space:]].*silent.*[[:space:]].*deny=3.*[[:space:]].*unlock_time=900|auth.*[[:space:]].*pam_unix.so|auth.*[[:space:]].*[default=die].*[[:space:]].*pam_faillock.so.*[[:space:]].*authfail.*[[:space:]].*audit.*[[:space:]].*deny=3.*[[:space:]].*unlock_time=900|auth.*[[:space:]].*sufficient|pam_faillock.so.*[[:space:]].*authsucc.*[[:space:]].*audit.*[[:space:]].*deny=3.*[[:space:]].*unlock_time=900|password.*[[:space:]].*sufficient.*[[:space:]].*pam_unix.so.*[[:space:]].*remember=5' /etc/pam.d/password-auth"
+        output
+        cmd="egrep 'password.*[[:space:]].*requisite.*[[:space:]].*pam_pwquality.so.*[[:space:]].*try_first_pass.*[[:space:]].*retry=3|auth.*[[:space:]].*required.*[[:space:]].*pam_faillock.so.*[[:space:]].*preauth.*[[:space:]].*audit.*[[:space:]].*silent.*[[:space:]].*deny=3.*[[:space:]].*unlock_time=900|auth.*[[:space:]].*pam_unix.so|auth.*[[:space:]].*[default=die].*[[:space:]].*pam_faillock.so.*[[:space:]].*authfail.*[[:space:]].*audit.*[[:space:]].*deny=3.*[[:space:]].*unlock_time=900|auth.*[[:space:]].*sufficient|pam_faillock.so.*[[:space:]].*authsucc.*[[:space:]].*audit.*[[:space:]].*deny=3.*[[:space:]].*unlock_time=900|password.*[[:space:]].*sufficient.*[[:space:]].*pam_unix.so.*[[:space:]].*remember=5' /etc/pam.d/system-auth"
+        output
+        cmd="egrep '^minlen.*[[:space:]].*=.*[[:space:]].*8|^dcredit.*[[:space:]].*=.*[[:space:]].*-1|^ucredit.*[[:space:]].*=.*[[:space:]].*-1|^ocredit.*[[:space:]].*=.*[[:space:]].*-1|^lcredit.*[[:space:]].*=.*[[:space:]].*-1' /etc/security/pwquality.conf"
+        output
+
+        msg_header 7.4. Restrict Access to the su Command
+        cmd="egrep 'pam_wheel.so.*[[:space:]].*use_uid'  /etc/pam.d/su | grep -v '#'"
+        output
+
+        msg_header 7.5. Ensure permissions on bootloader config are configured
+        cmd="stat -c%u%g%a /boot/grub2/grub.cfg | grep '^00.00$'"
+        output
+
+        msg_header 7.6. Disable Automounting
+        cmd="systemctl list-unit-files --type=service --state=disabled --no-pager  | egrep 'autofs'"
+        output
+
+        msg_header 7.7. Ensure audit logs are not automatically deleted
+        cmd="grep 'max_log_file_action.*[[:space:]].*=.*[[:space:]].*keep_logs'  /etc/audit/auditd.conf"
+        output
+
+        msg_header 7.8. Ensure no world writable files exist
+        cmd="df --local -P | egrep 'rootvg|rhel|boot' | awk {'if (NR!=1) print \$6'} | xargs -I '{}' find '{}' -xdev -type f -perm -0002"
+        output
+
+        msg_header 8.1. Set Shadow Password Suite Parameters
+        cmd="egrep '^PASS_MAX_DAYS.*[[:space:]].*90|^PASS_MIN_DAYS.*[[:space:]].*2|^PASS_WARN_AGE.*[[:space:]].*14|^PASS_MIN_LEN.*[[:space:]].*8' /etc/login.defs"
+        output
+
+        msg_header 8.3. Set Default Group for root Account
+        cmd="id -g root"
+        output
+
+        msg_header 8.4. Set Default umask for Users
+        cmd="grep umask /etc/bashrc  /etc/profile"
+        output
+
+        msg_header 8.5. Lock Inactive User Accounts
+        cmd="awk -F':' '\$7 == 35 {print \$0}' /etc/shadow"
+        output
+        cmd="grep 'INACTIVE=30' /etc/default/useradd"
+        output
+
+        msg_header 8.6. Disabled aotomounting
+        cmd="systemctl list-unit-files --type=service --state=disabled --no-pager  | egrep 'autofs'"
+        output
+
+        msg_header 9.1. Set Warning Banner for Standard Login Services
+        cmd="stat -c%u%g%a  /etc/motd /etc/issue /etc/issue.net"
+        output
+
+        msg_header 9.3. Set GNOME Warning Banner
+        cmd="ls -ld /etc/dconf/db/gdm.d/01-banner-message"
+        output
+
+        msg_header 10.1. Verify System File Permissions
+        cmd="stat -c%u%g  /etc/passwd /etc/shadow /etc/gshadow /etc/group"
+        output
+        cmd="stat -c%a  /etc/passwd /etc/group"
+        output
+        cmd="stat -c%a  /etc/shadow /etc/gshadow"
+        output
+
+        msg_header 11.1. Restrict Cipher list
+        cmd="egrep 'aes256-ctr|aes192-ctr|aes128-ctr' /etc/ssh/sshd_config"
+        output
+
+        msg_header 11.2. Enable TLS 1.2 \& Above protocol and 11.3. Disable weak encryption protocol
+        cmd="ls -ld /etc/httpd/conf.d/ssl.conf"
+        output
+
+        echo -e "\033[46;30m"
+        msg_header Log file generated at /tmp/$(hostname)_SCD_LINUX_V13_log_artifacts_"$cdate".txt
+        echo -e "\033[40;37m"
+}
+
+
+aix_implement()
+{
+        echo "======================================================================"
+        echo "                 AIX SCD Implementation Started"
+        echo "======================================================================"
+        for i in /etc/security/user /etc/security/login.cfg /etc/inittab /etc/rc.tcpip /etc/inetd.conf /etc/ssh/sshd_config /etc/tunables/nextboot /var/adm/cron/cron.allow /var/adm/cron/at.allow /etc/ftpusers /etc/syslog.conf /etc/snmpd.conf /etc/security/tsd/tsd.dat /etc/profile /etc/csh.login /var/spool/cron/crontabs/adm /etc/motd /etc/passwd /etc/group /etc/mail/sendmail.cf
+        do
+                backup_file $i
+        done
+        msg_header 2.1.1. Password Policy
+        cmd="chsec -f /etc/security/user -s default -a mindiff=4"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 2.1.1.1 $cmd
+        cmd="chsec -f /etc/security/user -s default -a minage=1"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 2.1.1.2 $cmd
+        cmd="chsec -f /etc/security/user -s default -a maxage=13"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 2.1.1.3 $cmd
+        cmd="chsec -f /etc/security/user -s default -a minlen=8"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 2.1.1.4 $cmd
+        cmd="chsec -f /etc/security/user -s default -a minalpha=2"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 2.1.1.5 $cmd
+        cmd="chsec -f /etc/security/user -s default -a histexpire=13"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 2.1.1.6 $cmd
+	cmd="chsec -f /etc/security/user -s default -a histsize=5"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 2.1.1.7 $cmd
+	cmd="chsec -f /etc/security/user -s default -a maxexpired=13"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 2.1.1.8 $cmd
+	cmd="chsec -f /etc/security/user -s default -a minspecialchar=1"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 2.1.1.9 $cmd
+	cmd="chsec -f /etc/security/user -s default -a maxrepeats=4"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 2.1.1.10 $cmd
+	cmd="chsec -f /etc/security/user -s default -a mindigit=1"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 2.1.1.11 $cmd
+	cmd="chsec -f /etc/security/user -s default -a minloweralpha=1"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 2.1.1.12 $cmd
+	cmd="chsec -f /etc/security/user -s default -a minupperalpha=1"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 2.1.1.13 $cmd
+
+        msg_header 2.2.1. Login Policy
+        counter=0
+        for i in daemon bin sys adm nobody
+        do
+                cmd="chuser login=false rlogin=false $i"
+                counter=`expr $counter + 1`
+                EXIT_STATUS=0
+                eval $cmd
+                check_status 2.2.1.$counter $cmd
+        done
+        cmd="chsec -f /etc/security/login.cfg -s default -a logindisable=10"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 2.1.1.8 $cmd
+        cmd="chsec -f /etc/security/user -s default -a loginretries=3"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 2.1.1.9 $cmd
+
+        msg_header 2.3.1. System Services Management
+        counter=0
+        for i in qdaemon lpd piobe dt rcnfs
+        do
+                cmd="rmitab $i"
+                counter=`expr $counter + 1`
+                EXIT_STATUS=1
+                eval $cmd
+                check_status 2.3.1.$counter $cmd
+        done
+        for i in sendmail snmpd dhcpcd dhcprd dhcpsd autoconf6 gated mrouted named routed rwhod timed dpid2 hostmibd snmpmibd aixmibd ndpd-host ndpd-router
+        do
+                cmd="chrctcp -d $i"
+                counter=`expr $counter + 1`
+                EXIT_STATUS=0
+                eval $cmd
+                check_status 2.3.1.$counter $cmd
+        done
+        for i in telnet,tcpv6 exec,tcpv6 daytime,tcp daytime,udp shell,tcpv6 cmsd,sunrpc_udp ttdbserver,sunrpc_tcp uucp,tcp time,udp time,tcp login,tcp talk,udp ntalk,udp ftp,tcp6 chargen,tcp chargen,udp discard,tcp discard,udp dtspc,tcp echo,tcp echo,udp pcnfsd,udp rstatd,udp rusersd,udp rwalld,udp sprayd,udp klogin,tcp kshell,tcp rquotad,udp tftp,udp imap2,tcp pop3,tcp finger,tcp instsrv,tcp
+        do
+                a=$(echo "$i" | cut -d',' -f1)
+                b=$(echo "$i" | cut -d',' -f2)
+                cmd="chsubserver -r inetd -C /etc/inetd.conf -d -v $a -p $b"
+                counter=`expr $counter + 1`
+                EXIT_STATUS=0
+                eval $cmd
+                check_status 2.3.1.$counter $cmd
+        done
+        cmd="chmod u=rw,go=r /etc/inetd.conf && chown root:system /etc/inetd.conf"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 2.1.1.53 $cmd
+
+        msg_header 2.4.1. Disabling Remote Services
+        cmd="chmod ugo= /usr/bin/rcp /usr/bin/rlogin /usr/bin/rsh /usr/sbin/rlogind /usr/sbin/rshd /usr/sbin/tftpd"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 2.4.1 $cmd
+
+        msg_header 2.4.2. Configuring SSH set privilege separation
+        cmd="grep -q "^UsePrivilegeSeparation[[:blank:]]yes" /etc/ssh/sshd_config || perl -i -pe 's/UsePrivilegeSeparation.*/UsePrivilegeSeparation yes/g' /etc/ssh/sshd_config"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 2.4.2 $cmd
+
+        #msg_header 2.4.3. Configuring SSH removal of .shosts file
+        #cmd="find / -name ".shosts" -exec rm {} \;echo ' ' "
+        #EXIT_STATUS=0
+        #eval $cmd
+        #check_status 2.4.3 $cmd
+
+        msg_header 2.4.4. Configuring SSH removal of /etc/shosts.equiv
+        cmd="rm -f /etc/shosts.equiv"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 2.4.4 $cmd
+
+        msg_header 2.4.5. Configuring SSH limit access via SSH
+        for i in AllowUsers AllowGroups DenyUsers DenyGroups
+        do
+                cmd="grep -q "^$i" /etc/ssh/sshd_config || echo "$i" >> /etc/ssh/sshd_config"
+                EXIT_STATUS=0
+                eval $cmd
+                check_status 2.4.5 $cmd
+        done
+
+        msg_header 2.4.6. Configuring SSH sshd_config permissions lockdown
+        cmd="chmod u=rw,go=r /etc/ssh/sshd_config"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 2.4.6 $cmd
+
+        msg_header 2.5.1. Automated Authentication
+        cmd="find / -name ".netrc" -exec rm {} \; echo ' '"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 2.5.1.1 $cmd
+        cmd="find / -name ".rhosts" -exec rm {} \; echo ' '"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 2.5.1.2 $cmd
+        cmd="sed '/^\s*$/d;s/^\(\s*[^#].*\)/#\1/' /etc/hosts.equiv > /etc/hosts.equiv.work && mv /etc/hosts.equiv.work /etc/hosts.equiv && chown root:system /etc/hosts.equiv && chmod 644 /etc/hosts.equiv"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 2.5.1.2 $cmd
+
+        msg_header 2.6.1. TCP/IP Hardening
+        counter=0
+        for i in ipsrcrouteforward=0 ipignoreredirects=1 clean_partial_conns=1 ipsrcroutesend=0 ipforwarding=0 ipsendredirects=0 ip6srcrouteforward=0 directed_broadcast=0 tcp_pmtu_discover=0 bcastping=0 icmpaddressmask=0 udp_pmtu_discover=0 ipsrcrouterecv=0 nonlocsrcroute=0 tcp_tcpsecure=7 sockthresh=60 rfc1323=1 tcp_sendspace=262144 tcp_recvspace=262144 tcp_mssdflt=1448
+        do
+                cmd="no -p -o $i"
+                counter=`expr $counter + 1`
+                EXIT_STATUS=0
+                eval $cmd
+                check_status 2.5.1.$counter $cmd
+        done
+        for i in portcheck=1 nfs_use_reserved_ports=1
+        do
+                cmd="nfso -p -o $i"
+                counter=`expr $counter + 1`
+                EXIT_STATUS=0
+                eval $cmd
+                check_status 2.5.1.$counter $cmd
+        done
+
+        msg_header 2.7.1. Miscellaneous Enhancements
+        #cmd="echo 'root\nadm' > /var/adm/cron/cron.allow && rm -f /var/adm/cron/cron.deny"
+        #EXIT_STATUS=0
+        #eval $cmd
+        #check_status 2.7.1.1 $cmd
+        cmd="echo 'root' > /var/adm/cron/at.allow && rm -f /var/adm/cron/at.deny"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 2.7.1.2 $cmd
+        cmd="grep -q root /etc/ftpusers || echo 'root' >> /etc/ftpusers"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 2.7.1.3 $cmd
+        cmd='chsec -f /etc/security/login.cfg -s default -a herald="Unauthorized use of this system is prohibited.\nlogin:"'
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 2.7.1.4 $cmd
+        cmd="rmuser -p guest ; rm -rf /home/guest"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 2.7.1.5 $cmd
+        cmd="Crontab permission"
+        OUT=$(crontab -l |egrep -v '^#' |awk '{print $6}' |grep "^/" |sort -u | while read DIR
+        do
+                DIR=${DIR:-$(pwd)}
+                while [[ -a ${DIR} ]]
+                do
+                        [[ "$(ls -ld ${DIR} | grep -v '^l')" = @(????????w? *) ]] && echo " WARNING ${DIR} is world writable"
+                        [[ "$(ls -ld ${DIR} | grep -v '^l')" = @(?????w???? *) ]] && echo " WARNING ${DIR} is group writable"
+                        [[ "$(ls -ld ${DIR} | awk '{print $3}' | grep -v '^l')" != @(root|bin) ]] && echo " WARNING ${DIR} is not owned by root or bin"
+                        DIR=${DIR%/*}
+                done
+        done
+        )
+        [[ $(echo "$OUT" | wc -c) -le 1 ]] && sub_msg_ok 2.7.1.6 $cmd || sub_msg_ko 2.7.1.6 $OUT \\n $cmd
+        cmd="chsec -f /etc/security/user -s default -a umask=027"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 2.7.1.7 $cmd
+        cmd="mount | grep -iq audit"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 2.7.1.8 $cmd
+        cmd="grep 'auth.info.*[[:blank:]].*/var/adm/authlog.*[[:blank:]].*rotate.*[[:blank:]].*time.*[[:blank:]].*1w.*[[:blank:]].*files.*[[:blank:]].*4' /etc/syslog.conf || perl -i -pe 's/auth.info.*/auth.info\t\t\/var\/adm\/authlog rotate time 1w files 4/g' /etc/syslog.conf"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 2.7.1.9 $cmd
+        cmd="chmod u=rw,g=r,o= /var/adm/syslog && chown root:system /var/adm/syslog &&  refresh -s syslogd"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 2.7.1.9.1 $cmd
+        cmd="echo 'Unauthorized use of this system is prohibited.' > /etc/ssh/ssh_banner && perl -i -pe 's/Banner.*/Banner \/etc\/ssh\/ssh_banner/g' /etc/ssh/sshd_config"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 2.7.1.10 $cmd
+        cmd="perl -i -pe 's/^community/#community      public/g' /etc/snmpd.conf"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 2.7.1.11 $cmd
+        cmd="chown -R root:security /etc/security && chmod u=rwx,g=rx,o= /etc/security && chmod -R go-w,o-rx /etc/security"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 2.7.1.12 $cmd
+
+        msg_header 2.7.2. Configuring SSH -disable null passwords
+        cmd="perl -i -pe 's/^PermitEmptyPasswords.*/PermitEmptyPasswords no/g' /etc/ssh/sshd_config && stopsrc -s sshd && sleep 1 && startsrc -s sshd"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 2.7.2.1 $cmd
+        
+	msg_header 2.7.2.2 Configuring SSH -ignore Rhosts
+        cmd="perl -i -pe 's/#IgnoreRhosts.*/IgnoreRhosts yes/g' /etc/ssh/sshd_config && stopsrc -s sshd && sleep 1 && startsrc -s sshd"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 2.7.2.2 $cmd
+	
+	msg_header 2.7.2.3 Configuring SSH -ignore PermitUserEnvironment 
+        cmd="perl -i -pe 's/#PermitUserEnvironment.*/PermitUserEnvironment no/g' /etc/ssh/sshd_config && stopsrc -s sshd && sleep 1 && startsrc -s sshd"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 2.7.2.3 $cmd
+	
+	msg_header 2.7.2.4 Configuring SSH -ignore HostbasedAuthentication 
+        cmd="perl -i -pe 's/#HostbasedAuthentication.*/HostbasedAuthentication no/g' /etc/ssh/sshd_config && stopsrc -s sshd && sleep 1 && startsrc -s sshd"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 2.7.2.4 $cmd
+
+        msg_header 2.7.3. Miscellaneous Config -all unlocked accounts must have a password
+        cmd="pwdck -y ALL"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 2.7.3 $cmd
+
+        msg_header 2.8.1. Miscellaneous Config disable NCS
+        cmd="rmitab rcncs"
+        EXIT_STATUS=1
+        eval $cmd
+        check_status 2.8.1 $cmd
+
+        msg_header 2.8.2. Miscellaneous Config disable httpdlite
+        cmd="rmitab httpdlite"
+        EXIT_STATUS=1
+        eval $cmd
+        check_status 2.8.2 $cmd
+
+        msg_header 2.8.3. Miscellaneous Config disable pmd
+        cmd="rmitab pmd"
+        EXIT_STATUS=1
+        eval $cmd
+        check_status 2.8.3 $cmd
+
+        msg_header 2.8.4. Miscellaneous Config block talk/write
+        cmd="grep -q '^mesg n' /etc/profile || echo 'mesg n' >> /etc/profile"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 2.8.4 $cmd
+
+        msg_header 2.8.4. Miscellaneous Config block talk/write
+        cmd="grep -q '^mesg n' /etc/csh.login || echo 'mesg n' >> /etc/csh.login"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 2.8.4 $cmd
+
+        msg_header 2.8.5. Miscellaneous Config enable sar accounting
+        cmd="perl -i -pe 's/^#0/0/g' /var/spool/cron/crontabs/adm"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 2.8.5 $cmd
+        cmd="perl -i -pe 's/^#1/1/g' /var/spool/cron/crontabs/adm"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 2.8.5 $cmd
+        cmd="perl -i -pe 's/^#5/5/g' /var/spool/cron/crontabs/adm"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 2.8.5 $cmd
+sar_crons='
+0 8-17 \* \* 1-5 /usr/lib/sa/sa1 1200 3 &
+0 \* \* \* 0,6 /usr/lib/sa/sa1 &
+0 18-7 \* \* 1-5 /usr/lib/sa/sa1 &
+5 18 \* \* 1-5 /usr/lib/sa/sa2 -s 8:00 -e 18:01 -i 3600 -ubcwyaqvm &
+10 23 \* \* 0-6 /usr/lib/acct/runacct 2>/usr/adm/acct/nite/accterr > /dev/null
+0 23 \* \* 0-6 /usr/lib/acct/dodisk > /dev/null 2>&1
+0 \* \* \* \* /usr/lib/acct/ckpacct > /dev/null 2>&1
+15 4 1 \* \* /usr/lib/acct/monacct > /dev/null 2>&1
+'
+        echo "$sar_crons" | while IFS= read -r line
+        do
+                cmd="grep -q '^$line' /var/spool/cron/crontabs/adm || echo '$line' | sed 's/\\\//g' >> /var/spool/cron/crontabs/adm"
+                eval $cmd
+        done
+
+        msg_header 2.8.6. Miscellaneous Config ftp banner
+        cmd='dspcat -g /usr/lib/nls/msg/en_US/ftpd.cat > /tmp/ftpd.tmp && sed "s/\"\%s FTP server (\%s) ready.\"/\"\%s Authorized uses only. All activity may be monitored and reported\"/" /tmp/ftpd.tmp > /tmp/ftpd.msg && gencat /usr/lib/nls/msg/en_US/ftpd.cat /tmp/ftpd.msg && rm -f /tmp/ftpd.tmp /tmp/ftpd.msg'
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 2.8.6 $cmd
+
+        msgeader 2.8.7. Miscellaneous Config /etc/motd
+        cmd="echo '***************************************************************************\n
+NOTICE TO USERS This computer system is the private property of its owner, whether individual, corporate or\n
+government. It is for authorized use only. Users (authorized or unauthorized) have no explicit or implicit\n
+expectation of privacy. Any or all uses of this system and all files on this system may be intercepted, monitored,\n
+recorded, copied, audited, inspected, and disclosed to your employer, to authorized site, government, and law\n
+enforcement personnel, as well as authorized officials of government agencies, both domestic and foreign. <p>\n
+By using this system, the user consents to such interception, monitoring,recording, copying, auditing,\n
+inspection, and disclosure at the discretion of such personnel or officials. Unauthorized or improper use of this\n
+system may result in civil and criminal penalties and administrative or disciplinary action, as appropriate. By\n
+continuing to <p> use this system you indicate your awareness of and consent to these terms and conditions of\n
+use. LOG OFF IMMEDIATELY if you do not agree to the conditions stated in this warning.\n
+****************************************************************************' > /etc/motd;chmod 644 /etc/motd;chown bin:bin /etc/motd"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 2.8.7 $cmd
+
+        msg_header 2.8.8. Miscellaneous Config all user id must be unique
+        cmd="[[ $(cut -d: -f 3 /etc/passwd |sort -n | uniq -d | wc -l) -gt 0 ]] && EXIT_STATUS=1 || EXIT_STATUS=0"
+        eval $cmd
+        check_status 2.8.8 $cmd
+
+        msg_header 2.8.9. Miscellaneous Config all user id must be unique
+        cmd="[[ $(cut -d: -f 3 /etc/group |sort -n | uniq -d | wc -l) -gt 0 ]] && EXIT_STATUS=1 || EXIT_STATUS=0"
+        eval $cmd
+        check_status 2.8.9 $cmd
+
+       # msg_header 2.8.10. Miscellaneous Config unnecessary user and group removal
+       # for i in uucp nuucp lpd printq
+       # do
+       #         cmd="rmuser -p $i; perl -i -pe 's/#$i.*//g' /etc/passwd; perl -i -pe 's/^\n$//g' /etc/passwd"
+       #         EXIT_STATUS=0
+       #         eval $cmd
+       #         check_status 2.8.10 $cmd
+       # done
+       # msg_header 2.8.10. Miscellaneous Config unnecessary user and group removal
+       # for i in uucp  printq
+       # do
+       #         cmd="rmgroup $i ; perl -i -pe 's/#$i.*//g' /etc/group; perl -i -pe 's/^\n$//g' /etc/group"
+       #         EXIT_STATUS=0
+       #         eval $cmd
+       #         check_status 2.8.10 $cmd
+       # done
+
+        msg_header 2.8.11. Miscellaneous Config removing current working directory from root PATH
+        cmd="[[ $(su - root -c "echo ${PATH}" |awk '/((:[ \t]*:)|(:[\t]*$)|(^[ \t]*:)|(^.:)|(:.$)|(:.:))/' | wc -l) -gt 0 ]] && EXIT_STATUS=1 || EXIT_STATUS=0"
+        eval $cmd
+        check_status 2.8.11 $cmd
+
+        msg_header 2.9.1. Restrict Cipher list
+        cmd="perl -i -pe 's/^Ciphers.*/Ciphers aes128-ctr,aes192-ctr,aes256-ctr/g' /etc/ssh/sshd_config; stopsrc -s sshd; sleep 1;startsrc -s sshd"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 2.9.1 $cmd
+
+        msg_header 2.9.2. Enable TLS 1.2 \& Above protocol
+        echo "$COCOLOR Not Applicable as HTTP packages are not installed $BASECOLOR"
+
+        msg_header 2.10.1. /etc/mail/sendmail.cf SmtpGreetingMessage
+        cmd="perl -i -pe 's/SmtpGreetingMessage=.*/SmtpGreetingMessage=mailerready/g' /etc/mail/sendmail.cf"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 2.10.1 $cmd
+
+        msg_header 2.10.2. /etc/mail/sendmail.cf permissions and ownership
+        cmd="chmod u=rw,g=r,o= /etc/mail/sendmail.cf"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 2.10.2 $cmd
+
+        msg_header 2.10.3. /var/spool/mqueue permissions and ownership
+        cmd="chmod u=rwx,go= /var/spool/mqueue && chown root /var/spool/mqueue"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 2.10.3 $cmd
+
+        msg_header 2.11.1. Install updated security patches
+        echo "$COCOLOR Manual Verification Required $BASECOLOR"
+}
+
+aix_verification()
+{
+        echo "======================================================================"
+        echo "                 AIX SCD Verification Started"
+        echo "======================================================================"
+        msg_header 2.1. Filesystem Configuration
+        cmd="lssec -f /etc/security/user -s default -a mindiff | grep -q 'default mindiff=4'"
+        eval $cmd
+        check_status 2.1.1 $cmd
+        cmd="lssec -f /etc/security/user -s default -a minage | grep -q 'default minage=1'"
+        eval $cmd
+        check_status 2.1.2 $cmd
+        cmd="lssec -f /etc/security/user -s default -a maxage | grep -q 'default maxage=13'"
+        eval $cmd
+        check_status 2.1.3 $cmd
+        cmd="lssec -f /etc/security/user -s default -a minlen | grep -q 'default minlen=8'"
+        eval $cmd
+        check_status 2.1.4 $cmd
+        cmd="lssec -f /etc/security/user -s default -a minalpha | grep -q 'default minalpha=2'"
+        eval $cmd
+        check_status 2.1.5 $cmd
+        cmd="lssec -f /etc/security/user -s default -a histexpire | grep -q 'histexpire=13'"
+        eval $cmd
+        check_status 2.1.1.6 $cmd
+	cmd="lssec -f /etc/security/user -s default -a histsize | grep -q 'default histsize=5'"
+        eval $cmd
+        check_status 2.1.1.7 $cmd
+	cmd="lssec -f /etc/security/user -s default -a maxexpired | grep -q 'default maxexpired=13'"
+        eval $cmd
+        check_status 2.1.1.8 $cmd
+	cmd="lssec -f /etc/security/user -s default -a minspecialchar | grep -q 'default minspecialchar=1'"
+        eval $cmd
+        check_status 2.1.1.9 $cmd
+	cmd="lssec -f /etc/security/user -s default -a maxrepeats | grep -q 'default maxrepeats=4'"
+        eval $cmd
+        check_status 2.1.1.10 $cmd
+	cmd="lssec -f /etc/security/user -s default -a mindigit | grep -q 'default mindigit=1'"
+        eval $cmd
+        check_status 2.1.1.11 $cmd
+	cmd="lssec -f /etc/security/user -s default -a minloweralpha | grep -q 'default minloweralpha'"
+        eval $cmd
+        check_status 2.1.1.12 $cmd
+	cmd="lssec -f /etc/security/user -s default -a minupperalpha | grep -q 'default minupperalpha=1'"
+        eval $cmd
+        check_status 2.1.1.13 $cmd
+
+        msg_header 2.2.1. Login Policy
+        counter=0
+        for i in daemon bin sys adm nobody
+        do
+                counter=`expr $counter + 1`
+                cmd="lsuser -c -a login rlogin $i | grep -q "$i:false:false""
+                eval $cmd
+                check_status 2.2.1.$counter $cmd
+        done
+        cmd="lssec -f /etc/security/login.cfg -s default -a logindisable | grep -q 'default logindisable=10'"
+        eval $cmd
+        check_status 2.2.1.8 $cmd
+        cmd="lssec -f /etc/security/user -s default -a loginretries | grep -q 'default loginretries=3'"
+        eval $cmd
+        check_status 2.2.1.9 $cmd
+
+        msg_header 2.3.1. System Services Management
+        counter=0
+        for i in qdaemon lpd piobe dt rcnfs
+        do
+                counter=`expr $counter + 1`
+                cmd="lsitab $i"
+                EXIT_STATUS=1
+                eval $cmd
+                check_status 2.3.1.$counter $cmd
+        done
+        for i in sendmail snmpd dhcpcd dhcprd dhcpsd autoconf6 gated mrouted named routed rwhod timed dpid2 hostmibd snmpmibd aixmibd ndpd-host ndpd-router
+        do
+                counter=`expr $counter + 1`
+                cmd="cat /etc/rc.tcpip | grep 'start /.*$i' | grep -q '^#'"
+                EXIT_STATUS=0
+                eval $cmd
+                check_status 2.3.1.$counter $cmd
+        done
+        for i in telnet exec daytime shell cmsd ttdbserver uucp time login talk ntalk ftp chargen discard dtspc echo pcnfsd rstatd rusersd rwalld sprayd klogin kshell rquotad tftp imap2 pop3 finger instsrv
+        do
+                counter=`expr $counter + 1`
+                cmd="cat /etc/inetd.conf | grep -q '#$i'"
+                EXIT_STATUS=0
+                eval $cmd
+                check_status 2.3.1.$counter $cmd
+        done
+        cmd="ls -ld /etc/inetd.conf | grep -q '^\-rw\-r\-\-r\-\-.*root'"
+        eval $cmd
+        check_status 2.3.1.53 $cmd
+
+        msg_header 2.4.1. Disabling Remote Services
+        cmd="ls -ld /usr/bin/rcp /usr/bin/rlogin  /usr/bin/rsh | grep -v '\-\-\-\-\-\-\-\-\-\-'"
+        EXIT_STATUS=1
+        eval $cmd
+        check_status 2.4.1.1 $cmd
+        cmd="ls -ld /usr/sbin/rlogind /usr/sbin/rshd  /usr/sbin/tftpd  | grep -v '\-\-\-\-\-\-\-\-\-\-'"
+        EXIT_STATUS=1
+        eval $cmd
+        check_status 2.4.1.2 $cmd
+
+        msg_header 2.4.2. Configuring SSH set privilege separation
+        cmd="grep -q 'UsePrivilegeSeparation yes' /etc/ssh/sshd_config"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 2.4.2. $cmd
+
+        #msg_header 2.4.3. Configuring SSH removal of .shosts files
+        #cmd="find / -name ".shosts";echo ' '"
+        #EXIT_STATUS=0
+        #eval $cmd
+        #check_status 2.4.3. $cmd
+
+        msg_header 2.4.4. Configuring SSH removal of /etc/shosts.equiv
+        cmd="ls -ld /etc/shosts.equiv"
+        EXIT_STATUS=2
+        eval $cmd
+        check_status 2.4.4. $cmd
+
+        msg_header 2.4.5. Configuring SSH limit access via SSH
+        cmd="egrep '^AllowUsers|^AllowGroups|^DenyUsers|^DenyGroups' /etc/ssh/sshd_config | wc -l"
+        [[ $(eval $cmd) -eq 4 ]] && sub_msg_ok 2.4.5. $cmd || sub_msg_ko 2.4.5. $cmd
+
+        msg_header 2.4.6. Configuring SSH sshd_config permissions lockdown
+        cmd="ls -ld /etc/ssh/sshd_config | grep -q '\-rw\-r\-\-r\-\-'"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 2.4.6. $cmd
+
+        msg_header 2.5.1. Automated Authentication
+        cmd="find ./ -name .netrc -o -name .rhosts | wc -l"
+        [[ $(eval $cmd) -eq 0 ]] && sub_msg_ok 2.5.1.1 $cmd || sub_msg_ko 2.5.1.1 $cmd
+        cmd="ls -ld /etc/hosts.equiv  | grep -q '\-rw\-r\-\-r\-\-'"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 2.5.1.2 $cmd
+
+        msg_header 2.6.1. TCP/IP Hardening
+        counter=0
+tcp_param="ipsrcrouteforward = \"0\"
+ipignoreredirects = \"1\"
+clean_partial_conns = \"1\"
+ipsrcroutesend = \"0\"
+ipforwarding = \"0\"
+ipsendredirects = \"0\"
+ip6srcrouteforward = \"0\"
+directed_broadcast = \"0\"
+tcp_pmtu_discover = \"0\"
+bcastping = \"0\"
+icmpaddressmask = \"0\"
+udp_pmtu_discover = \"0\"
+ipsrcrouterecv = \"0\"
+nonlocsrcroute = \"0\"
+tcp_tcpsecure = \"7\"
+sockthresh = \"60\"
+rfc1323 = \"1\"
+tcp_sendspace = \"262144\"
+tcp_recvspace = \"262144\"
+tcp_mssdflt = \"1448\"
+nfs_use_reserved_ports = \"1\""
+        echo "$tcp_param" | while IFS= read -r line
+        do
+                counter=`expr $counter + 1`
+               cmd="grep '$line' /etc/tunables/nextboot | wc -l"
+               [[ $(eval $cmd) -ge 1 ]] && sub_msg_ok 2.6.1.$counter  $cmd || sub_msg_ko 2.6.1.$counter $cmd
+        done
+
+        msg_header 2.7.1. Miscellaneous Enhancements
+        #cmd="cat /var/adm/cron/cron.allow | egrep 'root|adm' | wc -l"
+        #[[ $(eval $cmd) -eq 2 ]] && sub_msg_ok 2.7.1.1 $cmd || sub_msg_ko 2.7.1.1 $cmd
+        #cmd="/var/adm/cron/cron.deny"
+        #[[ ! -f $cmd ]] && sub_msg_ok 2.7.1.1 $cmd || sub_msg_ko 2.7.1.1 $cmd
+        cmd="cat  /var/adm/cron/at.allow | grep -i 'root' | wc -l"
+        [[ $(eval $cmd) -eq 1 ]] && sub_msg_ok 2.7.1.2 $cmd || sub_msg_ko 2.7.1.2 $cmd
+        cmd="/var/adm/cron/at.deny"
+        [[ ! -f $cmd ]] && sub_msg_ok 2.7.1.2 $cmd || sub_msg_ko 2.7.1.2 $cmd
+        cmd="cat /etc/ftpusers | grep -i root | wc -l"
+        [[ $(eval $cmd) -eq 1 ]] && sub_msg_ok 2.7.1.3 $cmd || sub_msg_ko 2.7.1.3 $cmd
+        cmd="lssec -f /etc/security/login.cfg -s default -a herald | grep -i Unauthorized | wc -l"
+        [[ $(eval $cmd) -eq 1 ]] && sub_msg_ok 2.7.1.4 $cmd || sub_msg_ko 2.7.1.4 $cmd
+        cmd="grep -i guest /etc/security/passwd  | wc -l"
+        [[ $(eval $cmd) -eq 0 ]] && sub_msg_ok 2.7.1.5 $cmd || sub_msg_ko 2.7.1.5 $cmd
+        cmd="Crontab permission"
+        OUT=$(crontab -l |egrep -v '^#' |awk '{print $6}' |grep "^/" |sort -u | while read DIR
+        do
+                DIR=${DIR:-$(pwd)}
+                while [[ -a ${DIR} ]]
+                do
+                        [[ "$(ls -ld ${DIR} | grep -v '^l')" = @(????????w? *) ]] && echo " WARNING ${DIR} is world writable"
+                        [[ "$(ls -ld ${DIR} | grep -v '^l')" = @(?????w???? *) ]] && echo " WARNING ${DIR} is group writable"
+                        [[ "$(ls -ld ${DIR} | awk '{print $3}' | grep -v '^l')" != @(root|bin) ]] && echo " WARNING ${DIR} is not owned by root or bin"
+                        DIR=${DIR%/*}
+                done
+        done
+        )
+        [[ $(echo "$OUT" | wc -c) -le 1 ]] && sub_msg_ok 2.7.1.6 $cmd || sub_msg_ko 2.7.1.6 $OUT \\n $cmd
+        cmd="lssec -f /etc/security/user -s default -a umask | grep 'default umask=27' | wc -l"
+        [[ $(eval $cmd) -eq 1 ]] && sub_msg_ok 2.7.1.7 $cmd || sub_msg_ko 2.7.1.7 $cmd
+        cmd="mount | grep -iq audit"
+        EXIT_STATUS=0
+        eval $cmd
+        check_status 2.7.1.8 $cmd
+        cmd="grep 'auth.info*[[:space:]]*/var/adm/authlog*[[:space:]]*rotate*[[:space:]]*time*[[:space:]]*1w*[[:space:]]*files*[[:space:]]*4' /etc/syslog.conf | wc -l"
+        [[ $(eval $cmd) -ge 1 ]] && sub_msg_ok 2.7.1.9 $cmd || sub_msg_ko 2.7.1.9 $cmd
+        cmd="grep 'Unauthorized use of this system is prohibited' /etc/ssh/ssh_banner | wc -l"
+        [[ $(eval $cmd) -ge 1 ]] && sub_msg_ok 2.7.1.10 $cmd || sub_msg_ko 2.7.1.10 $cmd
+        cmd="grep '^#community*[[:space:]]*public' /etc/snmpd.conf  | wc -l"
+        [[ $(eval $cmd) -ge 1 ]] && sub_msg_ok 2.7.1.11 $cmd || sub_msg_ko 2.7.1.11 $cmd
+        cmd="ls -ld /etc/security| grep 'drwxr\-x\-\-\-' | grep 'root' | grep 'security' | wc -l"
+        [[ $(eval $cmd) -ge 1 ]] && sub_msg_ok 2.7.1.12 $cmd || sub_msg_ko 2.7.1.12 $cmd
+
+        msg_header 2.7.2.1 Configuring SSH -disable null passwords
+        cmd="grep '^PermitEmptyPasswords*[[:space:]]*no' /etc/ssh/sshd_config | wc -l"
+        [[ $(eval $cmd) -ge 1 ]] && sub_msg_ok 2.7.2.1 $cmd || sub_msg_ko 2.7.2.1 $cmd
+        
+	msg_header 2.7.2.2 Configuring SSH -ignore Rhosts
+        cmd="grep '^IgnoreRhosts*[[:space:]]*yes' /etc/ssh/sshd_config | wc -l"
+        [[ $(eval $cmd) -ge 1 ]] && sub_msg_ok 2.7.2.2 $cmd || sub_msg_ko 2.7.2.2 $cmd
+	
+	msg_header 2.7.2.3 Configuring SSH -ignore PermitUserEnvironment 
+        cmd="grep '^PermitUserEnvironment*[[:space:]]*no' /etc/ssh/sshd_config | wc -l"
+        [[ $(eval $cmd) -ge 1 ]] && sub_msg_ok 2.7.2.3 $cmd || sub_msg_ko 2.7.2.3 $cmd
+	
+	msg_header 2.7.2.4 Configuring SSH -ignore HostbasedAuthentication 
+        cmd="grep '^HostbasedAuthentication*[[:space:]]*no' /etc/ssh/sshd_config | wc -l"
+        [[ $(eval $cmd) -ge 1 ]] && sub_msg_ok 2.7.2.4 $cmd || sub_msg_ko 2.7.2.4 $cmd
+
+        msg_header 2.7.3. Miscellaneous Config -all unlocked accounts must have a password
+        cmd="pwdck -n ALL | wc -l"
+        [[ $(eval $cmd) -eq 0 ]] && sub_msg_ok 2.7.3 $cmd || sub_msg_ko 2.7.3 $cmd
+
+        msg_header 2.7.4. TE implementation
+        info_msg Implement this control manually
+
+        msg_header 2.8.1. Miscellaneous Config disable NCS
+        cmd="lsitab -a |grep "/etc/rc.ncs" | cut -f1 -d: | wc -l"
+        [[ $(eval $cmd) -eq 0 ]] && sub_msg_ok 2.8.1 $cmd || sub_msg_ko 2.8.1 $cmd
+
+        msg_header 2.8.2. Miscellaneous Config disable httpdlite
+        cmd="lsitab httpdlite"
+        EXIT_STATUS=1
+        eval $cmd
+        check_status 2.8..2 $cmd
+
+        msg_header 2.8.3. Miscellaneous Config disable pmd
+        cmd="lsitab pmd"
+        EXIT_STATUS=1
+        eval $cmd
+        check_status 2.8.3 $cmd
+
+        msg_header 2.8.4. Miscellaneous Config block talk/write
+        cmd="grep 'mesg n' /etc/profile /etc/csh.login  | wc -l"
+        [[ $(eval $cmd) -eq 2 ]] && sub_msg_ok 2.8.4 $cmd || sub_msg_ko 2.8.4 $cmd
+
+        msg_header 2.8.5. Miscellaneous Config enable sar accounting
+        cmd="cat /var/spool/cron/crontabs/adm | egrep 'sa|acct' | grep -v '#' | wc -l"
+        [[ $(eval $cmd) -eq 8 ]] && sub_msg_ok 2.8.5 $cmd || sub_msg_ko 2.8.5 $cmd
+
+        msg_header 2.8.6. Miscellaneous Config ftp banner
+        cmd="dspcat -g /usr/lib/nls/msg/en_US/ftpd.cat | grep '^9[[:blank:]]' | grep ' Authorized uses only. All activity may be monitored and reported' | wc -l"
+        [[ $(eval $cmd) -eq 1 ]] && sub_msg_ok 2.8.6 $cmd || sub_msg_ko 2.8.6 $cmd
+
+        msg_header 2.8.7. Miscellaneous Config /etc/motd
+        cmd="ls -ld /etc/motd | grep '\-rw\-r\-\-r\-\-' | grep 'bin' | wc -l'"
+        [[ $(eval $cmd) -eq 1 ]] && sub_msg_ok 2.8.7 $cmd || sub_msg_ko 2.8.7 $cmd
+
+        msg_header 2.8.8. Miscellaneous Config all user id must be unique
+        cmd="cut -d: -f 3 /etc/passwd |sort -n |uniq -d | wc -l"
+        [[ $(eval $cmd) -eq 0 ]] && sub_msg_ok 2.8.8 $cmd || sub_msg_ko 2.8.8 $cmd
+
+        msg_header 2.8.9. Miscellaneous Config all group id must be unique
+        cmd="cut -d: -f 3 /etc/group |sort -n | uniq -d | wc -l"
+        [[ $(eval $cmd) -eq 0 ]] && sub_msg_ok 2.8.9 $cmd || sub_msg_ko 2.8.9 $cmd
+
+       #msg_header 2.8.10. Miscellaneous Config unnecessary user and group removal
+       # cmd="egrep 'uucp|nuucp|lpd|printq' /etc/passwd /etc/group | wc -l"
+       # [[ $(eval $cmd) -eq 0 ]] && sub_msg_ok 2.8.10 $cmd || sub_msg_ko 2.8.10 $cmd
+
+        msg_header 2.8.11. Miscellaneous Config removing current working directory
+        cmd="su - root -c 'echo ${PATH}' |awk '/((:[\t]*:)|(:[ \t]*$)|(^[ \t]*:)|(^.:)|(:.$)|(:.:))/' | wc -l"
+        [[ $(eval $cmd) -eq 0 ]] && sub_msg_ok 2.8.11 $cmd || sub_msg_ko 2.8.11 $cmd
+
+        msg_header 2.9.1. Restrict Cipher list
+        cmd="grep  ^Cipher /etc/ssh/sshd_config | wc -l"
+        [[ $(eval $cmd) -ge 1 ]] && sub_msg_ok 2.9.1 $cmd || sub_msg_ko 2.9.1 $cmd
+
+        msg_header 2.9.2. Enable TLS 1.2 \& Above protocol
+        info_msg Not Applicable as HTTP packages are not installed
+
+        msg_header 2.10.1. /etc/mail/sendmail.cf SmtpGreetingMessage
+        cmd="grep 'SmtpGreetingMessage=mailerready' /etc/mail/sendmail.cf | grep -v '#' | wc -l"
+        [[ $(eval $cmd) -eq 1 ]] && sub_msg_ok 2.10.1 $cmd || sub_msg_ko 2.10.1 $cmd
+
+        msg_header 2.10.2. /etc/mail/sendmail.cf permissions and ownership
+        cmd="ls -ld /etc/mail/sendmail.cf | grep '\-rw\-r\-\-\-\-\-' | grep 'root' | grep 'system' | wc -l"
+        [[ $(eval $cmd) -eq 1 ]] && sub_msg_ok 2.10.2 $cmd || sub_msg_ko 2.10.2 $cmd
+
+        msg_header 2.10.3. /var/spool/mqueue permissions and ownership
+        cmd="ls -ld /var/spool/mqueue | grep 'drwx\-\-\-\-\-\-' | grep 'root' | grep 'system' | wc -l"
+        [[ $(eval $cmd) -eq 1 ]] && sub_msg_ok 2.10.3 $cmd || sub_msg_ko 2.10.3 $cmd
+
+        msg_header 2.11.1. Install updated security patches
+        info_msg Manual verification is required
+
+}
+aix_artifacts()
+{
+        echo "======================================================================"
+        echo "                 AIX SCD Artifacts Collection Started"
+        echo "======================================================================"
+        msg_header 2.1. Filesystem Configuration
+        cmd="lssec -f /etc/security/user -s default -a mindiff "
+        CTRL_NO=2.1.1
+        output
+        cmd="lssec -f /etc/security/user -s default -a minage"
+        CTRL_NO=2.1.2
+        output
+        cmd="lssec -f /etc/security/user -s default -a maxage"
+        CTRL_NO=2.1.3
+        output
+        cmd="lssec -f /etc/security/user -s default -a minlen"
+        CTRL_NO=2.1.4
+        output
+        cmd="lssec -f /etc/security/user -s default -a minalpha"
+        CTRL_NO=2.1.5
+        output
+        cmd="lssec -f /etc/security/user -s default -a histexpire"
+        CTRL_NO=2.1.1.6
+        output
+        cmd="lssec -f /etc/security/user -s default -a histsize"
+        CTRL_NO=2.1.1.7
+        output
+        cmd="lssec -f /etc/security/user -s default -a maxexpired"
+        CTRL_NO=2.1.1.8
+        output
+        cmd="lssec -f /etc/security/user -s default -a minspecialchar"
+        CTRL_NO=2.1.1.9
+        output
+        cmd="lssec -f /etc/security/user -s default -a maxrepeats"
+        CTRL_NO=2.1.1.10
+        output
+        cmd="lssec -f /etc/security/user -s default -a mindigit"
+        CTRL_NO=2.1.1.11
+        output
+        cmd="lssec -f /etc/security/user -s default -a minloweralpha"
+        CTRL_NO=2.1.1.12
+        output
+        cmd="lssec -f /etc/security/user -s default -a minupperalpha"
+        CTRL_NO=2.1.1.13
+        output
+
+        msg_header 2.2.1. Login Policy
+        counter=0
+        for i in daemon bin sys adm nobody
+        do
+                counter=`expr $counter + 1`
+                cmd="lsuser -c -a login rlogin $i"
+                CTRL_NO=2.2.1.$counter
+                output
+        done
+        cmd="lssec -f /etc/security/login.cfg -s default -a logindisable "
+        CTRL_NO=2.2.1.8
+        output
+        cmd="lssec -f /etc/security/user -s default -a loginretries"
+        CTRL_NO=2.2.1.9
+        output
+
+        msg_header 2.3.1. System Services Management
+        counter=0
+        for i in qdaemon lpd piobe dt rcnfs
+        do
+                counter=`expr $counter + 1`
+                cmd="lsitab $i"
+                CTRL_NO=2.3.1.$counter
+                output
+        done
+        for i in sendmail snmpd dhcpcd dhcprd dhcpsd autoconf6 gated mrouted named routed rwhod timed dpid2 hostmibd snmpmibd aixmibd ndpd-host ndpd-router
+        do
+                counter=`expr $counter + 1`
+                cmd="cat /etc/rc.tcpip | grep 'start /.*$i' | grep '^#'"
+                CTRL_NO=2.3.1.$counter
+                output
+        done
+        for i in telnet exec daytime shell cmsd ttdbserver uucp time login talk ntalk ftp chargen discard dtspc echo pcnfsd rstatd rusersd rwalld sprayd klogin kshell rquotad tftp imap2 pop3 finger instsrv
+        do
+                counter=`expr $counter + 1`
+                cmd="cat /etc/inetd.conf | grep '#$i'"
+                CTRL_NO=2.3.1.$counter
+                output
+        done
+        cmd="ls -ld /etc/inetd.conf"
+        CTRL_NO=2.3.1.53
+        output
+
+        msg_header 2.4.1. Disabling Remote Services
+        cmd="ls -ld /usr/bin/rcp /usr/bin/rlogin  /usr/bin/rsh"
+        CTRL_NO=2.4.1.1
+        output
+        cmd="ls -ld /usr/sbin/rlogind /usr/sbin/rshd  /usr/sbin/tftpd"
+        CTRL_NO=2.4.1.2
+        output
+
+        msg_header 2.4.2. Configuring SSH set privilege separation
+        cmd="grep 'UsePrivilegeSeparation yes' /etc/ssh/sshd_config"
+        CTRL_NO=2.4.2
+        output
+
+        #msg_header 2.4.3. Configuring SSH removal of .shosts files
+        #cmd="find / -name '.shosts' 2> /dev/null"
+        #CTRL_NO=2.4.3
+        #output
+
+        msg_header 2.4.4. Configuring SSH removal of /etc/shosts.equiv
+        cmd="ls -ld /etc/shosts.equiv"
+        CTRL_NO=2.4.4
+        output
+
+        msg_header 2.4.5. Configuring SSH limit access via SSH
+        cmd="egrep '^AllowUsers|^AllowGroups|^DenyUsers|^DenyGroups' /etc/ssh/sshd_config | grep -v '#'"
+        CTRL_NO=2.4.5
+        output
+
+        msg_header 2.4.6. Configuring SSH sshd_config permissions lockdown
+        cmd="ls -ld /etc/ssh/sshd_config"
+        CTRL_NO=2.4.6
+        output
+
+        msg_header 2.5.1. Automated Authentication
+        cmd="find ./ -name .netrc -o -name .rhosts 2> /dev/null"
+        CTRL_NO=2.5.1
+        output
+        cmd="ls -ld /etc/hosts.equiv"
+        CTRL_NO=2.5.2
+        output
+
+        msg_header 2.6.1. TCP/IP Hardening
+        counter=0
+tcp_param="ipsrcrouteforward = \"0\"
+ipignoreredirects = \"1\"
+clean_partial_conns = \"1\"
+ipsrcroutesend = \"0\"
+ipforwarding = \"0\"
+ipsendredirects = \"0\"
+ip6srcrouteforward = \"0\"
+directed_broadcast = \"0\"
+tcp_pmtu_discover = \"0\"
+bcastping = \"0\"
+icmpaddressmask = \"0\"
+udp_pmtu_discover = \"0\"
+ipsrcrouterecv = \"0\"
+nonlocsrcroute = \"0\"
+tcp_tcpsecure = \"7\"
+sockthresh = \"60\"
+rfc1323 = \"1\"
+tcp_sendspace = \"262144\"
+tcp_recvspace = \"262144\"
+tcp_mssdflt = \"1448\"
+nfs_use_reserved_ports = \"1\""
+        echo "$tcp_param" | while IFS= read -r line
+        do
+                counter=`expr $counter + 1`
+                cmd="grep '$line' /etc/tunables/nextboot"
+                CTRL_NO=2.6.1.$counter
+                output
+        done
+
+        msg_header 2.7.1. Miscellaneous Enhancements
+        #cmd="cat /var/adm/cron/cron.allow"
+        #CTRL_NO=2.7.1.1
+        #output
+        #cmd=" ls -ld /var/adm/cron/cron.deny"
+        #CTRL_NO=2.7.1.1
+        #output
+        cmd="cat  /var/adm/cron/at.allow"
+        CTRL_NO=2.7.1.2
+        output
+        cmd="ls -ld /var/adm/cron/at.deny"
+        CTRL_NO=2.7.1.2
+        output
+        cmd="cat /etc/ftpusers | grep -i root"
+        CTRL_NO=2.7.1.3
+        output
+        cmd="lssec -f /etc/security/login.cfg -s default -a herald"
+        CTRL_NO=2.7.1.4
+        output
+        cmd="grep -i guest /etc/security/passwd"
+        CTRL_NO=2.7.1.5
+        output
+        cmd="$(crontab -l |egrep -v '^#' |awk '{print $6}' |grep "^/" |sort -u | while read DIR
+        do
+                DIR=${DIR:-$(pwd)}
+                while [[ -a ${DIR} ]]
+                do
+                        [[ "$(ls -ld ${DIR} | grep -v '^l')" = @(????????w? *) ]] && echo " WARNING ${DIR} is world writable"
+                        [[ "$(ls -ld ${DIR} | grep -v '^l')" = @(?????w???? *) ]] && echo " WARNING ${DIR} is group writable"
+                        [[ "$(ls -ld ${DIR} | awk '{print $3}' | grep -v '^l')" != @(root|bin) ]] && echo " WARNING ${DIR} is not owned by root or bin"
+                        DIR=${DIR%/*}
+                done
+        done
+        )"
+        CTRL_NO=2.7.1.6
+        output
+        cmd="lssec -f /etc/security/user -s default -a umask"
+        CTRL_NO=2.7.1.7
+        output
+        cmd="mount | grep -i audit"
+        CTRL_NO=2.7.1.8
+        output
+        cmd="grep 'auth.info*[[:space:]]*/var/adm/authlog*[[:space:]]*rotate*[[:space:]]*time*[[:space:]]*1w*[[:space:]]*files*[[:space:]]*4' /etc/syslog.conf"
+        CTRL_NO=2.7.1.9
+        output
+        cmd="grep 'Unauthorized use of this system is prohibited' /etc/ssh/ssh_banner"
+        CTRL_NO=2.7.1.10
+        output
+        cmd="grep '^#community*[[:space:]]*public' /etc/snmpd.conf"
+        CTRL_NO=2.7.1.11
+        output
+        cmd="ls -ld /etc/security"
+        CTRL_NO=2.7.1.12
+        output
+
+        msg_header 2.7.2.1 Configuring SSH -disable null passwords
+        cmd="grep '^PermitEmptyPasswords*[[:space:]]*no' /etc/ssh/sshd_config"
+        CTRL_NO=2.7.2.1
+        output
+
+        msg_header 2.7.2.2 Configuring SSH -ignore Rhosts
+        cmd="grep '^IgnoreRhosts*[[:space:]]*yes' /etc/ssh/sshd_config"
+        CTRL_NO=2.7.2.2
+        output
+
+        msg_header 2.7.2.3 Configuring SSH -ignore PermitUserEnvironment
+        cmd="grep '^PermitUserEnvironment*[[:space:]]*no' /etc/ssh/sshd_config"
+        CTRL_NO=2.7.2.3
+        output
+
+        msg_header 2.7.2.4 Configuring SSH -ignore HostbasedAuthentication 
+        cmd="grep '^HostbasedAuthentication*[[:space:]]*no' /etc/ssh/sshd_config"
+        CTRL_NO=2.7.2.4
+        output
+
+        msg_header 2.7.3. Miscellaneous Config -all unlocked accounts must have a password
+        cmd="pwdck -n ALL"
+        CTRL_NO=2.7.3
+        output
+
+        msg_header 2.8.1. Miscellaneous Config disable NCS
+        cmd="lsitab -a |grep "/etc/rc.ncs" | cut -f1 -d: | wc -l"
+        CTRL_NO=2.8.1
+        output
+
+        msg_header 2.8.2. Miscellaneous Config disable httpdlite
+        cmd="lsitab httpdlite"
+        CTRL_NO=2.8.2
+        output
+
+        msg_header 2.8.3. Miscellaneous Config disable pmd
+        cmd="lsitab pmd"
+        CTRL_NO=2.8.3
+        output
+
+        msg_header 2.8.4. Miscellaneous Config block talk/write
+        cmd="grep 'mesg n' /etc/profile /etc/csh.login"
+        CTRL_NO=2.8.4
+        output
+
+        msg_header 2.8.5. Miscellaneous Config enable sar accounting
+        cmd="cat /var/spool/cron/crontabs/adm"
+        CTRL_NO=2.8.5
+        output
+
+        msg_header 2.8.6. Miscellaneous Config ftp banner
+        cmd="dspcat -g /usr/lib/nls/msg/en_US/ftpd.cat | grep '^9[[:blank:]]'"
+        CTRL_NO=2.8.6
+        output
+
+        msg_header 2.8.7. Miscellaneous Config /etc/motd
+        cmd="ls -ld /etc/motd"
+        CTRL_NO=2.8.7
+        output
+
+        msg_header 2.8.8. Miscellaneous Config all user id must be unique
+        cmd="cut -d: -f 3 /etc/passwd |sort -n |uniq -d"
+        CTRL_NO=2.8.8
+        output
+
+        msg_header 2.8.9. Miscellaneous Config all group id must be unique
+        cmd="cut -d: -f 3 /etc/group |sort -n | uniq -d"
+        CTRL_NO=2.8.9
+        output
+
+        #msg_header 2.8.10. Miscellaneous Config unnecessary user and group removal
+        #cmd="egrep 'uucp|nuucp|lpd|printq' /etc/passwd /etc/group"
+        #CTRL_NO=2.8.10
+        #output
+
+        msg_header 2.8.11. Miscellaneous Config removing current working directory
+        cmd="su - root -c 'echo ${PATH}' |awk '/((:[\t]*:)|(:[ \t]*$)|(^[ \t]*:)|(^.:)|(:.$)|(:.:))/'"
+        CTRL_NO=2.8.11
+        output
+
+        msg_header 2.9.1. Restrict Cipher list
+        cmd="grep  ^Cipher /etc/ssh/sshd_config"
+        CTRL_NO=2.9.1
+        output
+
+        msg_header 2.9.2. Enable TLS 1.2 \& Above protocol
+        info_msg Not Applicable as HTTP packages are not installed
+
+        msg_header 2.10.1. /etc/mail/sendmail.cf SmtpGreetingMessage
+        cmd="grep 'SmtpGreetingMessage=mailerready' /etc/mail/sendmail.cf | grep -v '#'"
+        CTRL_NO=2.10.1
+        output
+
+        msg_header 2.10.2. /etc/mail/sendmail.cf permissions and ownership
+        cmd="ls -ld /etc/mail/sendmail.cf"
+        CTRL_NO=2.10.2
+        output
+
+        msg_header 2.10.3. /var/spool/mqueue permissions and ownership
+        cmd="ls -ld /var/spool/mqueue"
+        CTRL_NO=2.10.3
+        output
+
+
+}
+
+usage()
+{
+        echo "usage:"
+        echo "      -i :- Implement SCD V13 on server "
+        echo "      -v :- Verify SCD V13 control points on server"
+        echo "      -a :- Collects SCD V13 artifatcs"
+        echo "      -d :- Use this option with other options to start script in debug mode"
+}
+while getopts 'ivadh' c
+do
+  case $c in
+    i)
+        if [ "$(uname)" == "Linux" ]
+        then
+                linux_implement | tee -a /tmp/$(hostname)_SCD_LINUX_V13_log_impl_"$cdate".txt 2>&1
+        else
+                aix_implement | tee -a /tmp/$(hostname)_SCD_AIX_V13_log_impl_"$cdate".txt 2>&1
+        fi ;;
+    v)
+        if [ "$(uname)" == "Linux" ]
+        then
+                linux_verification | tee -a /tmp/$(hostname)_SCD_LINUX_V13_log_veri_"$cdate".txt 2>&1
+        else
+                aix_verification | tee -a /tmp/$(hostname)_SCD_AIX_V13_log_veri_"$cdate".txt 2>&1
+        fi;;
+    a)
+        if [ "$(uname)" == "Linux" ]
+        then
+                linux_artifacts | tee -a /tmp/$(hostname)_SCD_LINUX_V13_log_artifacts_"$cdate".txt 2>&1
+        else
+                aix_artifacts | tee -a /tmp/$(hostname)_SCD_AIX_V13_log_artifacts_"$cdate".txt 2>&1
+        fi;;
+    d) set -x;;
+    h|?) usage ;;
+    *) usage;;
+  esac
+done
+if ((OPTIND == 1))
+then
+    echo "No options specified"
+    usage
+fi
