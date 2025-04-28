@@ -1,0 +1,189 @@
+1. Conga
+Conga is an integrated set of software components that provides centralized configuration and management of Red Hat clusters and storage. Conga provides the following major features:
+
+o	One Web interface for managing cluster and storage
+o	Automated Deployment of Cluster Data and Supporting Packages
+o	Easy Integration with Existing Clusters
+o	No Need to Re-Authenticate
+o	Integration of Cluster Status and Logs
+o	Fine-Grained Control over User Permissions
+
+The primary components in Conga are luci and ricci, which are separately installable. 
+luci is a server that runs on one computer and communicates with multiple clusters and computers via ricci.
+ ricci is an agent that runs on each computer (either a cluster member or a standalone computer) managed by Conga.
+
+Table 2.1. Enabled IP Ports on Red Hat Cluster Nodes
+IP Port Number	Protocol	Component	Reference to Example of iptables Rules
+6809	UDP	cman (Cluster Manager), for use in clusters with Distributed Lock Manager (DLM) selected	Example 2.1, “Port 6809: cman”
+
+11111	TCP	ricci (part of Conga remote agent)	Example 2.3, “Port 11111: ricci (Cluster Node and Computer Running luci)”
+
+14567	TCP	gnbd (Global Network Block Device)	Example 2.4, “Port 14567: gnbd”
+
+16851	TCP	modclusterd (part of Conga remote agent)	Example 2.5, “Port 16851: modclusterd”
+
+21064	TCP	dlm (Distributed Lock Manager), for use in clusters with Distributed Lock Manager (DLM) selected	Example 2.6, “Port 21064: dlm”
+
+40040, 40042, 41040	TCP	lock_gulmd (GULM daemon), for use in clusters with Grand Unified Lock Manager (GULM) selected	Example 2.7, “Ports 40040, 40042, 41040: lock_gulmd”
+
+41966, 41967, 41968, 41969	TCP	rgmanager (high-availability service management)	Example 2.8, “Ports 41966, 41967, 41968, 41969: rgmanager”
+
+50006, 50008, 50009	TCP	ccsd (Cluster Configuration System daemon)	Example 2.9, “Ports 50006, 50008, 50009: ccsd (TCP)”
+
+50007	UDP	ccsd (Cluster Configuration System daemon)	Example 2.10, “Port 50007: ccsd (UDP)”
+
+
+
+
+Table 2.1. Red Hat Cluster Suite Software Subsystem Components
+Function	Components	Description
+Conga	luci	Remote Management System - Management Station.
+	ricci	Remote Management System - Managed Station.
+Cluster Configuration Tool	system-config-cluster	Command used to manage cluster configuration in a graphical setting.
+Cluster Logical Volume Manager (CLVM)	clvmd	The daemon that distributes LVM metadata updates around a cluster. It must be running on all nodes in the cluster and will give an error if a node in the cluster does not have this daemon running.
+ 	lvm	LVM2 tools. Provides the command-line tools for LVM2.
+ 	system-config-lvm	Provides graphical user interface for LVM2.
+ 	lvm.conf	The LVM configuration file. The full path is /etc/lvm/lvm.conf.
+Cluster Configuration System (CCS)	ccs_tool	ccs_tool is part of the Cluster Configuration System (CCS). It is used to make online updates of CCS configuration files. Additionally, it can be used to upgrade cluster configuration files from CCS archives created with GFS 6.0 (and earlier) to the XML format configuration format used with this release of Red Hat Cluster Suite.
+ 	ccs_test	Diagnostic and testing command that is used to retrieve information from configuration files through ccsd.
+ 	ccsd	CCS daemon that runs on all cluster nodes and provides configuration file data to cluster software.
+ 	cluster.conf	This is the cluster configuration file. The full path is /etc/cluster/cluster.conf.
+Cluster Manager (CMAN)	cman.ko	The kernel module for CMAN.
+ 	cman_tool	This is the administrative front end to CMAN. It starts and stops CMAN and can change some internal parameters such as votes.
+ 	dlm_controld	Daemon started by cman init script to manage dlm in kernel; not used by user.
+ 	gfs_controld	Daemon started by cman init script to manage gfs in kernel; not used by user.
+ 	group_tool	Used to get a list of groups related to fencing, DLM, GFS, and getting debug information; includes what cman_tool services provided in RHEL 4.
+ 	groupd	Daemon started by cman init script to interface between openais/cmanand dlm_controld/gfs_controld/fenced; not used by user.
+ 	libcman.so.<version number>	Library for programs that need to interact with cman.ko.
+Resource Group Manager (rgmanager)	clusvcadm	Command used to manually enable, disable, relocate, and restart user services in a cluster.
+ 	clustat	Command used to display the status of the cluster, including node membership and services running.
+ 	clurgmgrd	Daemon used to handle user service requests including service start, service disable, service relocate, and service restart.
+ 	clurmtabd	Daemon used to handle Clustered NFS mount tables.
+Fence	fence_apc	Fence agent for APC power switch.
+ 	fence_bladecenter	Fence agent for for IBM Bladecenters with Telnet interface.
+ 	fence_bullpap	Fence agent for Bull Novascale Platform Administration Processor (PAP) Interface.
+ 	fence_drac	Fencing agent for Dell Remote Access Card.
+ 	fence_ipmilan	Fence agent for machines controlled by IPMI (Intelligent Platform Management Interface) over LAN.
+ 	fence_wti	Fence agent for WTI power switch.
+ 	fence_brocade	Fence agent for Brocade Fibre Channel switch.
+ 	fence_mcdata	Fence agent for McData Fibre Channel switch.
+ 	fence_vixel	Fence agent for Vixel Fibre Channel switch.
+ 	fence_sanbox2	Fence agent for SANBox2 Fibre Channel switch.
+ 	fence_ilo	Fence agent for HP ILO interfaces (formerly fence_rib).
+ 	fence_rsa	I/O Fencing agent for IBM RSA II.
+ 	fence_gnbd	Fence agent used with GNBD storage.
+ 	fence_scsi	I/O fencing agent for SCSI persistent reservations.
+ 	fence_egenera	Fence agent used with Egenera BladeFrame system.
+ 	fence_manual	Fence agent for manual interaction.NOTE This component is not supported for production environments.
+ 	fence_ack_manual	User interface for fence_manualagent.
+ 	fence_node	A program which performs I/O fencing on a single node.
+ 	fence_xvm	I/O Fencing agent for Xen virtual machines.
+ 	fence_xvmd	I/O Fencing agent host for Xen virtual machines.
+ 	fence_tool	A program to join and leave the fence domain.
+ 	fenced	The I/O Fencing daemon.
+DLM	libdlm.so.<version number>	Library for Distributed Lock Manager (DLM) support.
+GFS	gfs.ko	Kernel module that implements the GFS file system and is loaded on GFS cluster nodes.
+ 	gfs_fsck	Command that repairs an unmounted GFS file system.
+ 	gfs_grow	Command that grows a mounted GFS file system.
+ 	gfs_jadd	Command that adds journals to a mounted GFS file system.
+ 	gfs_mkfs	Command that creates a GFS file system on a storage device.
+ 	gfs_quota	Command that manages quotas on a mounted GFS file system.
+ 	gfs_tool	Command that configures or tunes a GFS file system. This command can also gather a variety of information about the file system.
+ 	mount.gfs	Mount helper called by mount(8); not used by user.
+GNBD	gnbd.ko	Kernel module that implements the GNBD device driver on clients.
+ 	gnbd_export	Command to create, export and manage GNBDs on a GNBD server.
+ 	gnbd_import	Command to import and manage GNBDs on a GNBD client.
+ 	gnbd_serv	A server daemon that allows a node to export local storage over the network.
+LVS	pulse	This is the controlling process which starts all other daemons related to LVS routers. At boot time, the daemon is started by the /etc/rc.d/init.d/pulse script. It then reads the configuration file /etc/sysconfig/ha/lvs.cf. On the active LVS router, pulse starts the LVS daemon. On the backup router, pulse determines the health of the active router by executing a simple heartbeat at a user-configurable interval. If the active LVS router fails to respond after a user-configurable interval, it initiates failover. During failover, pulse on the backup LVS router instructs the pulse daemon on the active LVS router to shut down all LVS services, starts the send_arp program to reassign the floating IP addresses to the backup LVS router's MAC address, and starts the lvs daemon.
+ 	lvsd	The lvs daemon runs on the active LVS router once called by pulse. It reads the configuration file /etc/sysconfig/ha/lvs.cf, calls the ipvsadm utility to build and maintain the IPVS routing table, and assigns a nanny process for each configured LVS service. If nannyreports a real server is down, lvsinstructs the ipvsadm utility to remove the real server from the IPVS routing table.
+ 	ipvsadm	This service updates the IPVS routing table in the kernel. The lvs daemon sets up and administers LVS by calling ipvsadm to add, change, or delete entries in the IPVS routing table.
+ 	nanny	The nanny monitoring daemon runs on the active LVS router. Through this daemon, the active LVS router determines the health of each real server and, optionally, monitors its workload. A separate process runs for each service defined on each real server.
+ 	lvs.cf	This is the LVS configuration file. The full path for the file is /etc/sysconfig/ha/lvs.cf. Directly or indirectly, all daemons get their configuration information from this file.
+ 	Piranha Configuration Tool	This is the Web-based tool for monitoring, configuring, and administering LVS. This is the default tool to maintain the /etc/sysconfig/ha/lvs.cf LVS configuration file.
+ 	send_arp	This program sends out ARP broadcasts when the floating IP address changes from one node to another during failover.
+Quorum Disk	qdisk	A disk-based quorum daemon for CMAN / Linux-Cluster.
+ 	mkqdisk	Cluster Quorum Disk Utility.
+ 	qdiskd	Cluster Quorum Disk Daemon.
+
+
+
+2.Man Pages
+This section lists man pages that are relevant to Red Hat Cluster Suite, as an additional resource.
+Cluster Infrastructure
+
+•	ccs_tool (8) - The tool used to make online updates of CCS config files
+•	ccs_test (8) - The diagnostic tool for a running Cluster Configuration System
+•	ccsd (8) - The daemon used to access CCS cluster configuration files
+•	ccs (7) - Cluster Configuration System
+•	cman_tool (8) - Cluster Management Tool
+•	cluster.conf [cluster] (5) - The configuration file for cluster products
+•	qdisk (5) - a disk-based quorum daemon for CMAN / Linux-Cluster
+•	mkqdisk (8) - Cluster Quorum Disk Utility
+•	qdiskd (8) - Cluster Quorum Disk Daemon
+•	fence_ack_manual (8) - program run by an operator as a part of manual I/O Fencing
+•	fence_apc (8) - I/O Fencing agent for APC power switch
+•	fence_bladecenter (8) - I/O Fencing agent for IBM Bladecenter
+•	fence_brocade (8) - I/O Fencing agent for Brocade FC switches
+•	fence_bullpap (8) - I/O Fencing agent for Bull FAME architecture controlled by a PAP management console
+•	fence_drac (8) - fencing agent for Dell Remote Access Card
+•	fence_egenera (8) - I/O Fencing agent for the Egenera BladeFrame
+•	fence_gnbd (8) - I/O Fencing agent for GNBD-based GFS clusters
+•	fence_ilo (8) - I/O Fencing agent for HP Integrated Lights Out card
+•	fence_ipmilan (8) - I/O Fencing agent for machines controlled by IPMI over LAN
+•	fence_manual (8) - program run by fenced as a part of manual I/O Fencing
+•	fence_mcdata (8) - I/O Fencing agent for McData FC switches
+•	fence_node (8) - A program which performs I/O fencing on a single node
+•	fence_rib (8) - I/O Fencing agent for Compaq Remote Insight Lights Out card
+•	fence_rsa (8) - I/O Fencing agent for IBM RSA II
+•	fence_sanbox2 (8) - I/O Fencing agent for QLogic SANBox2 FC switches
+•	fence_scsi (8) - I/O fencing agent for SCSI persistent reservations
+•	fence_tool (8) - A program to join and leave the fence domain
+•	fence_vixel (8) - I/O Fencing agent for Vixel FC switches
+•	fence_wti (8) - I/O Fencing agent for WTI Network Power Switch
+•	fence_xvm (8) - I/O Fencing agent for Xen virtual machines
+•	fence_xvmd (8) - I/O Fencing agent host for Xen virtual machines
+•	fenced (8) - the I/O Fencing daemon
+    
+High-availability Service Management
+
+•	clusvcadm (8) - Cluster User Service Administration Utility
+•	clustat (8) - Cluster Status Utility
+•	Clurgmgrd [clurgmgrd] (8) - Resource Group (Cluster Service) Manager Daemon
+•	clurmtabd (8) - Cluster NFS Remote Mount Table Daemon
+
+GFS
+•	gfs_fsck (8) - Offline GFS file system checker
+•	gfs_grow (8) - Expand a GFS filesystem
+•	gfs_jadd (8) - Add journals to a GFS filesystem
+•	gfs_mount (8) - GFS mount options
+•	gfs_quota (8) - Manipulate GFS disk quotas
+•	gfs_tool (8) - interface to gfs ioctl calls
+
+Cluster Logical Volume Manager
+
+•	clvmd (8) - cluster LVM daemon
+•	lvm (8) - LVM2 tools
+•	lvm.conf [lvm] (5) - Configuration file for LVM2
+•	lvmchange (8) - change attributes of the logical volume manager
+•	pvcreate (8) - initialize a disk or partition for use by LVM
+•	lvs (8) - report information about logical volumes
+
+
+Global Network Block Device
+
+•	gnbd_export (8) - the interface to export GNBDs
+•	gnbd_import (8) - manipulate GNBD block devices on a client
+•	gnbd_serv (8) - gnbd server daemon
+
+LVS
+
+•	pulse (8) - heartbeating daemon for monitoring the health of cluster nodes
+•	lvs.cf [lvs] (5) - configuration file for lvs
+•	lvscan (8) - scan (all disks) for logical volumes
+•	lvsd (8) - daemon to control the Red Hat clustering services
+•	ipvsadm (8) - Linux Virtual Server administration
+•	ipvsadm-restore (8) - restore the IPVS table from stdin
+•	ipvsadm-save (8) - save the IPVS table to stdout
+•	nanny (8) - tool to monitor status of services in a cluster
+•	send_arp (8) - tool to notify network of a new IP address / MAC address mapping
+
