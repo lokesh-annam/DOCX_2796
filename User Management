@@ -1,0 +1,370 @@
+                          ADDUSER           
+                                                Nityanand Madje
+                                                Nd_madje@rediffmail.com
+                                                022-56271812     
+
+
+ 
+
+   * Only root (i.e. system administrator)can use adduser command
+     to create new users. It is not allow to other users.
+
+   * Adduser is symlink of Useradd which is binary in /usr/sbin. We(root)can 
+     customise adduser by using another word(vadapav) & make it
+     symlink of useradd.
+     Let's see
+     [root@localhost root]# cd /usr/sbin
+     [root@localhost sbin]# ln -s useradd vadapav
+     Now vadapav is symlink of useradd.
+
+================================================================================
+
+                    There are 3 types of users
+                                |
+              __________________|__________________
+              |                 |                 |
+         Super user       System user       Normal user
+ 
+    <1> Superuser : At the time of linux installation it is create.
+                    He has right to make other users & his`userid'&
+                    `groupid' is zero in `/etc/Passwd' file.
+
+    <2> Systemuser: These users create by System. They can't login
+                    becoz their shell `sbin/noloin' is default in
+                    seventh field in `/etc/passwd' file.
+
+           
+    <3> Normaluser: These users create by superuser.
+
+
+       Let's see how superuser make normaluser :
+
+
+       [root@localhost root]# adduser aishwarya    
+       [root@localhost root]# passwd aishwarya     
+       Changing password for user aishwarya.
+       New password:(user password)
+       BAD PASSWORD: it is too short (if password is less than six
+       character but it doesn't affect so no need to worry)
+       Retype new password:(user password)
+       Passwd: all authentication tokens updated succesfully.
+
+       [root@localhost root]# userdel aishwarya  ---> `userdel' command delete
+                                                    only name of the user from
+                                                    /home directory but it's
+                                                    data remain there. It's 
+                                                    /usr/sbin/userdel 
+
+       [root@localhost root]# userdel -r aishwarya
+
+                       ---->userdel -r delete name of user as well as data.
+
+       [root@localhost root]# usermod -G groupname username 
+       i.e.                  
+       [root@localhost root]# usermod -G aishwarya vivek 
+
+                       ---->`usermod -G' command makes the user vivek member
+                             of the group aishwarya. /usr/sbin/usermod.
+ 
+                    su ----> with the help of this command root can work as
+                             substitute user.
+
+                 su -r ---->with the help of this command root come out from
+                            subtitute user. 
+
+                               
+================================================================================
+     
+    * The information of adduser store in two main configuration files
+     `Passwd' & `group' these are related with other confi. files.
+
+      Config. files 
+                    |----/etc/passwd
+                    |
+                    |----/etc/group
+                    |
+                    |----/etc/shadow
+  		    |
+                    |----/etc/gshadow
+                    |
+                    |----/etc/login.defs
+                    |
+                    |----/etc/default/useradd
+                    |
+                    |----/etc/skel
+
+
+   <1> /etc/passwd : * It keeps the record of new user when create by
+                       superuser. Each line is entry of new user. It is
+                       text file & has details of all system users.
+                  
+                     * It has 7 fields for each user in each line so 
+                       it is called `system passwd database' & each field
+                       is separted : (colon) also called "Internal field
+                       separator".   
+
+
+                      chameli:x:500:500::/home/chameli:/bin/bash
+                      \_____/\_/\__/\_/||\___________/\_________/
+                        |     |  |   | ||     |           |
+                        1     2  3   4  5     6           7
+                                 \___/                    |
+                                   |                      |
+                                   from /etc/login.defs   from /etc/shells
+
+
+             1. field (chameli) : It is username
+
+             2. field (x) : It contain user password which is somewhere
+                            else if exist.
+                           
+                            If we put * inplace of x then user can't login.
+                            If we keep second field blank then user can login
+                            without password.
+
+                            i.e.    (x) --- password somewhere else.
+                                    (*) --- user can't login.
+                                    ( ) --- user can login without passwd.
+     
+                           
+             3. field (500) : It contain userid which is unique. Further
+                              userid's are just one greater than last user.  
+
+             4. field (500) : It contain groupid which is always same as
+                              userid. It's group of users.
+
+             5. field ()    : It is comment field or GECOS(General electric
+                              compressive operating system)
+                              user can keep his information by using command
+                              `chfn'in this field such as
+                              
+                             $chfn 
+   
+                             Name []:
+                             office []:
+                             office phone []:
+                             Home phone []:
+
+             6. field (/home/chameli) : It's home of chameli. /home is directory
+                                        where all users store.
+
+             7. field (/bin/bash) : It contain the full path of shell used by
+                                    user. Through shell we can convert shell
+                                    script into binary format & whatever get
+                                    from kernal convert into text format.
+
+================================================================================
+
+    <2> /etc/group : This file keep the information of group. It has
+                     four field of each group of each line so it is 
+                     called `system group database'.
+                    
+                     Member of group has right to enter other member's of
+                     system who is member of same group.
+                     line in this field like follow
+          
+                     Paro:x:500:
+                      |   |  |   |
+                      1   2  3   4
+
+        1. field (paro) : It contain name of group which is always same
+                          as the first member username.
+
+        2. field (x)    : It contain group password which is somewhere else if
+                          exist & it's password is same of first member of 
+                          group. 
+     
+        3. field (500)  : It contain group id which is same of first member's
+                          id of group.
+        
+        4. field        : It contains list of members of group. By default
+                          Redhat it is blank but user can fill it by put the
+                          name of members of group.
+       
+                          One user can makes members of his group by using
+                          command `usermod -G' which is run by only root.
+                          
+                          #usermod -G groupname username           
+
+================================================================================
+
+   <3> /etc/shadow : This file is make enable by using "pwconv" command which
+                     take passwd command & make it shadow. Now it is shadow
+                     file of passwd file. 
+ 
+                    Why we make shadow file enable?
+                
+                  * shadow file is secure than passwd file.
+               
+                  * passwd file is readable so other users can read.
+
+                  * Only root can read shadow file. other users can't read it.   
+                  * shadow file provides more secure features such as
+                    password expire duration, user enable & disable duration
+                    and it gives warning before user disable.
+         
+                  * Authentication of user is done by "passwd file" then
+                    Authorisation of user is done by "shadow file".
+
+                  * Through "pwunconv" command shadow file  become disable.
+
+
+               ---> It has nine fields in each line.
+                       
+
+            govinda:$1$wa9jsyd$hmtbcv4$sdghhnbM/:12477:0:99999:7: : :
+            |------|----------------------------|-----|-|-----|-|-|-|----|
+               1                2                  3   4   5   6 7 8  9
+                                                   \___________/
+                                                        |
+                                                 from /etc/login.defs    
+      1. field : It contain user name.
+
+      2. field : It is encrypted password.
+
+      3. field : Days since 1 jan 1970, passwd was changed for the last time.
+
+      4. field : Days before the passwd may be changed.
+
+      5. field : Days after passwd must be changed.
+
+      6. field : Days before passwd expire from today.
+                 i.e.  warning given to user.
+
+      7. field : It is called "Password Grase field".
+                 No. of days after account will be expire.
+
+      8. field : Days since Jan 1, 1970 when account will be disabled.
+
+      9. field : It's reserve field.
+
+
+====================================ZZ==========================================
+
+
+   <4> /etc/gshadow : This file make enable by using command "grpconv"
+                       which creates grshadow file of group file.
+
+                       Only root can read this file. It has four fields
+                       in each line.
+
+                       Bijali:!: : 
+                       |-----|-|-|-------
+                         1    2 3   4
+
+           1. field : It contain name of group which is always same as
+                      first member's name of group.
+                      i.e. user who makes group his name is groupname.
+   
+           2. field : It contain encrypted password of group which is
+                      same as first member's password of group.
+
+           3. field : It contain the list of group administrator name.
+
+           4. field : It contain  list of group members.
+
+===============================================================================
+
+   <5> /etc/login.defs : It keep the information of directory where mailboxes
+                         reside or name of file relative to the home directory,
+                         Password duration & how many users can login.
+
+  
+                         "Passwd file" & "Group file" get the information of                             userid & groupid from this file.
+                         "shadow file" & "Gshadow file" get the information of  
+                         user login & password duration of user from this file. 
+                         
+                        Min/max values for automatic uid selection in useradd.
+  
+                        UID-MIN       500
+                        UID-MAX       60000    
+
+                        The id of user start from 500 & max it is 60000 which
+                        is default according to REDHAT but we can customise it.
+                   
+                        If there are two department ACCOUNTANT & MARKETING in
+                        one office then I can start userid to ACCOUNTANT from
+                        1000 & to MARKETING from 2000 which is reliable.
+
+                        Similar way to Groupid
+
+                        GID-MIN      500
+                        GID-MAX      60000               
+
+    PASSWORD AGING CONTROLS :
+
+    1. PASS-MAX-DAYS    99999 : The maximum number of days a password can be
+                                used. i.e max 99999 days.
+
+    2. PASS-MIN-DAYS    0     : The minimum number of days allowed between
+                                password can change.
+
+    3. PASS-MIN-LEN     5     : The minimum length of the password.
+                                i.e. 5 character.              
+                   
+    4. PASS-WARN-AGE    7     : Specifies the number of days warning given to 
+                                user before the password expire. ie 7 days.
+
+   The above PASSWORD AGING information is default according to REDHAT
+   which we can customise it.
+
+================================================================================
+
+   <6> /etc/default/useradd : It has information of no. of groups, directory
+       ====================   of users & user using which shell in following
+                              way.
+
+      1. Group=100     ---->  It's default no. of groups according to Redhat
+                              which can customise.
+
+      2. Home=/home    ---->  It's default dir of user as Redhat say to which we
+                              can give any name i.e. we can make `ghar'instead
+                              of `home' by making directory under /
+
+      3. Inactive      ---->  It's number of days after password expire of user.
+
+      4. Expire        ---->  It's number of days for the account of user will 
+                              expire.
+
+      5. Shell=/bin/bash -->  It's path of user shell.
+
+      6. Skel=/etc/skel --->  When user create there is zero dir or file but 
+                              when give command `l.' it shows some hidden files
+                              which comes from /etc/skel.
+                              when system admin first time creates users he can
+                              send message like `Thanku for using redhat linux'
+                              through this & user get this mail whenever he  
+                              login.                   
+
+   
+      *  Suppose there are two system admin(root), if one root open the file
+        /etc/passwd through `vipw'command then other root can't open that file,
+        it is lock. So first root can change anything in that file without 
+        interupt of other root.
+
+      *  root can change user shell through `chsh' command.
+         sbin/nologin shell doesn't allow user to login.
+
+      *  [root@localhost etc]# touch nologin  ----> This file doesn't allow
+                                                    all users to login.
+ 
+   
+      *  [root@localhost etc]# vi nologin  ----> Through this file system admin
+                                               can send message why can't users
+                                               login & no one can't login except                                               root.
+
+
+      *  [root@localhost etc] vi securetty --> put # at every terminal then root                                               can't login on any terminal.                                              
+                                                        
+      *  [root@Ravindra etc]# vi pam.d/login -->from top comment 3rd line 
+                                            which makes disable root & users.
+
+
+===========ZZ===================THANKS===============ZZ=========================
+  
+    
+                              
+
+                                    
+
+
