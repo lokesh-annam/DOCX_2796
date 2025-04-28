@@ -1,0 +1,266 @@
+PALADIAN RECOMMENDATIONS
+
+Umask
+-------
+bash
+cp -p /etc/skel/local.profile /etc/skel/local.profile_10OCT12_BfPaladRec
+echo umask 022 >> /etc/skel/local.profile
+echo umask 022 >> /etc/skel/local.login
+
+SSH CONFIG
+-----------
+
+vi /etc/ssh/sshd_config
+
+cp -p /etc/ssh/sshd_config /etc/ssh/sshd_config_10oct12_BfPaladRec
+grep X11Fo /etc/ssh/sshd_config 
+grep Max /etc/ssh/sshd_config
+grep IgnoreRho /etc/ssh/sshd_config
+grep Rhosts /etc/ssh/sshd_config
+grep Banner /etc/ssh/sshd_config
+
+SET:
+-----
+X11Forwarding no
+
+MaxAuthTries    5
+
+MaxAuthTriesLog 0
+
+IgnoreRhosts yes
+
+RhostsAuthentication no
+
+#Banner $1 = "Banner"
+
+RhostsRSAAuthentication no
+
+
+DiSABLE DIRECT ROOT LOGIN
+-------------------------
+
+grep CONSOLE /etc/default/login
+
+
+PASSWORD AGING POLICY
+----------------------
+
+vi /etc/default/passwd
+cp /etc/default/passwd /etc/default/passwd_08Apr08_BfPaladRec
+
+SET:
+
+#As Per Paladion Recommendation on 08Apr08
+MINDIFF=3
+MINALPHA=2
+MINNONALPHA=1
+MINUPPER=1
+MINLOWER=1
+MAXREPEATS=0
+NAMECHECK=YES
+
+
+PASSWD LOCKING:
+------------------
+
+cd 
+
+cp /etc/security/policy.conf /etc/security/policy.conf_08Apr01_BFPalREC
+
+vi /etc/security/policy.conf 
+set LOCK_AFTER_RETRIES=YES
+
+NULL SHELL FOR S/M USER ACCOUNTS
+----------------------------------
+
+cp -p /etc/passwd /etc/passwd_10oct12_BFPalREC
+cp -p /etc/shadow /etc/shadow_10oct12_BFPalREC
+
+daemon nuucp nobody bin smmsp adm smtp lp listen uucp noacces nobody4, etc..
+
+
+LOGIN BANNERS:
+-------------
+cat /etc/motd 
+
+
+*******************************************************************************************
+*                  									  * 	
+*  This system is a restricted access system. All the activity on this system is subject  *  
+*  to monitoring. If information collected reveals possible criminal activity or activity *
+*  that exceeds privileges, evidences of such activity may be provided to the relevant	  * 
+*  authorities for further action. By continuing past this point,                         *
+*  you consent to this monitoring..						          *					
+*											  * 	
+*******************************************************************************************
+
+
+
+/etc/issue
+
+ENABLE TELNET FTP BANNER
+------------------------
+
+echo "Authorized uses only. All activity may be monitored and reported." > /etc/ftpd/banner.msg
+
+
+SECURE CRON AT 
+---------------
+
+ls -l /etc/cron.d
+
+vi /etc/cron.d/at.deny
+daemon
+bin
+smtp
+nuucp
+listen
+nobody
+noaccess
+
+vi /etc/cron.d/cron.deny
+
+cd /etc/cron.d/
+chown root:root cron.allow at.allow
+chmod 400 cron.allow at.allow
+
+STICKY BIT FOR WORLD WRITABLE FILES
+-----------------------------------
+
+chmod +t file r dir
+
+
+SYSTEM RESOURCE
+-----------------
+# As per Paladion Recommendation on Apr08
+         set noexec_user_stack=1
+         set noexec_user_stack_log=1
+         set sys:coredumpsize=0
+         set maxuprc=128
+
+
+
+CRITICAL FOLDER PERMISSIONS
+----------------------------
+
+/etc /var /var/spool-755; /var/cron-700; /etc/security-750 ;/tmp /var/tmp - 1755
+
+chmod 700 /var/cron
+chmod 755 /var
+chmod 755 /var/spool
+chmod 755 /etc
+chmod 750 /etc/security
+chmod 1755 /tmp
+chmod 1755 /var/tmp
+
+AUDIING & LOGGING
+------------------
+
+Edit /etc/security/audit_control 
+
+
+vi /etc/security/audit_control
+
+dir:/var/audit
+flags:lo,ad,pc,fc,fd,fm
+minfree:20
+naflags:lo,ad
+
+WEAK PERMISSION ON LOG FILES:
+------------------------------
+
+600
+
+ls -l /var/adm/messages 
+ls -l /var/log/syslog
+
+
+chmod 604 /var/adm/messages
+chmod 604 /var/log/syslog
+
+
+N/W SETTINGS:
+================
+
+DISABLE UNNECESSARY SERVICES
+------------------------------
+
+svcadm disable rquota;
+svcadm disable webconsole;
+svcadm disable svc:/system/webconsole:console;
+inetadm -d  svc:/application/management/wbem:default;
+
+ 
+
+TCP SEQUENCE NUMBER
+--------------------
+vi /etc/default/inetinit
+TCP_STRONG_ISS=2
+
+
+ENABLE TCP WRAPPERs for INETD N RPCBIND-----------not done on 163
+-----------------------------------------
+
+check
+--------
+
+svcprop -p defaults inetd
+svcprop -p config/enable_tcpwrappers rpc/bind
+
+
+SET:inet
+--------
+
+bash
+inetadm -M tcp_wrappers=true
+svcadm refresh inetd
+
+SET:rpcbind
+-----------
+
+ svccfg -s rpc/bind setprop config/enable_tcpwrappers=true
+ svcadm refresh rpc/bind
+ svcprop -p config/enable_tcpwrappers rpc/bind
+ 
+
+EEPROM SECURITY:
+-------------------
+
+SET:
+----
+
+eeprom security-mode=command
+
+
+
+ENABLE COREDUMP
+-------------------
+
+ mkdir -p /var/core
+ chown root:root /var/core
+ chmod 700 /var/core
+
+
+ coreadm -g /var/core/core_%n_%f_%u_%g_%t_%p -e log -e global -e global-setid -d process -d proc-setid
+
+coreadm -g /var/core/core_%n_%f_%u_%g_%t_%p -d log -d global -d global-setid -d process -d proc-setid
+
+
+
+NDDCONFIG:
+
+Copy /etc/rc2.d/S70nddconfig from any server
+
+
+Create ln on /etc/init.d/nddconfig
+
+ svcprop -p defaults inetd
+ 
+
+svcprop -p defaults inetd
+svcprop -p config/enable_tcpwrappers rpc/bind
+inetadm -M tcp_wrappers=true
+svcadm refresh inetd
+svccfg -s rpc/bind setprop config/enable_tcpwrappers=true
+svcadm refresh rpc/bind
+
