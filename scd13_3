@@ -1,0 +1,552 @@
+
+echo 5. Auditing and Logging    >> `hostname`_SCD13.txt
+
+
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+
+echo 5.1. Create CIS Audit Class     >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+
+echo 5.1. To create the CIS audit class, edit the /etc/security/audit class file and add the  entry before the last  line of the file: 0x0100000000000000:cis     >> `hostname`_SCD13.txt
+echo "======================before==============================="         >> `hostname`_SCD13.txt
+touch /etc/security/audit_class
+chmod 644 /etc/security/audit_class
+cat /etc/security/audit_class |grep ^0x0100000000000000      >> `hostname`_SCD13.txt
+cp -p /etc/security/audit_class /etc/security/audit_class_1aug2022
+awk '/^0x0100000000000000:cis:CIS/ { $1 = "#0x0100000000000000:cis:CIS" } { print }' /etc/security/audit_class_1aug2022 >/etc/security/audit_class_1aug20222
+echo "0x0100000000000000:cis:CIS"  >> /etc/security/audit_class_1aug20222
+cp -p /etc/security/audit_class_1aug20222   /etc/security/audit_class_1aug2022
+
+echo "======================after==============================="         >> `hostname`_SCD13.txt
+cat /etc/security/audit_class |grep ^0x0100000000000000     >> `hostname`_SCD13.txt
+
+echo "==============================================================================================================================="         >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+
+echo 5.2Enable Auditing of Incoming Network Connections    >> `hostname`_SCD13.txt
+cat /etc/security/audit_event |egrep -i "AUE_ACCEPT|AUE_CONNECT|AUE_SOCKACCEPT|AUE_SOCKCONNECT|AUE_inetd_connect"     >> `hostname`_SCD13.txt
+echo "==============================================================================================================================="         >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+
+echo  5.3 Enable Auditing of File Metadata Modification Events     >> `hostname`_SCD13.txt
+cat /etc/security/audit_event |egrep -i "AUE_CHMOD|AUE_FCHOWN|AUE_FCHOWN|AUE_FCHMOD|AUE_LCHOWN|AUE_ACLSET|AUE_ACLSET|AUE_FACLSET|AUE_CHOWN"     >> `hostname`_SCD13.txt
+echo "==============================================================================================================================="         >> `hostname`_SCD13.txt
+
+echo 5.4. Enable Auditing of Process and Privilege Events     >> `hostname`_SCD13.txt
+cat /etc/security/audit_event |egrep -i "AUE_CHROOT|AUE_SETREUID|AUE_SETREGID|AUE_FCHROOT|AUE_PFEXEC|AUE_SETUID|AUE_NICE|AUE_SETGID|AUE_PRIOCNTLSYS|AUE_SETEGID|AUE_SETEUID|AUE_SETPPRIV|AUE_SETSID|AUE_SETPGID"         >> `hostname`_SCD13.txt
+echo "==============================================================================================================================="         >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+
+echo 5.5. Configure Solaris Auditing     >> `hostname`_SCD13.txt
+auditconfig -conf       >> `hostname`_SCD13.txt
+auditconfig -setflags lo,ad,ft,ex,cis       >> `hostname`_SCD13.txt
+auditconfig -setnaflags lo       >> `hostname`_SCD13.txt
+auditconfig -setpolicy cnt,argv,zonename       >> `hostname`_SCD13.txt
+auditconfig -setplugin audit_binfile active p_minfree=1       >> `hostname`_SCD13.txt
+audit -s       >> `hostname`_SCD13.txt
+usermod -K audit_flags=lo,ad,ft,ex,cis:no root       >> `hostname`_SCD13.txt
+rolemod -K audit_flags=lo,ad,ft,ex,cis:no root       >> `hostname`_SCD13.txt
+crontab -l |grep -i audit     >> `hostname`_SCD13.txt       >> `hostname`_SCD13.txt
+chown root:root /var/audit       >> `hostname`_SCD13.txt
+chmod 750 /var/audit       >> `hostname`_SCD13.txt
+ls -ld /var/audit     >> `hostname`_SCD13.txt
+ls -ld /var/share/audit >> `hostname`_SCD13.txt
+echo "==============================================================================================================================="         >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+
+
+echo 6 File/Directory Permissions/Access   >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+
+
+echo 6.1. Default Service File Creation Mask    >> `hostname`_SCD13.txt
+echo "======================before==============================="         >> `hostname`_SCD13.txt
+svccfg -s svc:/system/environment:init listprop umask/umask    >> `hostname`_SCD13.txt
+svccfg -s svc:/system/environment:init setprop umask/umask = astring: "027"         >> `hostname`_SCD13.txt
+echo "======================after==============================="         >> `hostname`_SCD13.txt
+svccfg -s svc:/system/environment:init listprop umask/umask    >> `hostname`_SCD13.txt
+echo "==============================================================================================================================="         >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+
+echo 7. System Access, Authentication, and Authorization    >> `hostname`_SCD13.txt
+echo 7.1. Disable login: Services on Serial Ports    >> `hostname`_SCD13.txt
+echo "======================before==============================="         >> `hostname`_SCD13.txt
+svcs svc:/system/console-login:terma    >> `hostname`_SCD13.txt
+svcs svc:/system/console-login:termb    >> `hostname`_SCD13.txt
+svcadm disable svc:/system/console-login:terma    >> `hostname`_SCD13.txt
+svcadm disable svc:/system/console-login:termb    >> `hostname`_SCD13.txt
+echo "======================after==============================="         >> `hostname`_SCD13.txt
+svcs svc:/system/console-login:terma    >> `hostname`_SCD13.txt
+svcs svc:/system/console-login:termb    >> `hostname`_SCD13.txt
+echo "==============================================================================================================================="         >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+
+echo 7.2. Disable "nobody" Access for RPC Encryption Key Storage Service     >> `hostname`_SCD13.txt
+echo "======================before==============================="         >> `hostname`_SCD13.txt
+mv  /etc/default/keyserv.orig  /etc/default/keyserv
+grep "ENABLE_NOBODY_KEYS" /etc/default/keyserv    >> `hostname`_SCD13.txt
+awk '/^#ENABLE_NOBODY_KEYS/ { $1 = "ENABLE_NOBODY_KEYS=NO" } { print }' /etc/default/keyserv > /etc/default/keyserv.CIS
+mv /etc/default/keyserv.CIS  /etc/default/keyserv
+echo "======================after==============================="         >> `hostname`_SCD13.txt
+grep "^ENABLE_NOBODY_KEYS" /etc/default/keyserv    >> `hostname`_SCD13.txt
+echo "==============================================================================================================================="         >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo 7.3. Disable X11 Forwarding for SSH    >> `hostname`_SCD13.txt
+echo "======================before==============================="         >> `hostname`_SCD13.txt
+grep "^X11Forwarding" /etc/ssh/sshd_config    >> `hostname`_SCD13.txt
+awk '/^X11Forwarding/ { $2 = "no" } { print }' /etc/ssh/sshd_config > /etc/ssh/sshd_config.CIS
+mv /etc/ssh/sshd_config.CIS  /etc/ssh/sshd_config
+svcadm restart svc:/network/ssh
+echo "======================after==============================="         >> `hostname`_SCD13.txt
+grep "^X11Forwarding" /etc/ssh/sshd_config    >> `hostname`_SCD13.txt
+svcs svc:/network/ssh    >> `hostname`_SCD13.txt
+echo "==============================================================================================================================="         >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+
+echo 7.4. Limit Consecutive Login Attempts for SSH    >> `hostname`_SCD13.txt
+grep "^MaxAuthTries" /etc/ssh/sshd_config    >> `hostname`_SCD13.txt
+echo "==============================================================================================================================="         >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+
+echo 7.5. Limit Consecutive Login Attempts for SSH    >> `hostname`_SCD13.txt
+echo "======================before==============================="         >> `hostname`_SCD13.txt
+grep "^IgnoreRhosts" /etc/ssh/sshd_config    >> `hostname`_SCD13.txt
+awk '/^IgnoreRhosts/ { $2 = "yes" } { print }' /etc/ssh/sshd_config > /etc/ssh/sshd_config.CIS
+mv /etc/ssh/sshd_config.CIS  /etc/ssh/sshd_config
+svcadm restart svc:/network/ssh
+echo "======================after==============================="         >> `hostname`_SCD13.txt
+grep "^IgnoreRhosts" /etc/ssh/sshd_config    >> `hostname`_SCD13.txt
+svcs svc:/network/ssh    >> `hostname`_SCD13.txt
+echo "==============================================================================================================================="         >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+
+echo 7.6. Blocking Authentication Using Empty/Null Passwords for SSH    >> `hostname`_SCD13.txt
+echo "======================before==============================="         >> `hostname`_SCD13.txt
+grep "^PermitEmptyPasswords" /etc/ssh/sshd_config    >> `hostname`_SCD13.txt
+awk '/^PermitEmptyPasswords/ { $2 = "no" } { print }' /etc/ssh/sshd_config > /etc/ssh/sshd_config.CIS
+mv /etc/ssh/sshd_config.CIS  /etc/ssh/sshd_config
+svcadm restart svc:/network/ssh
+echo "======================after==============================="         >> `hostname`_SCD13.txt
+grep "^PermitEmptyPasswords" /etc/ssh/sshd_config    >> `hostname`_SCD13.txt
+svcs svc:/network/ssh    >> `hostname`_SCD13.txt
+echo "==============================================================================================================================="         >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+
+
+echo 7.7. Disable Host-based Authentication for Login-based Services     >> `hostname`_SCD13.txt
+echo "======================before==============================="         >> `hostname`_SCD13.txt
+cat /etc/pam.conf     >> `hostname`_SCD13.txt
+cp -p /etc/pam.conf /etc/pam.conf_`date +%d%h%y_%H%M`
+cp /etc/pam.conf /etc/pam.conf.pre-CIS
+sed -e 's/^.*pam_rhosts_auth/#&/' < /etc/pam.conf   > /etc/pam.conf.CIS
+mv /etc/pam.conf.CIS /etc/pam.conf
+echo "======================after==============================="         >> `hostname`_SCD13.txt
+cat /etc/pam.conf     >> `hostname`_SCD13.txt
+echo "==============================================================================================================================="         >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+
+
+echo 7.8. Restrict FTP Use     >> `hostname`_SCD13.txt
+cat /etc/ftpd/ftpusers |egrep -i "aiuser|noaccess|nobody|nobody4"     >> `hostname`_SCD13.txt
+echo "==============================================================================================================================="         >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+
+echo 7.9. Set Delay between Failed Login Attempts to 4      >> `hostname`_SCD13.txt
+echo "======================before==============================="         >> `hostname`_SCD13.txt
+cat  /etc/default/login |grep -i sleep     >> `hostname`_SCD13.txt
+echo "======================after==============================="         >> `hostname`_SCD13.txt
+cat  /etc/default/login |grep -i sleep     >> `hostname`_SCD13.txt
+echo "==============================================================================================================================="         >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+
+echo 7.10. Remove Autologin Capabilities from the GNOME desktop     >> `hostname`_SCD13.txt
+echo "======================before==============================="         >> `hostname`_SCD13.txt
+cat  /etc/pam.conf |grep -i gdm
+awk '/^gdm-autologin/ { $1="#gdm-autologin" } { print }' /etc/pam.conf > /etc/pam.conf.CIS
+mv /etc/pam.conf.CIS /etc/pam.conf
+echo "======================after==============================="         >> `hostname`_SCD13.txt
+cat  /etc/pam.conf |grep -i gdm
+echo "==============================================================================================================================="         >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  7.11. Set Default Screen Lock for GNOME User >> `hostname`_SCD13.txt
+cd /usr/share/X11/app-defaults
+cp XScreenSaver XScreenSaver.orig
+awk '/^*timeout:/ { $2 = 0:30:00 };  /^*lockTimeout:/ { $2 = 0:00:00 };  /^*lock:/ { $2 = True }  { print }' xScreenSaver > xScreenSaver.CISc
+mv xScreenSaver.CIS xScreenSaver
+cat XScreenSaver  >> `hostname`_SCD13.txt
+echo "==============================================================================================================================="         >> `hostname`_SCD13.txt
+
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+
+echo 7.12. Restrict at/cron to Authorized Users    >> `hostname`_SCD13.txt
+echo "==========This point is already implemented================"         >> `hostname`_SCD13.txt
+ls -lrt /etc/cron.d*    >> `hostname`_SCD13.txt
+cd /etc/cron.d
+chown root:root cron.allow at.allow
+chmod 400 cron.allow at.allow
+ls -ld cron.allow at.allow   >> `hostname`_SCD13.txt
+cat cron.allow >> `hostname`_SCD13.txt
+echo "==============================================================================================================================="         >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo "7.13. Set Retry Limit for Account Lockout"     >> `hostname`_SCD13.txt
+echo "==================================="     >> `hostname`_SCD13.txt
+echo "Perform the following to verify that the result is as recommended:"     >> `hostname`_SCD13.txt
+echo "==================================="     >> `hostname`_SCD13.txt
+echo "======================before==============================="         >> `hostname`_SCD13.txt
+cat /etc/default/login |grep -i RETRIES=     >> `hostname`_SCD13.txt
+awk '/^#RETRIES=5/ { $1 = "RETRIES=3" } { print }' /etc/default/login > /etc/default/login.CIS
+mv /etc/default/login.CIS /etc/default/login
+echo "======================after==============================="         >> `hostname`_SCD13.txt
+echo " Must Return :RETRIES=3"     >> `hostname`_SCD13.txt
+grep "^RETRIES=" /etc/default/login     >> `hostname`_SCD13.txt
+
+echo "======================before==============================="         >> `hostname`_SCD13.txt
+grep "LOCK_AFTER_RETRIES=" /etc/security/policy.conf     >> `hostname`_SCD13.txt
+awk '/^#LOCK_AFTER_RETRIES=/ { $1 = "LOCK_AFTER_RETRIES=YES" } { print }' /etc/security/policy.conf > /etc/security/policy.conf.CIS
+mv /etc/security/policy.conf.CIS /etc/security/policy.conf
+echo "======================after==============================="         >> `hostname`_SCD13.txt
+echo " Must Return :LOCK_AFTER_RETRIES=YES"         >> `hostname`_SCD13.txt
+echo " (Output should be "no" for any accounts that are exempt from this policy including'root'.)"     >> `hostname`_SCD13.txt
+grep "LOCK_AFTER_RETRIES=" /etc/security/policy.conf     >> `hostname`_SCD13.txt
+echo "==================================="     >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+
+echo 7.14. Disable root login for SSH    >> `hostname`_SCD13.txt
+echo "======================before==============================="         >> `hostname`_SCD13.txt
+grep "^PermitRootLogin" /etc/ssh/sshd_config    >> `hostname`_SCD13.txt
+awk '/^PermitRootLogin/ { $2 = "no" } { print }' /etc/ssh/sshd_config > /etc/ssh/sshd_config.CIS
+mv /etc/ssh/sshd_config.CIS  /etc/ssh/sshd_config
+svcadm restart svc:/network/ssh
+echo "======================after==============================="         >> `hostname`_SCD13.txt
+grep "^PermitRootLogin" /etc/ssh/sshd_config    >> `hostname`_SCD13.txt
+svcs svc:/network/ssh    >> `hostname`_SCD13.txt
+echo "==============================================================================================================================="         >> `hostname`_SCD13.txt
+
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo 7.15. Restrict root Login to System Console    >> `hostname`_SCD13.txt
+cat /etc/default/login  |grep -i CONSOLE     >> `hostname`_SCD13.txt
+echo "==============================================================================================================================="         >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+
+echo 5. Auditing and Logging    >> `hostname`_SCD13.txt
+
+
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+
+echo 5.1. Create CIS Audit Class     >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+
+echo 5.1. To create the CIS audit class, edit the /etc/security/audit class file and add the  entry before the last  line of the file: 0x0100000000000000:cis     >> `hostname`_SCD13.txt
+echo "======================before==============================="         >> `hostname`_SCD13.txt
+touch /etc/security/audit_class
+chmod 644 /etc/security/audit_class
+cat /etc/security/audit_class |grep ^0x0100000000000000      >> `hostname`_SCD13.txt
+cp -p /etc/security/audit_class /etc/security/audit_class_1aug2022
+awk '/^0x0100000000000000:cis:CIS/ { $1 = "#0x0100000000000000:cis:CIS" } { print }' /etc/security/audit_class_1aug2022 >/etc/security/audit_class_1aug20222
+echo "0x0100000000000000:cis:CIS"  >> /etc/security/audit_class_1aug20222
+cp -p /etc/security/audit_class_1aug20222   /etc/security/audit_class_1aug2022
+
+echo "======================after==============================="         >> `hostname`_SCD13.txt
+cat /etc/security/audit_class |grep ^0x0100000000000000     >> `hostname`_SCD13.txt
+
+echo "==============================================================================================================================="         >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+
+echo 5.2Enable Auditing of Incoming Network Connections    >> `hostname`_SCD13.txt
+cat /etc/security/audit_event |egrep -i "AUE_ACCEPT|AUE_CONNECT|AUE_SOCKACCEPT|AUE_SOCKCONNECT|AUE_inetd_connect"     >> `hostname`_SCD13.txt
+echo "==============================================================================================================================="         >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+
+echo  5.3 Enable Auditing of File Metadata Modification Events     >> `hostname`_SCD13.txt
+cat /etc/security/audit_event |egrep -i "AUE_CHMOD|AUE_FCHOWN|AUE_FCHOWN|AUE_FCHMOD|AUE_LCHOWN|AUE_ACLSET|AUE_ACLSET|AUE_FACLSET|AUE_CHOWN"     >> `hostname`_SCD13.txt
+echo "==============================================================================================================================="         >> `hostname`_SCD13.txt
+
+echo 5.4. Enable Auditing of Process and Privilege Events     >> `hostname`_SCD13.txt
+cat /etc/security/audit_event |egrep -i "AUE_CHROOT|AUE_SETREUID|AUE_SETREGID|AUE_FCHROOT|AUE_PFEXEC|AUE_SETUID|AUE_NICE|AUE_SETGID|AUE_PRIOCNTLSYS|AUE_SETEGID|AUE_SETEUID|AUE_SETPPRIV|AUE_SETSID|AUE_SETPGID"         >> `hostname`_SCD13.txt
+echo "==============================================================================================================================="         >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+
+echo 5.5. Configure Solaris Auditing     >> `hostname`_SCD13.txt
+auditconfig -conf       >> `hostname`_SCD13.txt
+auditconfig -setflags lo,ad,ft,ex,cis       >> `hostname`_SCD13.txt
+auditconfig -setnaflags lo       >> `hostname`_SCD13.txt
+auditconfig -setpolicy cnt,argv,zonename       >> `hostname`_SCD13.txt
+auditconfig -setplugin audit_binfile active p_minfree=1       >> `hostname`_SCD13.txt
+audit -s       >> `hostname`_SCD13.txt
+usermod -K audit_flags=lo,ad,ft,ex,cis:no root       >> `hostname`_SCD13.txt
+rolemod -K audit_flags=lo,ad,ft,ex,cis:no root       >> `hostname`_SCD13.txt
+crontab -l |grep -i audit     >> `hostname`_SCD13.txt       >> `hostname`_SCD13.txt
+chown root:root /var/audit       >> `hostname`_SCD13.txt
+chmod 750 /var/audit       >> `hostname`_SCD13.txt
+ls -ld /var/audit     >> `hostname`_SCD13.txt
+ls -ld /var/share/audit >> `hostname`_SCD13.txt
+echo "==============================================================================================================================="         >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+
+
+echo 6 File/Directory Permissions/Access   >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+
+
+echo 6.1. Default Service File Creation Mask    >> `hostname`_SCD13.txt
+echo "======================before==============================="         >> `hostname`_SCD13.txt
+svccfg -s svc:/system/environment:init listprop umask/umask    >> `hostname`_SCD13.txt
+svccfg -s svc:/system/environment:init setprop umask/umask = astring: "027"         >> `hostname`_SCD13.txt
+echo "======================after==============================="         >> `hostname`_SCD13.txt
+svccfg -s svc:/system/environment:init listprop umask/umask    >> `hostname`_SCD13.txt
+echo "==============================================================================================================================="         >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+
+echo 7. System Access, Authentication, and Authorization    >> `hostname`_SCD13.txt
+echo 7.1. Disable login: Services on Serial Ports    >> `hostname`_SCD13.txt
+echo "======================before==============================="         >> `hostname`_SCD13.txt
+svcs svc:/system/console-login:terma    >> `hostname`_SCD13.txt
+svcs svc:/system/console-login:termb    >> `hostname`_SCD13.txt
+svcadm disable svc:/system/console-login:terma    >> `hostname`_SCD13.txt
+svcadm disable svc:/system/console-login:termb    >> `hostname`_SCD13.txt
+echo "======================after==============================="         >> `hostname`_SCD13.txt
+svcs svc:/system/console-login:terma    >> `hostname`_SCD13.txt
+svcs svc:/system/console-login:termb    >> `hostname`_SCD13.txt
+echo "==============================================================================================================================="         >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+
+echo 7.2. Disable "nobody" Access for RPC Encryption Key Storage Service     >> `hostname`_SCD13.txt
+echo "======================before==============================="         >> `hostname`_SCD13.txt
+mv  /etc/default/keyserv.orig  /etc/default/keyserv
+grep "ENABLE_NOBODY_KEYS" /etc/default/keyserv    >> `hostname`_SCD13.txt
+awk '/^#ENABLE_NOBODY_KEYS/ { $1 = "ENABLE_NOBODY_KEYS=NO" } { print }' /etc/default/keyserv > /etc/default/keyserv.CIS
+mv /etc/default/keyserv.CIS  /etc/default/keyserv
+echo "======================after==============================="         >> `hostname`_SCD13.txt
+grep "^ENABLE_NOBODY_KEYS" /etc/default/keyserv    >> `hostname`_SCD13.txt
+echo "==============================================================================================================================="         >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo 7.3. Disable X11 Forwarding for SSH    >> `hostname`_SCD13.txt
+echo "======================before==============================="         >> `hostname`_SCD13.txt
+grep "^X11Forwarding" /etc/ssh/sshd_config    >> `hostname`_SCD13.txt
+awk '/^X11Forwarding/ { $2 = "no" } { print }' /etc/ssh/sshd_config > /etc/ssh/sshd_config.CIS
+mv /etc/ssh/sshd_config.CIS  /etc/ssh/sshd_config
+svcadm restart svc:/network/ssh
+echo "======================after==============================="         >> `hostname`_SCD13.txt
+grep "^X11Forwarding" /etc/ssh/sshd_config    >> `hostname`_SCD13.txt
+svcs svc:/network/ssh    >> `hostname`_SCD13.txt
+echo "==============================================================================================================================="         >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+
+echo 7.4. Limit Consecutive Login Attempts for SSH    >> `hostname`_SCD13.txt
+grep "^MaxAuthTries" /etc/ssh/sshd_config    >> `hostname`_SCD13.txt
+echo "==============================================================================================================================="         >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+
+echo 7.5. Limit Consecutive Login Attempts for SSH    >> `hostname`_SCD13.txt
+echo "======================before==============================="         >> `hostname`_SCD13.txt
+grep "^IgnoreRhosts" /etc/ssh/sshd_config    >> `hostname`_SCD13.txt
+awk '/^IgnoreRhosts/ { $2 = "yes" } { print }' /etc/ssh/sshd_config > /etc/ssh/sshd_config.CIS
+mv /etc/ssh/sshd_config.CIS  /etc/ssh/sshd_config
+svcadm restart svc:/network/ssh
+echo "======================after==============================="         >> `hostname`_SCD13.txt
+grep "^IgnoreRhosts" /etc/ssh/sshd_config    >> `hostname`_SCD13.txt
+svcs svc:/network/ssh    >> `hostname`_SCD13.txt
+echo "==============================================================================================================================="         >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+
+echo 7.6. Blocking Authentication Using Empty/Null Passwords for SSH    >> `hostname`_SCD13.txt
+echo "======================before==============================="         >> `hostname`_SCD13.txt
+grep "^PermitEmptyPasswords" /etc/ssh/sshd_config    >> `hostname`_SCD13.txt
+awk '/^PermitEmptyPasswords/ { $2 = "no" } { print }' /etc/ssh/sshd_config > /etc/ssh/sshd_config.CIS
+mv /etc/ssh/sshd_config.CIS  /etc/ssh/sshd_config
+svcadm restart svc:/network/ssh
+echo "======================after==============================="         >> `hostname`_SCD13.txt
+grep "^PermitEmptyPasswords" /etc/ssh/sshd_config    >> `hostname`_SCD13.txt
+svcs svc:/network/ssh    >> `hostname`_SCD13.txt
+echo "==============================================================================================================================="         >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+
+
+echo 7.7. Disable Host-based Authentication for Login-based Services     >> `hostname`_SCD13.txt
+echo "======================before==============================="         >> `hostname`_SCD13.txt
+cat /etc/pam.conf     >> `hostname`_SCD13.txt
+cp -p /etc/pam.conf /etc/pam.conf_`date +%d%h%y_%H%M`
+cp /etc/pam.conf /etc/pam.conf.pre-CIS
+sed -e 's/^.*pam_rhosts_auth/#&/' < /etc/pam.conf   > /etc/pam.conf.CIS
+mv /etc/pam.conf.CIS /etc/pam.conf
+echo "======================after==============================="         >> `hostname`_SCD13.txt
+cat /etc/pam.conf     >> `hostname`_SCD13.txt
+echo "==============================================================================================================================="         >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+
+
+echo 7.8. Restrict FTP Use     >> `hostname`_SCD13.txt
+cat /etc/ftpd/ftpusers |egrep -i "aiuser|noaccess|nobody|nobody4"     >> `hostname`_SCD13.txt
+echo "==============================================================================================================================="         >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+
+echo 7.9. Set Delay between Failed Login Attempts to 4      >> `hostname`_SCD13.txt
+echo "======================before==============================="         >> `hostname`_SCD13.txt
+cat  /etc/default/login |grep -i sleep     >> `hostname`_SCD13.txt
+echo "======================after==============================="         >> `hostname`_SCD13.txt
+cat  /etc/default/login |grep -i sleep     >> `hostname`_SCD13.txt
+echo "==============================================================================================================================="         >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+
+echo 7.10. Remove Autologin Capabilities from the GNOME desktop     >> `hostname`_SCD13.txt
+echo "======================before==============================="         >> `hostname`_SCD13.txt
+cat  /etc/pam.conf |grep -i gdm
+awk '/^gdm-autologin/ { $1="#gdm-autologin" } { print }' /etc/pam.conf > /etc/pam.conf.CIS
+mv /etc/pam.conf.CIS /etc/pam.conf
+echo "======================after==============================="         >> `hostname`_SCD13.txt
+cat  /etc/pam.conf |grep -i gdm
+echo "==============================================================================================================================="         >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  7.11. Set Default Screen Lock for GNOME User >> `hostname`_SCD13.txt
+cd /usr/share/X11/app-defaults
+cp XScreenSaver XScreenSaver.orig
+awk '/^*timeout:/ { $2 = 0:30:00 };  /^*lockTimeout:/ { $2 = 0:00:00 };  /^*lock:/ { $2 = True }  { print }' xScreenSaver > xScreenSaver.CISc
+mv xScreenSaver.CIS xScreenSaver
+cat XScreenSaver  >> `hostname`_SCD13.txt
+echo "==============================================================================================================================="         >> `hostname`_SCD13.txt
+
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+
+echo 7.12. Restrict at/cron to Authorized Users    >> `hostname`_SCD13.txt
+echo "==========This point is already implemented================"         >> `hostname`_SCD13.txt
+ls -lrt /etc/cron.d*    >> `hostname`_SCD13.txt
+cd /etc/cron.d
+chown root:root cron.allow at.allow
+chmod 400 cron.allow at.allow
+ls -ld cron.allow at.allow   >> `hostname`_SCD13.txt
+cat cron.allow >> `hostname`_SCD13.txt
+echo "==============================================================================================================================="         >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo "7.13. Set Retry Limit for Account Lockout"     >> `hostname`_SCD13.txt
+echo "==================================="     >> `hostname`_SCD13.txt
+echo "Perform the following to verify that the result is as recommended:"     >> `hostname`_SCD13.txt
+echo "==================================="     >> `hostname`_SCD13.txt
+echo "======================before==============================="         >> `hostname`_SCD13.txt
+cat /etc/default/login |grep -i RETRIES=     >> `hostname`_SCD13.txt
+awk '/^#RETRIES=5/ { $1 = "RETRIES=3" } { print }' /etc/default/login > /etc/default/login.CIS
+mv /etc/default/login.CIS /etc/default/login
+echo "======================after==============================="         >> `hostname`_SCD13.txt
+echo " Must Return :RETRIES=3"     >> `hostname`_SCD13.txt
+grep "^RETRIES=" /etc/default/login     >> `hostname`_SCD13.txt
+
+echo "======================before==============================="         >> `hostname`_SCD13.txt
+grep "LOCK_AFTER_RETRIES=" /etc/security/policy.conf     >> `hostname`_SCD13.txt
+awk '/^#LOCK_AFTER_RETRIES=/ { $1 = "LOCK_AFTER_RETRIES=YES" } { print }' /etc/security/policy.conf > /etc/security/policy.conf.CIS
+mv /etc/security/policy.conf.CIS /etc/security/policy.conf
+echo "======================after==============================="         >> `hostname`_SCD13.txt
+echo " Must Return :LOCK_AFTER_RETRIES=YES"         >> `hostname`_SCD13.txt
+echo " (Output should be "no" for any accounts that are exempt from this policy including'root'.)"     >> `hostname`_SCD13.txt
+grep "LOCK_AFTER_RETRIES=" /etc/security/policy.conf     >> `hostname`_SCD13.txt
+echo "==================================="     >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+
+echo 7.14. Disable root login for SSH    >> `hostname`_SCD13.txt
+echo "======================before==============================="         >> `hostname`_SCD13.txt
+grep "^PermitRootLogin" /etc/ssh/sshd_config    >> `hostname`_SCD13.txt
+awk '/^PermitRootLogin/ { $2 = "no" } { print }' /etc/ssh/sshd_config > /etc/ssh/sshd_config.CIS
+mv /etc/ssh/sshd_config.CIS  /etc/ssh/sshd_config
+svcadm restart svc:/network/ssh
+echo "======================after==============================="         >> `hostname`_SCD13.txt
+grep "^PermitRootLogin" /etc/ssh/sshd_config    >> `hostname`_SCD13.txt
+svcs svc:/network/ssh    >> `hostname`_SCD13.txt
+echo "==============================================================================================================================="         >> `hostname`_SCD13.txt
+
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo 7.15. Restrict root Login to System Console    >> `hostname`_SCD13.txt
+cat /etc/default/login  |grep -i CONSOLE     >> `hostname`_SCD13.txt
+echo "==============================================================================================================================="         >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo 7.17 Set EEPROM Security Mode and Log Failed Access    >> `hostname`_SCD13.txt
+eeprom security-mode=command
+eeprom security-#badlogins=0
+eeprom | grep security-mode     >> `hostname`_SCD13.txt
+eeprom | grep security-#badlogins     >> `hostname`_SCD13.txt
+echo "==============================================================================================================================="         >> `hostname`_SCD13.txt
+
