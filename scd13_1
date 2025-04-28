@@ -1,0 +1,195 @@
+
+#!/bin/sh
+echo "########################################################################"                     >> `hostname`_SCD13.txt
+echo "# PricewaterhouseCoopers Pvt Ltd  Secure Configuration Review Script for State Bank of India                          #"              >> `hostname`_SCD13.txt
+echo "# Property of PricewaterhouseCoopers Pvt Ltd                                                   #"                     >> `hostname`_SCD13.txt
+echo "# Copyright (c) 2021 PricewaterhouseCoopers Pvt Ltd                                                    #"                     >> `hostname`_SCD13.txt
+echo "########################################################################"                     >> `hostname`_SCD13.txt
+
+echo "###########################Server Information###########################"                     >> `hostname`_SCD13.txt
+
+echo "Hostname"                                                     >> `hostname`_SCD13.txt
+echo "--------"                                                     >> `hostname`_SCD13.txt
+uname -a                                                            >> `hostname`_SCD13.txt
+
+echo "Timestamp"                                                    >> `hostname`_SCD13.txt
+echo "--------"                                                     >> `hostname`_SCD13.txt
+date                                                                >> `hostname`_SCD13.txt
+
+#Banner
+echo "Operating System"                                               >>  `hostname`_SCD13.txt
+echo "----------------"                                               >>  `hostname`_SCD13.txt
+cat /etc/motd                                                         >>  `hostname`_SCD13.txt
+echo                                                                  >>  `hostname`_SCD13.txt
+cat /etc/issue                                                        >>  `hostname`_SCD13.txt
+echo                                                                  >>  `hostname`_SCD13.txt
+
+#IP Configuration
+echo "IP Address"                                                     >>  `hostname`_SCD13.txt
+echo "----------"                                                     >>  `hostname`_SCD13.txt
+/sbin/ifconfig -a|grep "inet addr"                                    >>  `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt                                                       >>  `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+
+
+echo "2. Configuration Document : Oracle Solaris 11"     >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo 2.1. Use the Latest Package Updates      >> `hostname`_SCD13.txt
+uname -a     >> `hostname`_SCD13.txt
+echo "====================================================================="         >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo "3. Disable Un-necessary services"               >>  `hostname`_SCD13.txt
+echo "##################################################"               >>  `hostname`_SCD13.txt
+
+echo 3.1. Disable Local-only send mail Service        >> `hostname`_SCD13.txt
+echo "======================before==============================="      >> `hostname`_SCD13.txt
+ svcs   svc:/network/smtp:sendmail      >> `hostname`_SCD13.txt
+svcadm disable svc:/network/smtp:sendmail
+echo "======================after==============================="       >> `hostname`_SCD13.txt
+svcs   svc:/network/smtp:sendmail        >> `hostname`_SCD13.txt
+echo "==============================================================================================================================="       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo 3.2. Disable RPC Encryption Key    >> `hostname`_SCD13.txt
+echo "======================before==============================="     >> `hostname`_SCD13.txt
+svcs   svc:/network/rpc/keyserv       >> `hostname`_SCD13.txt
+svcs -a |grep -i rpc         >> `hostname`_SCD13.txt
+svcadm disable svc:/network/rpc/keyserv
+echo "======================after==============================="     >> `hostname`_SCD13.txt
+svcs svc:/network/rpc/keyserv    >> `hostname`_SCD13.txt
+svcs -a |grep -i rpc         >> `hostname`_SCD13.txt
+echo "==============================================================================================================================="     >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo 3.3. Disable NIS Server Services    >> `hostname`_SCD13.txt
+echo "======================before==============================="         >> `hostname`_SCD13.txt
+svcs svc:/network/nis/server     >> `hostname`_SCD13.txt
+svcs svc:/network/nis/domain     >> `hostname`_SCD13.txt
+svcs -a |grep -i nis
+svcadm disable svc:/network/nis/server
+svcadm disable svc:/network/nis/domain
+echo "======================after==============================="         >> `hostname`_SCD13.txt
+svcs svc:/network/nis/server     >> `hostname`_SCD13.txt
+svcs svc:/network/nis/domain     >> `hostname`_SCD13.txt
+svcs -a |grep -i nis
+echo "==============================================================================================================================="         >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo 3.4. Disable NIS Client Services     >> `hostname`_SCD13.txt
+echo "======================before==============================="         >> `hostname`_SCD13.txt
+svcs svc:/network/nis/client     >> `hostname`_SCD13.txt
+svcs svc:/network/nis/domain     >> `hostname`_SCD13.txt
+svcadm disable svc:/network/nis/domain
+svcadm disable svc:/network/nis/client
+echo "======================after==============================="         >> `hostname`_SCD13.txt
+svcs svc:/network/nis/domain     >> `hostname`_SCD13.txt
+svcs svc:/network/nis/client     >> `hostname`_SCD13.txt
+echo "==============================================================================================================================="         >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo 3.5. Disable Kerberos TGT Expiration Warning     >> `hostname`_SCD13.txt
+echo "======================before==============================="         >> `hostname`_SCD13.txt
+svcs svc:/network/security/ktkt_warn:default    >> `hostname`_SCD13.txt
+svcadm disable svc:/network/security/ktkt_warn:default
+echo "======================after==============================="         >> `hostname`_SCD13.txt
+svcs svc:/network/security/ktkt_warn:default    >> `hostname`_SCD13.txt
+echo "==============================================================================================================================="         >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+
+echo 3.6 Disable Generic Security Services    >> `hostname`_SCD13.txt
+echo "======================before==============================="         >> `hostname`_SCD13.txt
+svcs svc:/network/rpc/gss    >> `hostname`_SCD13.txt
+echo "======================after==============================="         >> `hostname`_SCD13.txt
+svvcadm disable svc:/network/rpc/gss
+svcs svc:/network/rpc/gss:default    >> `hostname`_SCD13.txt
+echo "==============================================================================================================================="         >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo 3.7. Disable Removable Volume Manager    >> `hostname`_SCD13.txt
+echo "======================before==============================="         >> `hostname`_SCD13.txt
+svcs  svcadm disable svc:/system/filesystem/rmvolmgr       >> `hostname`_SCD13.txt
+svcs  svcadm disable svc:/network/rpc/smserver    >> `hostname`_SCD13.txt
+
+svcadm disable svc:/system/filesystem/rmvolmgr
+svcadm disable svc:/network/rpc/smserver
+
+echo "======================after==============================="         >> `hostname`_SCD13.txt
+svcs  svcadm disable svc:/system/filesystem/rmvolmgr       >> `hostname`_SCD13.txt
+svcs  svcadm disable svc:/network/rpc/smserver    >> `hostname`_SCD13.txt
+echo "==============================================================================================================================="         >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+
+
+echo 3.8. Disable automount Service   >> `hostname`_SCD13.txt
+echo "======================before==============================="         >> `hostname`_SCD13.txt
+svcs svc:/system/filesystem/autofs     >> `hostname`_SCD13.txt
+svcadm disable svc:/system/filesystem/autofs
+echo "======================after==============================="         >> `hostname`_SCD13.txt
+svcs svc:/system/filesystem/autofs     >> `hostname`_SCD13.txt
+echo "==============================================================================================================================="         >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+
+
+echo 3.9. Disable Apache Service   >> `hostname`_SCD13.txt
+echo "======================before==============================="         >> `hostname`_SCD13.txt
+svcs svc:/network/http:apache24    >> `hostname`_SCD13.txt
+svcs -a |grep -i apache
+svcadm disable svc:/network/http:apache22
+svcadm disable svc:/network/http:apache24
+echo "======================after==============================="         >> `hostname`_SCD13.txt
+svcs svc:/network/http:apache24    >> `hostname`_SCD13.txt
+svcs -a |grep -i apache >> `hostname`_SCD13.txt
+echo "==============================================================================================================================="         >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+
+echo 3.10. Disable Local-only RPC Port Mapping Service    >> `hostname`_SCD13.txt
+echo "======================before==============================="         >> `hostname`_SCD13.txt
+svcs svc:/network/rpc/bind    >> `hostname`_SCD13.txt
+svcadm disable svc:/network/rpc/bind
+echo "======================after==============================="         >> `hostname`_SCD13.txt
+svcs svc:/network/rpc/bind    >> `hostname`_SCD13.txt
+echo "==============================================================================================================================="         >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+
+echo 3.11. Configure TCP Wrappers     >> `hostname`_SCD13.txt
+echo " we don't implement tcp wrappers"     >> `hostname`_SCD13.txt
+echo "==============================================================================================================================="         >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+
+echo ""3.12. Disable Telnet Service""   >> `hostname`_SCD13.txt
+echo "======================before==============================="         >> `hostname`_SCD13.txt
+svcs svc:/network/telnet:default    >> `hostname`_SCD13.txt
+svcadm disable svc:/network/telnet >> `hostname`_SCD13.txt
+svcs -a |grep svc:/network/telnet >> `hostname`_SCD13.txt
+echo "======================after==============================="         >> `hostname`_SCD13.txt
+svcs svc:/network/telnet:default    >> `hostname`_SCD13.txt
+echo "==============================================================================================================================="         >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+
+
