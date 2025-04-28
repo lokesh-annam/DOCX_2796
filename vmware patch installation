@@ -1,0 +1,17 @@
+ifconfig -a;hostname;cat /etc/redhat-release;
+
+env x='() { :;}; echo vulnerable' 'BASH_FUNC_x()=() { :;}; echo vulnerable' bash -c "echo test"
+
+rpm -q bash;bash --version;
+
+md5sum bash-4.1.2-15.el6_5.1.x86_64.rpm
+
+yum update bash-4.1.2-15.el6_5.1.x86_64.rpm;
+
+ifconfig -a;hostname;cat /etc/redhat-release;
+
+
+rpm -q bash;bash --version;
+
+env x='() { :;}; echo vulnerable' 'BASH_FUNC_x()=() { :;}; echo vulnerable' bash -c "echo test"
+
