@@ -1,0 +1,18 @@
+vtmenu
+chhmcusr -u inbitam -t passwd -->hmc
+
+Disable the Telnet service and use SSH instead.
+cat /etc/inetd.conf |grep -i telnet
+vi /etc/inetd.conf
+refresh -s inetd
+
+Switch to SFTP (part of the SSH suite) or FTPS (FTP over SSL/TLS). In the latter case, configure the server so that control connections are encrypted.
+cat /etc/inetd.conf |grep -i telnet
+vi /etc/inetd.conf
+refresh -s inetd
+
+
+prtconf |head -10
+
+lssyscfg -r sys -F name,type_model,serial_num,state 
+
