@@ -1,0 +1,35 @@
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo "11.1 Restrict Cipher list"     >> `hostname`_SCD13.txt
+echo "========================before=============="         >> `hostname`_SCD13.txt
+cat /etc/ssh/sshd_config |grep -i Cipher     >> `hostname`_SCD13.txt
+echo "========================after=============="         >> `hostname`_SCD13.txt
+cat /etc/ssh/sshd_config |grep -i Cipher     >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo "12.1 Restrict access to suspend feature"     >> `hostname`_SCD13.txt
+echo "======================before==============================="         >> `hostname`_SCD13.txt
+poweradm list | grep suspend     >> `hostname`_SCD13.txt
+poweradm set suspend-enable=false
+poweradm update
+echo "======================after==============================="         >> `hostname`_SCD13.txt
+poweradm list | grep suspend     >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+
+echo "12.2. Remove Support for Internet Services"     >> `hostname`_SCD13.txt
+echo "======================before==============================="         >> `hostname`_SCD13.txt
+svcs  svc:/network/inetd:default    >> `hostname`_SCD13.txt
+svcadm disable svc:/network/inetd    >> `hostname`_SCD13.txt
+echo "======================after==============================="     >> `hostname`_SCD13.txt
+svcs  svc:/network/inetd:default    >> `hostname`_SCD13.txt
+echo "==============================================================================================================================="     >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+
+
+
