@@ -46,3 +46,13 @@ echo " +++++++++++Disk information +++++++++++ "
 lspv |awk {'print $1'} |while read i; do  lspv |grep -w $i; bootinfo -s $i; echo ----------------; done
 
 echo " =====================logs completed ====================== "
+
+
+
+
+#!/bin/sh
+for i in `more userlist.txt `
+do
+echo $i"Techm@123" | passwd –-stdin "$i"
+echo; echo "User $username’s password changed!"
+done
