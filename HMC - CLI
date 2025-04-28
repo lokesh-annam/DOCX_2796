@@ -1,0 +1,970 @@
+HMC - CLI
+HMC command line:
+
+The 2 mostly used commands to gather info about managed systems and lpars:
+
+lssyscfg: info about managed system, lpar (i.e. running or not) or profile configuration
+lshwres: info about the resources (cpu/mem/vscsi..) of a managed system or lpar
+
+------------------------------------------------------------
+------------------------------------------------------------
+
+lssyscfg
+
+Lists managed-systems, partitions, partition profiles and attibutes of them. When you give resource type you can choose from: sys, lpar or prof.
+
+If sys or lpar has been chosen it does not list resources like cpu/mem settings or vscsi/vfc adapter config, 
+only general info about the system/lpar, like lpar is activated or not, what is the cpu mode, or rmc state...
+
+If prof is chosen, it lists cpu,mem,vscsi... config from the lpar profile. (lshwres command shows these data from the running partition, not from the profile.)
+
+
+------------------------------------------------------------
+
+lssyscfg -r sys -F name        lists name of managed systems (this name can be used in other commands)
+
+
+other example:
+
+
+------------------------------------------------------------
+------------------------------------------------------------
+
+
+
+
+
+
+
+------------------------------------------------------------
+
+
+
+------------------------------------------------------------
+------------------------------------------------------------
+
+Other commands:
+
+TAB-TAB                shows all commands available for the user (commands have --help option and man pages)
+
+chsysstate -m <sys> -o standby -r sys                                power on a system to standby
+chsysstate -m <sys> -r sys  -o off                                   normal power off the managed system
+chsysstate -m <sys> -r sys -o off --immed                            fast power off the managed system
+chsysstate -m <sys> -r lpar -n <lpar> -o shutdown --restart          it will reboot an lpar with dump
+chsysstate -m <sys> -r lpar -n <lpar> -o shutdown --immed --restart  it will reboot an lpar immediately (without dump)
+chsysstate -m <sys> -r lpar -n <lpar> -o shutdown --immed            it will shutdown the operating system
+chsysstate -m <sys> -r lpar -n <lpar> -o on -f default               it will activate an lpar
+
+migrlpar                                                             perform partition migrations
+lslparmigr                                                           lists info about lpar migration
+
+lslparmigr -r sys -m <managed system> | sed "s/,/\n/g"               shows how many concurrent migr. is possible
+
+
+
+lspartition -dlpar                                                   shows dlpar capable partitions
+                                                                     (it will show if RMC connection is OK between the HMC and LPAR)
+
+
+
+lssysconn -r all                                                     to see what IPs are assigned by the HMC
+mksysconn -o auto                                                    tells HMC to re-discover all servers' IP address
+
+lssvcevents -t console -d 60                                         lists console events in the past 60 days
+lssvcevents -t hardware -d 0                                         list serviceable events which occured today
+lssvcevents -t console -d 300 | grep DLPAR                           list DLPAR operations of last 300 days (you can grep more to mem or proc)
+lssvcevents -t console -d 7 | grep Migration                         list last 7 days LPMs
+
+lshmc -V                                                             hmc version
+lshmv -v                                                             hmc model
+lshmc -n                                                             lists the network settings of the hmc
+hmcshutdown -t now -r                                                reboot the HMC (-t: timing in minutes, -r: reboot)
+
+lslogon -r webui -u                                                  lists users logged in gui (lslogon -r webui -t <--lists running tasks)
+lslogon -r ssh -u                                                    lists users logged in cli (lslogon -r ssh -t <--lists running tasks)
+termtask -r { webgui | ssh } -s (session) -t (task)                  terminate a running task (or all tasks)
+
+monhmc -r mem -n 0                                                   shows total, used and free mamory of HMC
+monhmc -r disk -n 0                                                  shows filesystems and usage info (same as "df -k")
+monhmc -r proc -n 0                                                  shows cpu usage of each processor
+monhmc -r swap -n 0                                                  shows paging space usage
+
+sendfile                                                             transfer files with ftp from HMC to another server
+
+vtmenu                                                               hmc menu options (console session can be opened as well)
+logout: ~~. (2 tilde and a dot)
+
+
+
+Default root password: passw0rd (try su -)
+
+------------------------------------
+
+/usr/samples/tcpip/anon.ftp
+
+If you want to use remote FTP installs on HMC, an FTP user will be needed on the remote (AIX) server.
+There is a default script on AIX which creates an ftp or anonymous user for this FTP connection: /usr/samples/tcpip/anon.ftp
+This scripts should be used to create FTP user, otherwise connection will work but files won’t be reachable by HMC.
+
+------------------------------------
+
+opening/closing virtual terminal from hmc:
+
+lssyscfg -r sys -F name                         <--get managed system name
+lssyscfg -r lpar -m <managed system> -F name    <--get lpar name
+
+mkvterm -m <managed system> -p <lpar>           <--opens a terminal window
+rmvterm -m <managed system> -p <lpar>           <--closes a terminal window
+
+~~.                                             <--logout from the session (not necessary to leave AIX)
+
+------------------------------------
+
+
+(it will not add to profile)
+
+adding:
+chhwres -r virtualio --rsubtype eth -m <man.sys.> -o s -p <LPAR> -s <adapter id> -a "addl_vlan_ids+=<VLAN TAG>"
+
+removing:
+chhwres -r virtualio --rsubtype eth -m <man.sys.> -o s -p <LPAR> -s <adapter id> -a "addl_vlan_ids-=<VLAN TAG>"
+
+------------------------------------
+
+Changing LPAR weight:
+
+lshwres -r proc -m <MAN_SYS> --level lpar --filter lpar_names=<LPAR_NAME>                            list actual running config
+chhwres -r proc -m <MAN_SYS> -p <LPAR_NAME> -o s -a "uncap_weight=32"                                changes weight of actual running config
+
+lssyscfg -r prof -m <MAN_SYS> --filter lpar_names=<LPAR_NAME>                                        list profile
+chsyscfg -r prof -m <MAN_SYS> -i "name=<PROFILE_NAME>,lpar_name=<LPAR_NAME>,uncap_weight=32"         changes weight in given profile
+
+------------------------------------
+HMC - CONSOLE
+Basics
+
+CONSOLE vs TERMINAL (tty, vty):
+
+Some history:
+A teletype (teleprinter) or TTY is an electromechanical device that can be used to send and receive typed messages. 
+Initially they were used in telegraphy, which developed in the 1830s. More than 100 years later these machines were 
+adapted to provide a user interface to early mainframe computers, sending typed data to the computer and printing the response on paper. 
+Some models could also be used to create punched tape for data storage. Teleprinters have largely been replaced by fully electronic computer 
+terminals which typically have a computer monitor instead of a printer (though the term "TTY" is still used to refer to them).
+
+A video terminal (such as vt-100) was a data entry device that used a keyboard for input and a display screen for output. 
+Although the display screen resembles a TV, it did not accept TV signals. Usually the keyboard had to be connected to the display screen, 
+and the display screen to the computer (using serial connections).
+
+Console:
+The term console usually refers to a terminal attached to a computer and used to monitor the status of the system. 
+The combination of display monitor and keyboard or other device that allows input. Another term for console is terminal.
+(Terminal: A device that enables you to communicate with a computer. Generally, a terminal is a combination of keyboard and display screen.)
+
+Terminal:
+TTY is the name for a terminal in Unix tradition. In the past real typewriters were used as input or output (printer) for computers, and if that was not in the same room it was called teletypewriter or teletype (tty). Now screen replaced printer, although TTY refers to teleprinter in general. A terminal (or sometimes synonim console) consists of an input and output device (keyboard/monitor).
+
+In the past people logged in and ran programs through terminals that were connected to the computer's serial ports. Later remote logins were possible via netwok. If you're logged in remotely (via SSH or remote X), you're using a pseudo-terminal, which means a personal computer runs a software that emulates the function of a terminal.
+
+Putty:
+PuTTY is a terminal emulator and ssh client. If a terminal emulator is used, it is the job of the terminal emulator to set the TERM environment variable. The TERM variable helps the OS determine how to display information to your terminal. The environment variable TERM should be set to the name of terminal you are using (e.g. xterm). Type "set" at the command line to see what TERM is set to.
+
+In the putty config options is a setting called terminal-type string. You can set your TERM there and putty instructs SSH to set that environment variable. When (via SSH) we are reaching out to the server, we are reaching out to 'getty'.
+
+A getty is is a program (normally invoked by init) that waits for a connection and asks the person for their login name.  getty then starts login and login asks the person for their password. If the user does nothing, getty or login hang up and getty goes back to waiting.
+
+One of the jobs of a getty is to set the TERM environment variable to indicate the model of the terminal which is connecting (e.g. getty sets TERM to "xterm" and forks a shell process (/bin/ksh).
+
+you can check these devices under /dev:
+tty: used for any non printer device attached to a serial port (terminal, modem)
+pty: used for a pseudo terminal device. It provides the appearance of a terminal, but does not have any physical port attachment. (putty)
+
+w command shows this:
+pts - pseudo terminal server (when looging in via putty)
+vty - virtual terminal server (when logging in via console)
+
+tty - this command shows the full path of the actual terminal
+root@bb_lpar: / # tty
+/dev/vty0                      <--from a console session you will see this
+/dev/pts/0                     <--from an ssh session you will see this
+
+you can check these (from an ssh or console session):
+echo "hello" > /dev/tty        <--it sends the output to the current session (doesn't matter console or ssh)
+echo "hello" > /dev/pts/0      <--it sends the output to the ssh session window
+echo "hello" > /dev/vty0       <--it sends the output to the console session window
+echo "hello" > /dev/console    <--it sends the output to the console (login prompt from console is enough, not necessary to be logged in)
+
+--------------------------------
+
+VIRTUAL SERIAl ADAPTER
+
+Virtual serial adapters provide a point-to-point connection from one logical partition to another, or from the Hardware Management Console (HMC) 
+to each logical partition on the managed system. Virtual serial adapters are used primarily to establish terminal or console connections to logical partitions.
+
+When you create a logical partition, the HMC automatically creates two virtual server serial adapters on the logical partition. 
+These virtual server serial adapters allow you to establish a terminal or console connection to the logical partition through the HMC.
+
+You can also create pairs of virtual serial adapters on logical partitions so that you can access and control one logical partition directly from another logical partition
+
+On HMC-managed systems, virtual serial adapters are created and assigned to logical partitions using partition profiles.
+
+root@bb_lpar: / # lsdev -Cc adapter
+vsa0   Available  LPAR Virtual Serial Adapter
+
+the child device of vsa0 is vty0:
+root@bb_lpar: / # lsdev -p vsa0
+vty0 Available  Asynchronous Terminal
+
+--------------------------------
+
+HMC (Hardware Management Console)
+
+It is a computer (desktop or slimmer called rack-mount), which is is for managing and monitoring IBM servers. 
+It runs customized Linux, and the user can access only the management application. The HMC uses its network connections to one or more servers to perform various management functions:
+    * Creates and maintains a multiple-partitioned environment
+    * Displays a virtual operating system session terminal for each partition
+    * Displays virtual operator panel values for each partition
+    * Detects, reports, and stores changes in hardware conditions
+    * Acts as a service focal point: reports hardware errors
+    * Powers managed systems on and off
+    * Activates additional resources on demand
+
+------------------------
+
+Available/Configurable CPU/RAM on HMC:
+
+CPU:
+Available:              This amount can be assigned to partitions (it is not assigned yet, and it is free)
+Assigned to Partitions: This amount has already been assigned to partitions
+Configurable:           The sum of the above 2 (Configurable=Available + Assigned to Parttiions)
+Installed:              This amount of processor is installed to the server
+                        (The value of "Installed - Configurable" shows how much we can activate with CoD, this can be checked under CoD menu)
+
+RAM:
+Available:              This amount can be assigned to partitions (it is not assigned yet, and it is free)
+Assigned to Partitions: This amount has already been assigned to partitions
+Reserved:               This amount is taken away from the Configurable amount (it is needed for the Hypervisor)
+Configurable:           The sum of the above 3 (Configurable=Available + Assigned to Parttions+ Reserved)
+Installed:              This amount of RAM is installed to the server
+                        (The value of "Installed - Configurable" shows how much we can activate with CoD, this can be checked under CoD menu)
+
+------------------------
+
+
+HMC BACKUP + RECOVERY:
+
+Recovery point: this is the point of the last upgrade or the time when HMC was installed
+
+Back up Critical Console Data (HMC Data on v7):
+it backs up everything (installed data, efixes, cutomization), it could take an hour it is not a bootable media
+
+Save Upgrade Data:
+only saves customization data, and it is used only when you will boot from recovery media or network image (before upgrades), it takes less than a minute
+
+For recovery we need a recovery media (or a base installation image) and the Critical Console Data.
+
+--------------------------------------------
+
+root@aix40: / # lparstat -i
+Node Name                                  : aix40
+Partition Name                             : aix40-APP3
+Partition Number                           : 2
+Type                                       : Shared-SMT      <--simultaneous Multi-threading turned on
+Mode                                       : Uncapped        <--uncapped: it can use unused available capacity in the shared pool
+Entitled Capacity                          : 3.75            <--the number of processing units this LPAR is entitled to receive
+Partition Group-ID                         : 32770
+Shared Pool ID                             : 0
+Online Virtual CPUs                        : 7               <--number of virtual processors
+Maximum Virtual CPUs                       : 8
+Minimum Virtual CPUs                       : 3
+Online Memory                              : 24575 MB
+Maximum Memory                             : 32768 MB
+Minimum Memory                             : 12288 MB
+Variable Capacity Weight                   : 200             <--how extra (idle) capacity is allocated to it (value ranges from 0-255)
+Minimum Capacity                           : 0.50            0= capped= only its entitled capacity can be consumed
+Maximum Capacity                           : 4.00            other values= uncapped= distribution of unassigned capacity depends on this weight
+Capacity Increment                         : 0.01
+Maximum Physical CPUs in system            : 16
+Active Physical CPUs in system             : 16   
+Active CPUs in Pool                        : 16              <--how many CPUs are in the pool
+...
+
+smtctl                                    shows current SMT settings
+smtctl on|off                             enable or disable SMT
+
+--------------------------------------------
+
+Hardware Change:
+
+1.OS:
+    shutdown -F (LPAR: Runing --> Not Activated)
+
+2. HMC:
+    if all LPARs have been stopped server state: Operating --> Standby??
+    Power off Managed System -->Fast power off
+    (server state: Standby --> Power off, LPAR state: Not Activated --> Not Available)
+
+3. HW change:
+    (when server is unplugged from electricity, state: Power Off --> No Connection)
+
+4. SERVER STARTUP:
+    slow boot mode may needed
+    Properties --> Power-ON Parameters --> Show details --> Power-on speed
+
+5. CHANGE PROFILE IF NEEDED:
+    set correct desired settings
+
+6. LPAR STARTUP
+    Partition Profile --> Activate Profile
+
+--------------------------------------------
+
+How to move DVD-ROM or CD-ROM drive from one LPAR to another:
+
+If you don't know which LPAR owns the CD-ROM drive, use the HMC manager or WEBSM tool.
+Select the managed system and open "Properties".
+Select the "I/O" tab. Look for the I/O device with the description "Other Mass Storage Controller" and read the "Owner" field. 
+This will show the LPAR currently owning that device.
+
+ON THE SOURCE SYSTEM:
+
+1. Find the parent adapter of the DVD or CD device:
+
+$ lsdev -Cl cd0 -F parent
+ide0
+
+2. Find the slot containing the IDE bus:
+
+$ lsslot -c slot
+# Slot Description Device(s)
+U787B.001.DNWG2AB-P1-T16 Logical I/O Slot pci1 ide0
+U9133.55A.105C2EH-V7-C0 Virtual I/O Slot vsa0
+U9133.55A.105C2EH-V7-C2 Virtual I/O Slot ent0
+U9133.55A.105C2EH-V7-C3 Virtual I/O Slot vscsi0
+
+so PCI1 is the slot containing the IDE adapter and CD drive.
+
+3. Remove the slot from this host:
+
+# rmdev -dl pci1 -R
+cd0 deleted
+ide0 deleted
+pci1 deleted
+
+
+ON THE HMC:
+
+Select the LPAR currently owning the CD-ROM, and in the Actions menu select:
+Dynamic Logical Partitioning -> Physical Adapters -> Move or Remove
+Select the adapter for "Other Mass Storage Controller" and move to the desired target LPAR.
+This will perform a DLPAR operation on both the source and target LPAR.
+
+
+ON THE TARGET SYSTEM:
+
+Log in as root and run
+# cfgmgr
+
+The CD-ROM device should show up now
+# lsdev -C | grep cd
+cd0 Available 1G-19-00 IDE DVD-ROM Drive
+Posted by Sharing is caring at 11:58 AM
+--------------------------------------------
+
+HA - Application
+Application server  (Application controller scripts)
+
+It is a cluster resource, which controls an application that must be kept highly available. It includes start and stop scripts. 
+
+Applications are defined in PowerHA as application controllers with these attributes:
+Start script: Starts the application (from clean and unexpected shutdown).  The exit code is monitored by PowerHA. (with set -x, the output of the script is logged in the hacmp.out)
+Stop script: This script must be able to successfully stop the application. Output is also logged and the exit code monitored.
+
+Application monitors
+To keep applications highly available, PowerHA can monitor the application too, not just the required resources.
+
+Application startup mode
+Introduced in PowerHA v7.1 this mode specifies how the application startup script is called. Using background (the default value) will start the script in the background, and event processing continues even if the start script has not completed. Select foreground if you want the event to suspend processing until the start script exits.
+
+As the exit codes from the application scripts are monitored, PowerHA assumes that a non-zero return code from the script means that the script failed and therefore starting or stopping the application was not successful. If this is the case, the resource group will go into error state and a config_too_long message is recorded.
+
+During application maintenance periods, taking the application offline only is often what you will want instead of stopping cluster services. If application monitoring is being used, it is required to suspend application monitoring before stopping the application.
+
+----------------------------------
+
+Application Monitor
+
+PowerHA needs to know the state of a running application, so in case of a problem it can provide high availability. With the Unmanaged Resource Groups option (which leaves applications running when stopping cluster services), the application monitors are even more important. After the "unmanage" period, when cluster services are started again (to begin managing the resource groups again), the Application Monitor will check the application to determine if it is online or not. If it is online, acquiring that resource is skipped. If no Application Monitor is defined, the cluster manager runs the application server start script. This might cause problems for applications that cannot deal with another instance being started, for example, if the start script is run again when the application is already running. (A workaround for this problem would be to replace start scripts temporarily with dummy start scripts, which contains one line only: exit 0)
+
+For each PowerHA application server, you can configure up to 128 application monitors, but the total number of application monitors in a cluster cannot exceed 128.
+
+Configure an application monitor using SMIT:
+smitty hacmp --> Cluster Applications and Resources --> Resources --> Configure User Applications (Scripts and Monitors) --> Application Monitors
+
+
+There are 2 types of application monitoring:
+- Process monitoring: Detects the termination of a process, using RSCT Resource Monitoring and Control (RMC) capability.
+- Custom monitoring: It can be a user written script to monitors the health of an application.
+
+Application monitors can be configured to run in these modes:
+- Long-running mode: after the stabilization interval expired, it periodically checks the application based on the Monitor Interval setting
+- Startup mode: checks during the stabilization interval until the process is active or the stabilization interval expires.
+- Both modes: checks for the successful startup of the application server and periodically checks that the application is running successfully
+
+
+----------------------------------
+
+Process monitoring
+
+Process monitors detect the termination of a processes. Any process that appears in the output of ps -el can be monitored by process monitor. 
+It uses RMC, so no script is needed. It detects only the process termination and does not detect any other malfunction of the application. 
+When PowerHA finds that the monitored application process is terminated, it tries to restart the application on the current node until the  retry count is exhausted. 
+
+The stabilization interval is one of the most critical values in the monitor configuration. It must be set to a value that is long enough. 
+If the application is in the process of a successful start and the stabilization interval expires, cleanup will be attempted and the resource 
+group will be placed into ERROR state. 
+
+* Monitor Name                                       [X11_monitor]
+* Application Server(s) to Monitor                    X11
+* Monitor Mode                                       [Long-running monitoring]
+* Processes to Monitor                               [x11d x11color]
+* Process Owner                                      [root]
+  Instance Count                                     [1]
+* Stabilization Interval                             [30]
+* Restart Count                                      [3]
+  Restart Interval                                   [60]
+* Action on Application Failure                      [fallover]  
+  Notify Method                                      []
+  Cleanup Method                                     [/usr/local/scripts/cluster/X11_stop.ksh]
+  Restart Method                                     [/usr/local/scripts/cluster/X11_start.ksh]
+
+
+Processes to Monitor    <--the name of the process from the output of ps -el (not ps -ef)
+Instance count          <--how many processes should be running in the ps -el output
+Stabilization Interval  <--the length of time the monitor will wait before resuming monitoring
+Restart Count           <--the maximum times the application will be (re)started
+Restart Interval        <--the elapsed time the application must run before the Failure Counter is reset.
+                        If the Restart Interval time is reached the Failure Count is reset to 0.
+                       (is the time during which attempts will be made to restart the application)
+
+
+If the application fails, the Restart Method is run to recover the application. If the application fails to recover to a running state after the number of restart attempts (Retry Count), the Action on Application Failure is taken. The action can be notify or fallover. If notify is selected, no further action is taken after running the Notify Method. If fallover is selected, the resource group containing the monitored application moves to the next available node in the resource group.
+
+The Cleanup Method and Restart Method define the scripts for stopping and restarting the application after failure is detected. The default values are the start and stop scripts as defined in the application server configuration.
+
+
+----------------------------------
+
+Custom monitoring
+
+Custom application monitor offers the possibility to use custom scripts. Based on the exit code of this script, the monitor will decide if the application is available or not. If the script exits with return code 0, then the application is available. Any other return code means that application is not available. PowerHA 7.1 does not pass arguments to the script. The logs can be found in  /var/hacmp/log/clappmond.application_name.resource_group_name.monitor.log
+
+Additional SMIT fields for custom application monitors:
+Monitor Method: The full path to the script that checks the application status. 
+Monitor Interval: Defines the time (in seconds) between each occurrence of Monitor Method being run.
+Hung Monitor Signal: The signal that is sent to stop the Monitor Method if it doesn't return within Monitor Interval seconds. The default action is SIGKILL(9).
+
+----------------------------------
+
+Application monitoring general processing
+
+Once the application is started, there is a stabilization period. For long-running monitors, during the stabilization period the appl. monitoring does not attempt to determine if the application is alive or not. The startup monitor behaves differently, as it checks the application during stabilization period, and if it fails the RG goes into ERROR state. Once the stabilization period has expired in long running mode, the monitor periodically checks that the application is running successfully. 
+
+If the application fails, the retry counter is examined. If it is not zero, it is decremented and an appl. cleanup and restart is attempted. This process continues until the retry counter is zero. If retry counter reached 0 and the appl. failed again, the Action on Failure setting (fallover or notify) is applied
+
+As a protection mechanism, prior to invoking the application server start script, the cluster manager uses an application monitor to determine the status of the application If no application monitor is defined or if the application monitor returns a failure status (RC!=0 for custom monitors, processes not running via RMC for process monitors), the application server start script is invoked. If the application monitor returns a success status (RC=0 for custom monitors, processes running via RMC for process monitors), the application server start script is not run.
+
+If more than one application monitor is defined, the selection priority is based on the Monitor Type (custom or process) and the Invocation (both, long-running or startup). The ranking of the combinations of these two is the following:
+ Both, Process
+ Long-running, Process
+ Both, Custom
+ Long-running, Custom
+ Startup, Process
+ Startup, Custom
+
+The highest priority application monitor found is used to test the state of the application. We can test which monitor will be used by /usr/es/sbin/cluster/utilities/cl_app_startup_monitor
+
+# /usr/es/sbin/cluster/utilities/cl_app_startup_monitor -s testmonApp -a
+ Mon: Custom, Long-running
+ bothuser_testmon: Both, Custom
+ longproctestmon: Process, Long-running
+
+
+----------------------------------
+
+HMC - INSTALL, CONFIG
+HMC Install, Config
+
+HMC network types:
+
+HMC has 2 different networks:
+- private network: for accessing/managing Power servers through the FSP
+- open network: this network used for user logins, and each LPAR is doing DLPAR operations through this network
+
+Private networks
+
+The only devices on the HMC private network are the HMC itself and each of the managed systems to which that HMC is connected. The HMC is connected to each managed system's FSP (Flexible Service Processor). On most systems, the FSP provides two Ethernet ports labeled HMC1 and HMC2. This allows you to connect up to two HMCs.
+
+
+
+This figure shows a redundant HMC environment with two managed systems. The "blue" HMC is connected to the first port on each FSP, and the "red" (redundant) HMC is connected to the second port. Each HMC is configured as a DHCP server, using a different range of IP addresses. The connections are on separate private networks. As such, it is important to ensure that no FSP port is connected to more than one HMC.
+
+Each managed system's FSP port that is connected to an HMC requires a unique IP address. To ensure that each FSP has a unique IP address, use the HMC's built-in DHCP server capability. When the FSP detects the active network link, it issues a broadcast request to locate a DHCP server. When correctly configured, the HMC responds to that request by allocating one of a selected range of addresses.
+
+--------------------------------------
+
+Open networks
+
+The open (public) network used for user logins and for DLPAR operations. Connecting to the Internet allows the HMC to "call home" when there are any hardware errors that need to be reported.
+
+
+
+This figure shows two HMCs connected to a single managed server on the private network and to three logical partitions on the public network.
+
+(If you decide to use a private network, use DHCP, and if you will use an open network to manage an FSP, you must set the FSP’s address manually through the Advanced System Management Interface menus, however a private, non-routable network is recommended.)
+
+--------------------------------------
+
+INSTALLING AND CONFIGURING A NEW HMC:
+
+If this is a new installation, ensure that the managed system is not connected to a power source. 
+If this is a second HMC that is connected to the same managed system, the managed system can be connected to a power source.
+
+1.  Turn on the HMC and wait for the HMC to automatically select the default language and locale preference after 30 seconds.
+2.  Accept the HMC license agreements and click "Log on and launch the Hardware Management Console web application."
+3.  Login with hscroot und default-pw abc123
+4.  Launch "Guided Setup Wizard"
+
+
+
+5.  Change date/time/timezone
+6.  Change default password for hscroot
+7.  Configure HMC networks
+
+
+
+    eth0 (private network):
+    network type = private network
+    Speed = default is "Autodetection" (if conn. to a switch, configure it manually: Change network sett. -> LAN Adapter)
+    Enable DHCP = specify a DHCP address range
+    (You can configure the HMC to be a DHCP server only on a private network)
+
+    eth1 (public network: hmc-admin interface)
+    network type = public network
+    speed = default is "Autodetection" (if conn. to a switch, configure it manually: Change network sett. -> LAN Adapter)
+    setup IP, netmask and gateway
+
+8. Enable firewall-settings for eth1 (in the eth1 dialog-box)
+    check or allow the following Services and Ports:
+    ssh                         22:tcp
+    secure remote web access    443:tcp,8443:tcp,9960:tcp
+    RMC                         657:udp,657:tcp
+
+9. Leave all other dialogs unchanged and finish changes made by the Wizard.
+
+10. On the main view click on „HMC-Management“ and do the following:
+    Enable „Remote Command execution“
+    Enable „Remote Virtual Terminal“
+    Enable „Remote Operation“
+
+11. Reboot the HMC (so configuration changes will be available)
+12. Login with the new hscroot password
+13. Plug network cables into the HMC and check if HMC is answering DHCP request by plugging the cable to your laptop.
+
+--------------------------------------
+
+vHMC on Windows
+
+(In this procedure I will use Cygwin, which I don't really like, because it is not easy to uninstall, but I could not find other working method. If you try below steps please keep in mind the complexity of uninstallation of Cygwin.)
+
+Since some years IBM offered the possibility to run HMC on a VM (as an LPAR or in VMware on x86 ...), it is called vHMC (virtual HMC). Earlier the only option was to buy a physical HMC device, where the HMC application was running. With vHMC we download an image and use it on a VM.
+
+For tests at home Ben Swinney wrote a great document how to run vHMC on Mac computers (http://gibsonnet.net/blog/cgaix/resource/vHMC_running_on_Apple_hardware.pdf) and based on that I tested vHMC on Windows:
+
+1. install VirtualBox
+2. download vHMC image from IBM ESS (KVM image has been downloaded, it is a 4GB tar.gz file)
+3. unzip (file size was still 4GB) and tried to untar, but untar is not easy on Windows:
+The downloaded tar file (beside some other files) contains a disk image file (disk1.img). This disk image is 500GB, but to save disk space it is a special file, called: sparse file. (If a file contains a lots of consecutive "0"s, and if that file is a sparse file, the actual "0"s will not be written on the disk, some method will remember for that, so we can save a lots of disk space.) IBM requirement for a disk in a vHMC is 500GB, but the HMC application is max. 10-20GB, so the rest in that image are a lots of "0"s. (The process to untar and convert that file may need temporarily more space, at first conversion failed with 100GB free space on local drive, so I decided to use an external drive with 1TB free space, but at the end file size will be about 10GB.)
+
+Windows 10 supports sparse files, but it is not easy to untar a file on Windows and keep it as a sparse file. I used Cygwin:
+- install cygwin, and start a cygwin terminal
+- mount download dir as sparse: mount -o sparse D:/tmp /mnt (my image was in D:\tmp, please note in mount command "/" character is used)
+- untar with sparse: tar -Sxvf /mnt/vHMC_KVM_image.tar (ls shows 500GB, but if free space is checked on Win., it shows max 20GB is taken)
+
+4. convert disk1.img to virtual box compatible vdi file: "C:\Program Files\Oracle\VirtualBox\VBoxManage.exe" convertdd "D:\tmp\disk1.img" "D:\tmp\disk1.vdi"
+This conversion is done by VBoxManage.exe, which should be installed by default during VirtualBox installation. After the conversion we should have a normal vdi file (not sparse file) with about 10GB:
+
+
+
+5. create a VM in Virtualbox. I used these specifics:
+    - type: Linux, version: Red Hat (64bit)
+    - Memory size: 4096MB
+    - using an existing virtual hard disk file (I copied disk1.vdi to VirtualBox VM directory)
+  After creation (before starting the VM) in Settings:
+   - in Display change Video Memory to 64MB
+   - in Audio disable audio
+   - in Networks enable Adapters (for me it was a test, I did not configure them for real usage):
+      Adapter 1: NAT with Port Forwarding (in Advanced section): Host IP: 127.0.1.1, Host and Guest port:22, IP I used: 192.168.0.9
+      Adapter 2: Bridged Adapter with default settings
+      Adapter 3: Bridged Adapter with default settings
+
+6. Start VM and follow Guided Setup Wizard to configure your vHMC :)))))
+    Start up time will take longer, but after it should work normally. If network/IP configured correctly it can be accessed remotely:
+
+
+
+--------------------------------------
+
+HMC LDAP configuration
+
+By default HMC is using local authentication, but it is possible to change it to LDAP. If LDAP authentication is configured, HMC users needs to be modified to use LDAP. It is also possible that some HMC users use LDAP and others use local authentication. (It is a user parameter (Auhtentication type) which decides how the user should login.)
+
+Configuring LDAP
+1. find out ldap server, port and protocol (ldap or ldaps)
+We need to know the ldap server and ldap or ldaps protocol will be used, and which port can be used for LDAP requests:
+Ports: 389 (LDAP) / 636 (LDAPS)   <--request information from local domain controller (search in the home domain of the global catalog)
+Ports: 3268 (LDAP) / 3269 (LDAPS) <--queries specifically targeted for the Global Catalog (search in the entire forest)
+(In below example we will use server myldap.mydomain.org, with ldaps protocol on port 3269)
+
+2.AD account for LDAP communication with Active Directory
+An AD user and password is needed, that is used by HMC for LDAP communication. This user does not need to exist on the HMC. When someone wants to login to the HMC, it will connect to AD and performs searches in AD. (In below example we will use HMCAD1 user with password abcd1234.)
+
+3. Change HMC authentication from local to LDAP
+For this an HMC user account is needed (like hscroot) with hmcsuperadmin role:
+$ chhmcldap -o s --primary 'ldaps://myldap.mydomain.org:3269' --basedn 'DC=mydomain,DC=org' --binddn 'CN=HMCAD1,OU=Functional,OU=Accounts,DC=mydomain,DC=org' --auth ldap --loginattribute 'sAMAccountName'  --bindpw 'abcd1234' --scope sub --referrals 1 --automanage 0
+
+4. Check config on HMC
+$ lshmcldap -r config -v
+primary=ldap://myldap.mydomain.org:3269,backup=,"basedn=DC=mydomain,DC=org",timelimit=30,bindtimelimit=30,referrals=1,ssl=0,loginattribute=sAMAccountName,hmcauthnameattribute=userPrincipalName,hmcuserpropsattribute=ibm-aixAdminPolicyEntry,"binddn=CN=HMCAD1,OU=Functional,OU=Accounts,DC=mydomain,DC=org",bindpwset=1,automanage=0,auth=ldap,searchfilter=,scope=sub,tlscacert=,hmcgroups=,authsearch=base
+
+Details:
+
+Get LDAP Config:
+LdapSettings query primary[ldap://myldap.mydomain.org:3269]
+LdapSettings query backup {}
+LdapSettings query loginattribute[sAMAccountName]
+LdapSettings query basedn[DC=mydomain,DC=org]
+LdapSettings query timelimit[30]
+LdapSettings query timelimit[30]
+LdapSettings query referrals[1]
+LdapSettings query bindtimelimit[30]
+LdapSettings query tlscheckpeer {rc=1, stdOut=QueryTlsCheckPeer: tls_checkpeer not found!
+, stdErr=}
+LdapSettings query ssl[0]
+LdapSettings query binddn[CN=HMCAD1,OU=Functional,OU=Accounts,DC=mydomain,DC=org ]
+LdapSettings query bindpw [*************]
+LdapSettings query searchfilter[]
+LdapSettings query scope[sub]
+LdapSettings query pam_authc_search {rc=1, stdOut=, stdErr=_QueryConfigAttr: pam_authc_search not found!
+}
+LdapSettings query tls_cacert[]
+LdapSettings query authnameattribute[userPrincipalName]
+LdapSettings query propsattribute[ibm-aixAdminPolicyEntry]
+LdapSettings query hmcgroups[]
+
+
+New user creation with LDAP:
+$ mkhmcusr -i "name=gomaata3,taskrole=hmcsuperadmin,authentication_type=ldap,remote_webui_access=1,description=Super AIX Admin"
+(Or use HMC GUI: Users and Roles --> Manage User Profiles and Access)
+
+
+Modifying existing user from local authentication to LDAP:
+$ chhmcusr -i "name=gomaata3,authentication_type=ldap"
+(Or use HMC GUI: Users and Roles --> Manage User Profiles and Access)
+
+--------------------------------------
+
+Determining HMC adapter names:
+
+If you set up a DHCP server, that server can operate only on eth0 and eth1.(You might need to determine which adapter to plug the ethernet cable into.)
+
+To determine the name the HMC has assigned to an Ethernet adapter, do the following:
+1. Open the restricted shell terminal. Select HMC Management -> Open Restricted Shell Terminal.
+2. Type the following at the command line: tail -f /var/log/messages
+3. Plug in your Ethernet cable. (If the cable was already plugged in, then unplug it, wait 5 seconds, and plug in the cable again.)
+5. You will see a similar output on the console: Aug 28 12:41:20 termite kernel: e1000: eth0: e1000_watchdog: NIC Link is Up 100.
+6. Repeat this procedure for all other Ethernet ports, and record your results.
+7. Type Ctrl+C to stop thetailcommand.
+
+--------------------------------------
+
+Testing the connection between the HMC and the managed system:
+
+This option enables you to verify that you are properly connected to the network:
+(to test network connectivity, you must be a member of super administrator or service representative)
+1. In the Navigation area, click HMC Management.
+2. Click Test Network Connectivity.
+3. In the Ping tab, type the host name or IP address of any system to which you want to connect. To test an open network, type the gateway.
+4. Click Ping.
+
+--------------------------------------
+
+put ssh_key to HMC (passwordless login as hscroot)
+
+version 1:
+    - scp hscroot@hmc_name:.ssh/authorized_keys2 temp_hmc
+    - cat id_rsa.pub >> temp_hmc
+    - scp temp_hmc hscroot@hmc_name:.ssh/authorized_keys2
+    - Test it: ssh hscroot@hmc_name date
+
+version 2:
+    scp id_rsa.pub hmc9:                        <--copy your public key to hmc
+    ssh hmc9                                    <--login to hmc (it will ask for a password at this time)
+    KEY=`cat id_rsa.pub`                        <--put in the cat command to a variable
+    mkauthkeys -a "$KEY"                        <--puts the public key into authorized_keys file
+    ssh hmc9                                    <--logint without a password
+
+--------------------------------------
+
+
+
+--------------------------------------
+
+
+
+
+
+-------------------------------
+
+FTP connection between HMC and FTP server
+
+FTP connection will be needed between HMC and FTP server. FTP server is where the install images are stored (it can be a NIM server.)
+
+If you want to use remote FTP installs on HMC, an FTP user will be needed on the remote (AIX) server.
+There is a default script on AIX which creates an ftp or anonymous user for this FTP connection: /usr/samples/tcpip/anon.ftp
+IBM officially says this scripts should be used to create FTP user, otherwise connection will work but files may won’t be reachable by HMC, but actually I created in the past FTP users with other method and it worked well.
+
+FTP check from HMC:
+- in GUI try to do an update operation, and choose FTP, or do an HMC backup (just it could take long)
+- try sendfile command on HMC, which transfer files with ftp to another server
+  sendfile -f id_dsa.pub -h 10.10.10.1 -d /nim/hmcftp -u hmcftp
+
+
+
+
+
+
+--------------------------------------------
+
+
+HMC commands
+By Surya05:32No comments
+1) HMC Information
+Command	Description
+lshmc -v	Shows vital product data, such as the serial number.
+lshmc -V	Shows the release of the HMC.
+lshmc -n	Shows network information of the HMC
+lssysconn -r all	Show the connected managed systems
+monhmc -r disk	Look at the filesystems of the HMC. Try using "proc", "mem" and "swap as well.
+ls -al /var/hsc/log/hmclogger.log ls -al /var/hsc/log/cimserver.log	Intersting log files of the HMC
+vtmenu	Open a virtual console from the HMC. Exit by typing "~." (tilde dot) or "~~." (tilde tilde dot).
+hmcshutdown -t now -r	Reboot the HMC
+chhmcusr -u hscroot -t passwd	change the HMC password (of user hscroot)
+Add an SSH key for remote access for hscroot	mkauthkeys -a "public key"Use the public key found in the users .ssh directory for public key (i.e. the contents of the file ~/.ssh/id_rsa.pub). mkauthkeys -u user -a "public key"
+2) Managed system and LPAR related commands: lssyscfg -r sys -F name | grep umfrm1                          shows the full name of the managed system (what we can use in other commands)
+lssyscfg -r lpar -m -F name                  shows the full name of the lpars of the managed system
+lssyscfg -r sys -m -F name,state --header    shows the state of the managed system
+lssyscfg -r lpar -m -F name,state --header   shows the state of the lpars of the managed system
+lssyscfg -r prof -m aix10-SN0603C6H --filter "lpar_names=umfrm2" -F name,boot_mode   it will show the boot mode in the profile
+lssyscfg -r prof -m -F lpar_name,virtual_eth_adapters                     shows LPARS with ethernet adaptesr and VLAN tags
+
+lshwres -r mem -m --level sys                shows memory information of the managed system
+lshwres -r mem -m --level lpar               shows memory information of lpars of the managed system
+lshwres -r proc -m --level sys               shows processor information of the managed system
+lshwres -r proc -m --level lpar              shows processor information of lpars of the manage system
+lshwres -r io -m --rsubtype slot             shows IO slot information
+lshwres -r proc -m --level sys -F installed_sys_proc_units:configurable_sys_proc_units
+
+lshwres -r virtualio --rsubtype scsi -m --level lpar               lists scsi devices by LPAR
+lshwres -r virtualio --rsubtype eth -m --level lpar                lists virt. eth. devices by LPAR
+lshwres -r virtualio --rsubtype eth -m --level lpar -F lpar_name,port_vlan_id
+
+chsysstate -m -o standby -r sys              power on a system to standby
+chsysstate -r sys -m -o off                  normal power off the managed system
+chsysstate -r sys -m -o off --immed          fast power off the managed system
+
+chsysstate -m -r lpar -n -o shutdown --restart          it will reboot an lpar with dump
+chsysstate -m -r lpar -n -o shutdown --immed --restart  it will reboot an lpar immediately (without dump)
+chsysstate -m -r lpar -n -o shutdown --immed            it will shutdown the oprating system
+chsysstate -m aix10-SN65158BE -o on -r lpar -n aix10 -f default                     it will activate an lpar
+
+mksyscfg -r prof -m -o save -p -n --force      it overwrites profile with actual running config
+
+lspartition -dlpar                                            shows dlpar capable partitions
+                                                              (it will show if RMC connection is OK between the HMC and LPAR)
+
+lssysconn -r all                                              to see what IPs are assigned by the HMC
+mksysconn -o auto                                             tells HMC to re-discover all servers' IP address
+3. Console Information
+lssvcevents -t console -d 60                                  lists console events in the past 60 days
+lssvcevents -t hardware -d 0                                  list serviceable events which occured today
+lssvcevents -t console -d 300 | grep DLPAR                    list DLPAR operations of last 300 days (you can grep more to mem or proc)
+lssvcevents -t console -d 7 | grep Migration                  list last 7 days LPMs
+4.opening/closing virtual terminal from hmc:
+lssyscfg -r sys -F name                         <--get managed="" name="" p="" system="">lssyscfg -r lpar -m -F name    <--get lpar="" name="" p="">
+mkvterm -m -p           <--opens a="" p="" terminal="" window="">rmvterm -m -p           <--closes a="" nbsp="" p="" terminal="" window="">
+~~.                                             <--logout aix="" from="" leave="" necessary="" not="" p="" session="" te="" to="">
+5. Show Status and LED/LCD Display of an LPAR
+
+lsrefcode -m pserver -r lpar --filter "lpar_names=mylpar" -F lpar_name:refcode
+
+You can even see the history of LED codes. Just use -n for the last NUM codes. For example, if you want to see the last 5 LED codes of an LPAR type
+
+hscroot@umhmc> lsrefcode -m pserver -r lpar --filter "lpar_names=mylpar"  -n 5 -F lpar_name:refcode
+mylpar:
+mylpar:0c33
+mylpar:
+mylpar:0539
+mylpar:0538
+... and for the status LEDs:
+
+hscroot@umhmc> lsled -m pserver -r sa -t virtuallpar --filter ""lpar_names=mylpar""
+
+6. Scripts:
+
+ssh hscroot@umhmc# 'for i in `lssyscfg -r sys -F name`;do echo $i;lssyscfg -r lpar -m $i -F name|grep ;echo;done' <--shows given="" lpar="" man.="" of="" p="" ssh="" system="" via="">
+for i in `lssyscfg -r sys -F name`;do lssyscfg -r prof -m $i -F lpar_name,virtual_eth_adapters | grep vio | grep ;echo; done <--shows p="" spec.="" vlan="">
+for sys in `lssyscfg -r sys -F name`; do for vio in `lssyscfg -r lpar -m $sys -F name,lpar_env | grep vioserver | cut -f 1 -d, | sort`; do echo $vio; viosvrcmd -m $sys -p $vio -c ; done; done <--runs a="" command="" on="" p="" servers="" vios="">
+
+
+--------------------------------------------
+
+Reset padmin VIO password from the HMC with zero downtime
+By Surya01:06No comments
+Here is a method you can use to reset a lost VIO padmin password from the HMC with zero downtime on the VIO server.   This is a somewhat involved process, but much easier than having to take a downtime on the VIO server to change the password.   This is a very challenging task because the viosvrcmd HMC command doesn't allow the command run on the VIO server to have a pipe ("|"), or any redirection ("<", ">") and doesn't allow for interactive input.   So this rules out using something like "chpasswd" to change the password. 
+Step 1:  Find the current padmin password hash.   
+From the HMC, type (change "-m p520 -p vio1" to your managed system / VIO server names)
+command=`printf "oem_setup_env\ncat /etc/security/passwd"`; viosvrcmd -m p520 -p vio1 -c "$command"
+Look for the padmin stanza and its password hash:
+ padmin:
+    password = TRl01MDd3QnVw
+    lastupdate = 1352950198
+Step 2:  Generate a new password hash.   
+From a different AIX server that has openssh/openssl installed, type "openssl passwd"  and type in the new password that you want to assign to the padmin account.  Openssl will generate the password hash and display it on the screen.
+ # openssl passwd
+Password:
+Verifying - Password:
+OSdD0E9SQYE.E
+Step 3:   Replace the VIO padmin's password hash with the new password hash from the HMC using viosvrcmd/perl.   
+Use a command similiar to this from the HMC:
+command=`printf "oem_setup_env\nperl -pi -e 's/<OLD_HASH>/<NEW_HASH>/' /etc/security/passwd"`; viosvrcmd -m p520 -p vio1 -c "$command"
+In our example, it would be (make sure to change "-m p520 -p vio1" to your managed system / VIO names)
+ command=`printf "oem_setup_env\nperl -pi -e 's/TRl01MDd3QnVw/OSdD0E9SQYE.E/' /etc/security/passwd"`; viosvrcmd -m p520 -p vio1 -c "$command"
+Step 4:  Optionally reset padmin failed login count.   
+If you need to reset the failed login count, run this command from the HMC:  (make sure to change "-m p520 -p vio1" to your managed system / VIO names)
+command=`printf "oem_setup_env\nchsec -f /etc/security/lastlog -a unsuccessful_login_count=0 -s padmin"`; viosvrcmd -m p520 -p vio1 -c "$command"
+Update:  If the old or new password hash has a slash in it ("/") then the perl line above needs to be changed..   Instead use a different delimiter such as a comma:   
+command=`printf "oem_setup_env\nperl -pi -e 's,<OLD_HASH>,<NEW_HASH>,' /etc/security/passwd"`; viosvrcmd -m p520 -p vio1 -c "$command"
+
+--------------------------------------------
+
+SHOW RUNNING PROCESSES AND UPTIME ON THE HMC IN THE RESTRICTED SHELL
+01:13  HMC  No comments
+
+The HMC restricted shell doesn't include the "ps" or "uptime" commands which are sometimes very helpful when troubleshooting issues.   Below are a couple of methods to list running processes and find the HMC uptime.
+ 
+List Running Processes
+The HMC is based on Linux, and the Linux kernel stores information about running processes under /proc.   
+Each running process has a process ID number (PID) and information about each PID is available at /proc/<pid>.  
+ 
+
+ 
+
+ 
+When you run this, 2 columns are displayed, the first is the PID number, and the second is the command being run. 
+
+Here is what the output looks like (I piped it to the "head" command so that only the first 10 lines are shown):
+ 
+hscroot@hmc1:~> 
+1             init
+10            khelper
+10266         su
+10267         browserjail
+10268         firefox
+10278         firefox
+10286         run-mozilla.sh
+10290         firefox-bin
+10313         cimserver
+10314         cimservermain
+ 
+ 
+Showing the HMC uptime
+There are a couple of methods to show the uptime on the HMC from the restricted shell:
+
+You can run "cat /proc/uptime"; the first column listed is the number of seconds the system has been up.   In my opinion this is much better than "who -b" which is described next. 
+
+hscroot@hmc1:~> 
+60182.47 118695.32
+
+
+Another option is "who -b" .  Personally, I don't think this is a very reliable way to do it as it relies on the /var/log/wtmp file.   
+ 
+hscroot@hmc1:~> 
+           2012-11-03 01:52
+ 
+ 
+
+
+
+ 
+ 
+If you found these commands helpful, you might want to check out EZH - The Easy HMC Command Line Interface.   It provides a simplified, easy to use interface to the HMC command line and includes "uptime" and "ps" commands similar to what is in this posting, plus dozens of other easy to use commands.   It is very easy to install, and runs within the HMC restricted shell without having to make any modifications to your HMC.   Check it out at http://ezh.sourceforge.net/  There is also a video overview/demo of EZH at http://youtu.be/E8A9s1_i9xA  Below is the list of included EZH commands in the latest version and the corresponding native HMC commands:
+
+LPAR level commands, all start with "lpar".   After EZH install, type "lpar" and hit tab twice to see all commands listed
+Function	EZH Command	HMC Native Command
+Open a virtual terminal	lparconsole aix1	mkvterm -m p520 -p aix1
+Close a virtual terminal	lparconsoleclose aix1	rmvterm -m p520 -p aix1
+Show LPAR/profile info	lparinfo aix1	lssyscfg -r prof -m p520 --filter lpar_names=aix1
+lssyscfg -r lpar -m p520 --filter lpar_names=aix1
+Show command to re-create LPAR
+(Can be used to easily clone LPAR)	lparclone aix1	No native HMC command available
+Show frame an LPAR is on	lparframelookup aix1	No native HMC command available
+Display list of LPAR's and Managed systems
+and there current state	lparls	No native HMC command available
+Save running LPAR configuration to profile	lparsaveconfig aix1	mksyscfg -r prof -m p520 -o save -p aix1 -n aix1 --force
+Run VIO command ("
+lsmap -all" in this example)	lparviorun vio1 lsmap -all	viosvrcmd -m p520 -p vio1 -c "lsmap -all"
+Power on LPAR	lparpoweron aix1
+
+Optionally specify profile
+ as second parameter
+(if not uses default profile)	chsysstate -r lpar -o on -f aix1 -m p520 -n aix1
+Power on LPAR to SMS	lparpoweronsms aix1
+
+Optionally specify profile
+ as second parameter
+(if not uses default profile)	chsysstate -r lpar -b sms -o on -f aix1 -m p520 -n aix1
+Power off LPAR - Operating System shutdown	lparshutdownos aix1	chsysstate -r lpar -o osshutdown --immed -m p520 -n aix1
+Power off LPAR - hard shutdown	lparshutdownhard aix1	chsysstate -r lpar -o shutdown --immed -m p520 -n aix1
+Delete LPAR	lpardelete aix3	rmsyscfg -r lpar -m p520 -n aix3
+List LPAR system attention LED status	lparlsled aix1	lsled -m p520 -r sa -t virtuallpar --filter lpar_names=aix1
+Clear LPAR system attention LED	lparclearled aix1	chled -m p520 -r sa -t virtuallpar -o off -p aix1
+Display reference code on LPAR	lparrefcode aix1	lsrefcode -r lpar -m p520 -F "lpar_name refcode time_stamp" --filter lpar_names=aix1
+Managed system level commands, all start with "frame".   After EZH install, type "frame" and hit tab twice to see all commands listed
+Function	EZH Command	HMC Native Command
+List managed systems attached to HMC	framels	lssyscfg -r sys -F name
+Power on managed system	framepoweron p520	chsysstate -m p520 -r sys -o on
+Power off managed system	framepoweroff p520	chsysstate -m p520 -r sys -o off
+List attention LED status on managed system	framelsled p520	lsled -m p520 -r sa -t phys
+Clear attention LED on managed system	frameclearled p520	chled -m p520 -r sa -t phys -o off
+List managed system details, CPU, and memory	frameinfo p520	lssyscfg -r sys -m p520
+lshwres -r proc -m p520 --level sys
+lshwres -r mem -m p520 --level sys
+List servicable events for a managed system	framelsevents p520	lssvcevents -t hardware -m p520 --filter status=open
+Misc. Commands
+Function	EZH Command	HMC Native Command
+Show system uptime	uptime	No native HMC command available
+List running process PID's and names	ps	No native HMC command available
+Show available memory/swap	free	monhmc -r mem -n 0; monhmc -r swap -n 0
+Count number of lines	wc -l	No native HMC command available
+Edit a file	vi	rnvi -f
+Check disk usage	df	monhmc -n 0 -r disk
+Source a file	.	source
+List LED status of all frames and LPAR's	lsledall	No native HMC command available
+List open serviceable events	lsevents	lssvcevents -t hardware --filter status=open
+Close all serviceable events	closeallevents	chsvcevent -o closeall
+Show HMC version	hmcversion	lshmc -V
+Reboot HMC	hmcrestart	hmcshutdown -t now -r
+
+--------------------------------------------
+
