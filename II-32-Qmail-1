@@ -1,0 +1,455 @@
+QMAIL HOW TO
+I.    Qmail Installation
+A.    INSTALLATION
+A.1. Software Pre-requisites
+1. Linux Operating System
+2.Apache Web Server
+3.Perl –any version  of 5
+4.GCC – the gcc compiler
+5. wget – use for downloading installers
+6. patch & patchutils -
+Access to a domain name server (DNS) is highly recommended.
+A.2  Download the source
+Download the necessary installers for setting up the qmail, download the source code for qmail and any other add-ons.
+•     qmail, http://www.qmail.org/netqmail-1.05.tar.gz
+•    ucspi-tcp, ftp://cr.yp.to/ucspi-tcp/ucspi-tcp-0.88.tar.gz
+•    daemontools, ftp://cr.yp.to/daemontools/daemontools-0.76.tar.gz
+for e.g.
+# wget  http://www.qmail.org/netqmail-1.05.tar.gz
+You can put all of installers on a certain directory for e.g. /home/darwin
+A.3. Build the source
+A.3.1 Switch user as root and do these:
+su
+umask 022
+mkdir -p /usr/local/src  (if not yet existing)
+mv netqmail-1.05.tar.gz ucspi-tcp-0.88.tar.gz /usr/local/src
+mkdir -p /package
+mv daemontools-0.76.tar.gz /package
+chmod 1755 /package
+A.3.2 Unpack the packages
+cd /usr/local/src
+tar zxvf  netqmail-1.05.tar.gz
+cd netqmail-1.05
+./collate.sh  # watch for errors here
+cd ..
+tar zxvf ucspi-tcp-0.88.tar.gz
+cd /package
+tar zxvf daemontools-0.76.tar.gz
+A.3.3 Create directories
+mkdir /var/qmail
+A.3.4 Create users and groups
+cd /usr/local/src/netqmail-1.05/netqmail-1.05
+You can check the INSTALL.ids to setup qmail groups and users, to make it easy you just copy these commands
+groupadd nofiles
+useradd -g nofiles -d /var/qmail/alias alias
+useradd -g nofiles -d /var/qmail qmaild
+useradd -g nofiles -d /var/qmail qmaill
+useradd -g nofiles -d /var/qmail qmailp
+groupadd qmail
+useradd -g qmail -d /var/qmail qmailq
+useradd -g qmail -d /var/qmail qmailr
+useradd -g qmail -d /var/qmail qmails
+A.3.5 Do the build
+cd /usr/local/src/netqmail-1.05/netqmail-1.05
+make setup check
+./config-fast the.full.hostname(for ex. ./config-fast phi.freelinuxtutorials.com)
+A.4 Install ucspi-tcp
+cd /usr/local/src/ucspi-tcp-0.88
+patch < /usr/local/src/netqmail-1.05/other-patches/ucspi-tcp-0.88.errno.patch
+make
+make setup check
+A.5 Install daemontools
+cd /package/admin/daemontools-0.76
+cd src
+patch < /usr/local/src/netqmail-1.05/other-patches/daemontools-0.76.errno.patch
+cd ..
+package/install
+A.6 Start qmail
+A.6.1 Use an editor to create /var/qmail/rc script
+vi /var/qmail/rc and then use this script:
+#!/bin/sh
+# Using stdout for logging
+# Using control/defaultdelivery from qmail-local to deliver messages by default
+exec env – PATH=”/var/qmail/bin:$PATH” \
+qmail-start “`cat /var/qmail/control/defaultdelivery`”
+A.6.2 Execute these commands:
+chmod 755 /var/qmail/rc
+mkdir /var/log/qmail
+A.6.3 Create a default delivery mode for messages that aren’t delivered by a .qmail file. Type:
+echo ./Maildir/ >/var/qmail/control/defaultdelivery
+A.7 Create a startup/shutdown script like the following in /var/qmail/bin/qmailctl
+#!/bin/sh
+# For Red Hat chkconfig
+# chkconfig: – 80 30
+# description: the qmail MTA
+PATH=/var/qmail/bin:/bin:/usr/bin:/usr/local/bin:/usr/local/sbin
+export PATH
+QMAILDUID=`id -u qmaild`
+NOFILESGID=`id -g qmaild`
+case “$1″ in
+start)
+echo “Starting qmail”
+if svok /service/qmail-send ; then
+svc -u /service/qmail-send /service/qmail-send/log
+else
+echo “qmail-send supervise not running”
+fi
+if svok /service/qmail-smtpd ; then
+svc -u /service/qmail-smtpd /service/qmail-smtpd/log
+else
+echo “qmail-smtpd supervise not running”
+fi
+if svok /service/qmail-pop3d ; then
+svc -u /service/qmail-pop3d /service/qmail-pop3d/log
+else
+echo “qmail-pop3d supervise not running”
+fi
+if [ -d /var/lock/subsys ]; then
+touch /var/lock/subsys/qmail
+fi
+;;
+stop)
+echo “Stopping qmail…”
+echo “  qmail-smtpd”
+svc -d /service/qmail-smtpd /service/qmail-smtpd/log
+echo “  qmail-send”
+svc -d /service/qmail-send /service/qmail-send/log
+echo “  qmail-pop3d”
+svc -d /service/qmail-pop3d /service/qmail-pop3d/log
+if [ -f /var/lock/subsys/qmail ]; then
+rm /var/lock/subsys/qmail
+fi
+;;
+stat)
+svstat /service/qmail-send
+svstat /service/qmail-send/log
+svstat /service/qmail-smtpd
+svstat /service/qmail-smtpd/log
+svstat /service/qmail-pop3d
+svstat /service/qmail-pop3d/log
+qmail-qstat
+;;
+doqueue|alrm|flush)
+echo “Flushing timeout table and sending ALRM signal to qmail-send.”
+/var/qmail/bin/qmail-tcpok
+svc -a /service/qmail-send
+;;
+queue)
+qmail-qstat
+qmail-qread
+;;
+reload|hup)
+echo “Sending HUP signal to qmail-send.”
+svc -h /service/qmail-send
+;;
+pause)
+echo “Pausing qmail-send”
+svc -p /service/qmail-send
+echo “Pausing qmail-smtpd”
+svc -p /service/qmail-smtpd
+echo “Pausing qmail-pop3d”
+svc -p /service/qmail-pop3d
+;;
+cont)
+echo “Continuing qmail-send”
+svc -c /service/qmail-send
+echo “Continuing qmail-smtpd”
+svc -c /service/qmail-smtpd
+echo “Continuing qmail-pop3d”
+svc -c /service/qmail-pop3d
+;;
+restart)
+echo “Restarting qmail:”
+echo “* Stopping qmail-smtpd.”
+svc -d /service/qmail-smtpd /service/qmail-smtpd/log
+echo “* Sending qmail-send SIGTERM and restarting.”
+svc -t /service/qmail-send /service/qmail-send/log
+echo “* Restarting qmail-smtpd.”
+svc -u /service/qmail-smtpd /service/qmail-smtpd/log
+echo “* Restarting qmail-pop3d.”
+svc -t /service/qmail-pop3d /service/qmail-pop3d/log
+;;
+cdb)
+tcprules /etc/tcp.smtp.cdb /etc/tcp.smtp.tmp < /etc/tcp.smtp
+chmod 644 /etc/tcp.smtp.cdb
+echo “Reloaded /etc/tcp.smtp.”
+tcprules /etc/tcp.pop3.cdb /etc/tcp.pop3.tmp < /etc/tcp.pop3
+chmod 644 /etc/tcp.pop3.cdb
+echo “Reloaded /etc/tcp.pop3.”
+;;
+help)
+cat <<HELP
+stop — stops mail service (smtp connections refused, nothing goes out)
+start — starts mail service (smtp connection accepted, mail can go out)
+pause — temporarily stops mail service (connections accepted, nothing leaves)
+cont — continues paused mail service
+stat — displays status of mail service
+cdb — rebuild the tcpserver cdb file for smtp
+restart — stops and restarts smtp, sends qmail-send a TERM & restarts it
+doqueue — schedules queued messages for immediate delivery
+reload — sends qmail-send HUP, rereading locals and virtualdomains
+queue — shows status of queue
+alrm — same as doqueue
+flush — same as doqueue
+hup — same as reload
+HELP
+;;
+*)
+echo “Usage: $0 {start|stop|restart|doqueue|flush|reload|stat|pause|cont|cdb|queue|help}”
+exit 1
+;;
+esac
+exit 0
+This script is available via http://www.lifewithqmail.org/qmailctl-script-dt70
+A.7.1 Make the qmailctl script executable and link it to a directory in your path:
+chmod 755 /var/qmail/bin/qmailctl
+ln -s /var/qmail/bin/qmailctl /usr/bin
+A.8 The supervise scripts
+A.8.1 Now create the supervise directories for the qmail services:
+mkdir -p /var/qmail/supervise/qmail-send/log
+mkdir -p /var/qmail/supervise/qmail-smtpd/log
+A.8.2. Create the /var/qmail/supervise/qmail-send/run file:
+#!/bin/sh
+exec /var/qmail/rc
+A.8.3 Create the /var/qmail/supervise/qmail-send/log/run file:
+#!/bin/sh
+exec /usr/local/bin/setuidgid qmaill /usr/local/bin/multilog t /var/log/qmail
+A.8.4 Create the /var/qmail/supervise/qmail-smtpd/run file:
+#!/bin/sh
+QMAILDUID=`id -u qmaild`
+NOFILESGID=`id -g qmaild`
+MAXSMTPD=`cat /var/qmail/control/concurrencyincoming`
+LOCAL=`head -1 /var/qmail/control/me`
+if [ -z "$QMAILDUID" -o -z "$NOFILESGID" -o -z "$MAXSMTPD" -o -z "$LOCAL" ]; then
+echo QMAILDUID, NOFILESGID, MAXSMTPD, or LOCAL is unset in
+echo /var/qmail/supervise/qmail-smtpd/run
+exit 1
+fi
+if [ ! -f /var/qmail/control/rcpthosts ]; then
+echo “No /var/qmail/control/rcpthosts!”
+echo “Refusing to start SMTP listener because it’ll create an open relay”
+exit 1
+fi
+exec /usr/local/bin/softlimit -m 2000000 \
+/usr/local/bin/tcpserver -v -R -l “$LOCAL” -x /etc/tcp.smtp.cdb -c “$MAXSMTPD” \
+-u “$QMAILDUID” -g “$NOFILESGID” 0 smtp /var/qmail/bin/qmail-smtpd 2>&1
+A.8.5 Create the concurrencyincoming control file:
+echo 20 > /var/qmail/control/concurrencyincoming
+chmod 644 /var/qmail/control/concurrencyincoming
+A.8.6 Create the /var/qmail/supervise/qmail-smtpd/log/run file:
+#!/bin/sh
+exec /usr/local/bin/setuidgid qmaill /usr/local/bin/multilog t /var/log/qmail/smtpd
+A.8.7 Make the run files executable:
+chmod 755 /var/qmail/supervise/qmail-send/run
+chmod 755 /var/qmail/supervise/qmail-send/log/run
+chmod 755 /var/qmail/supervise/qmail-smtpd/run
+chmod 755 /var/qmail/supervise/qmail-smtpd/log/run
+Then set up the log directories:
+mkdir -p /var/log/qmail/smtpd
+chown qmaill /var/log/qmail /var/log/qmail/smtpd
+Finally, link the supervise directories into /service:
+ln -s /var/qmail/supervise/qmail-send /var/qmail/supervise/qmail-smtpd /service
+The /service directory is created when daemontools is installed.
+A.8.8 SMTP Access Control
+Allow the local host to inject mail via SMTP:
+echo ’127.:allow,RELAYCLIENT=”"‘ >>/etc/tcp.smtp
+qmailctl cdb
+You can add here IP address that will allow to relay to outside domain. These entries ensure that your mail server is not an open relay.
+A.9 Stop and disable the installed MTA
+If you’re using an RPM-based Linux distribution like Red Hat, removing the MTA package might cause problems down the road. Utilities that update the system might try to reinstall Sendmail, or MUA packages might not install because they can’t tell an MTA is installed. You can use Mate Wierdl’s stub package called “fake_mta” that can be installed to prevent these problems. Simply install the RPM available from http://www.csi.hu/mw/fake_mta-1-1memphis.noarch.rpm.
+A.9.1 Download the said rpm and install the package
+rpm –ivh fake_mta-1-1memphis.noarch.rpm
+If your existing MTA is Sendmail, you should be able to stop it by
+running the init.d script with the “stop” argument. E.g., one of
+these should work:
+/etc/init.d/sendmail stop
+/sbin/init.d/sendmail stop
+/etc/rc.d/init.d/sendmail stop
+kill PID¬of¬sendmail
+rpm ¬e ¬¬nodeps sendmail
+Lastly, replace any existing /usr/lib/sendmail with the qmail version:
+mv /usr/lib/sendmail /usr/lib/sendmail.old                  # ignore errors
+mv /usr/sbin/sendmail /usr/sbin/sendmail.old                # ignore errors
+chmod 0 /usr/lib/sendmail.old /usr/sbin/sendmail.old        # ignore errors
+ln -s /var/qmail/bin/sendmail /usr/lib
+ln -s /var/qmail/bin/sendmail /usr/sbin
+A.10 Create System Aliases
+There are three system aliases that should be created on all qmail installations:
+Alias     Purpose
+postmaster     RFC 2821 required, points to the mail adminstrator (you)
+mailer-daemon     de facto standard recipient for some bounces
+root     redirects mail from privileged account to the system administrator
+To create these aliases, decide where you want each of them to go (a local user or a remote address) and create and populate the appropriate .qmail files. For example, say local user dave is both the system and mail administrator:
+echo darwin > /var/qmail/alias/.qmail-root
+echo darwin > /var/qmail/alias/.qmail-postmaster
+ln -s .qmail-postmaster /var/qmail/alias/.qmail-mailer-daemon
+chmod 644 /var/qmail/alias/.qmail-root /var/qmail/alias/.qmail-postmaster
+A.11 Start qmail
+If you stopped qmail above after creating the links in /service, you should restart it now:
+qmailctl start
+A.12 Test the Installation
+qmail should now be running. First run qmailctl stat to verify that the services are up and running:
+# qmailctl stat
+/service/qmail-send: up (pid 30303) 187 seconds
+/service/qmail-send/log: up (pid 30304) 187 seconds
+/service/qmail-smtpd: up (pid 30305) 187 seconds
+/service/qmail-smtpd/log: up (pid 30308) 187 seconds
+messages in queue: 0
+messages in queue but not yet preprocessed: 0
+All four services should be “up” for more than a second. If they’re not, you’ve probably got a typo in the associated run script or you skipped one or more steps in creating the necessary files, directories, or links. Go back through the installation step-by-step and double check your work. You can also download and run the inst_check script, available from http://lifewithqmail.org/inst_check. For example:
+# sh inst_check
+! /var/log/qmail has wrong owner, should be qmaill
+…try: chown qmaill /var/log/qmail
+#
+If inst_check finds problems, fix them and re-run it. When everything looks right, inst_check will report:
+Congratulations, your LWQ installation looks good!
+B. Configuration
+You’ve got qmail installed, from the recommended source tarball method, one of the self-compiling packages, or a var-qmail package. This section contains information you will need to configure qmail to make it work the way you want it to.
+B.1. Configuration Files
+All of qmail’s system configuration files, with the exception of the .qmail files in ~alias, reside in /var/qmail/control. The qmail-control man page contains a table like the following:
+Control     Default     Used by     Purpose
+badmailfrom     none     qmail-smtpd     blacklisted From addresses
+bouncefrom     MAILER-DAEMON     qmail-send     username of bounce sender
+bouncehost     me     qmail-send     hostname of bounce sender
+concurrencyincoming     none     /service/qmail-smtpd/run     max simultaneous incoming SMTP connections
+concurrencylocal     10     qmail-send     max simultaneous local deliveries
+concurrencyremote     20     qmail-send     max simultaneous remote deliveries
+defaultdelivery     none     /var/qmail/rc     default .qmail file
+defaultdomain     me     qmail-inject     default domain name
+defaulthost     me     qmail-inject     default host name
+databytes     0     qmail-smtpd     max number of bytes in message (0=no limit)
+doublebouncehost     me     qmail-send     host name of double bounce sender
+doublebounceto     postmaster     qmail-send     user to receive double bounces
+envnoathost     me     qmail-send     default domain for addresses without “@”
+helohost     me     qmail-remote     host name used in SMTP HELO command
+idhost     me     qmail-inject     host name for Message-ID’s
+localiphost     me     qmail-smtpd     name substituted for local IP address
+locals     me     qmail-send     domains that we deliver locally
+me     FQDN of system     various     default for many control files
+morercpthosts     none     qmail-smtpd     secondary rcpthosts database
+percenthack     none     qmail-send     domains that can use “%”-style relaying
+plusdomain     me     qmail-inject     domain substituted for trailing “+”
+qmqpservers     none     qmail-qmqpc     IP addresses of QMQP servers
+queuelifetime     604800     qmail-send     seconds a message can remain in queue
+rcpthosts     none     qmail-smtpd     domains that we accept mail for
+smtpgreeting     me     qmail-smtpd     SMTP greeting message
+smtproutes     none     qmail-remote     artificial SMTP routes
+timeoutconnect     60     qmail-remote     how long, in seconds, to wait for SMTP connection
+timeoutremote     1200     qmail-remote     how long, in seconds, to wait for remote server
+timeoutsmtpd     1200     qmail-smtpd     how long, in seconds, to wait for SMTP client
+virtualdomains     none     qmail-send     virtual domains and users
+Sample PHI MAIL SERVER CONFIGURATION
+badmailfrom:
+FROM_USER@netmail.nl
+@*.service.ohio-state.edu
+@4cpp.net
+@8hy.cn
+@aidscare.com.hk
+@bbqgirl.com
+concurrencyincoming
+20
+defaultdelivery
+./Maildir
+defaultdomain
+phmx1.freelinuxtutorials.com
+helohost
+phi.freelinuxtutorials.com
+locals
+phmx1.freelinuxtutorials.com
+me
+phmx1.freelinuxtutorials.com
+plusdomain
+freelinuxtutorials.com
+queuelifetime
+172800
+rcpthosts
+phmx1.freelinuxtutorials.com
+freelinuxtutorials.com
+hkpub.com
+mail.freelinuxtutorials.com
+mail.hkpub.com
+phi.freelinuxtutorials.com
+virtualdomains
+phi.freelinuxtutorials.com:phi.freelinuxtutorials.com
+II. INSTALLING VPOPMAIL
+Vpopmail is one of the major components of this installation. Vpopmail allows us to do virtual domain mail hosting. It’s got a lot of built in tools and features that make it a dream to work with
+B. 1 Download the installer of vpopmail on http://www.inter7.com/
+C. Unpack/uncompress the tarball file
+tar zxvf vpopmail-5.4.0.tar.gz
+cd vpopmail-5.4.0
+# ./configure
+# make
+# make install-strip
+1.Now you are ready to add a virtual domain and users
+#cd /home/vpopmail/bin
+#./vadddomain phi.freelinuxtutorials.com password yourpostmasterpassword
+2.To add a new pop users
+You can install qmailadmin and administer your new pop mail
+system via a web interface. Or you can use the command line
+interface.
+# cd /home-dir-of-vpopmail/bin
+# ./vadduser newuser@test.com
+or
+# ./vadduser newuser@test.com <password-for-newuser>
+3.Delete a pop user
+# cd /home-dir-of-vpopmail/bin
+# ./vdeluser newuser@test.com (for the test.com virtualdomain example)
+4.Delete a virtual domain
+# cd /home-dir-of-vpopmail/bin
+# ./vdeldomain test.com
+5.Changing a pop users password (new in 3.4.3)
+# cd /home-dir-of-vpopmail/bin
+# ./vpasswd user@domain.com
+or
+# ./vpasswd user@domain.com <password-for-user@domain.com>
+III. INSTALLING QMAILADMIN
+qmailAdmin is a free software package that provides a web interface for managing a qmail system with virtual domains. A version is available now for use with vpopmail. It provides admin for adding/deleting users, Aliases, Forwards, Mailing lists and Autoresponders.
+Requirements:
+Qmail
+Vpopmail
+Autorespond 2.0 (or greater)
+Ezmlm or Ezmlm-idx
+Installing Autoresponder
+Download the installer on http://www.inter7.com
+tar zxvf autorespond-2.0.2.tar.gz
+cd autorespond-2.0.2
+make && make install
+Installing Ezmlm
+EZmlm is a nice mailing list add-on to Qmail
+EZmlm integrates seamlessly into Qmailadmin to provide a very user friendly mailing list management interface
+Download the installer on http://www.inter7.com
+tar zxvf ezmlm-0.53-idx-0.41.tar.gz
+cd ezmlm-0.53-idx-0.41
+make && make setup
+Install qmailadmin
+Download the installer on http://www.inter7.com
+Type as root:
+tar zxvf qmailadmin-1.2.0.tar.gz
+cd qmailadmin-1.2.0
+./configure –enable-modify-quota
+# make
+# make install-strip
+That’s it! Now browse to http://www.yourdomain.com/cgi-bin/qmailadmin and you should see the login screen. Login with the postmaster account and password for the domain that you created
+If you didn’t get any errors, Qmailadmin should be all set!
+IV. INSTALLING SQWEBMAIL
+Sqwebmail is a web based email client, similar to hotmail. It is extremely efficient and the html is configurable.  It is compatible with vpopmail
+Note: SqWebMail DOES NOT support traditional Mailbox files, only Maildirs
+Download the installer on http://www.inter7.com or directly on http://www.courier-mta.org/sqwebmail/
+Unpack:
+# tar xvf sqwebmail-4.0.4.20040524.tar
+#./configure [options - see below]
+#  make configure-check
+# make
+# make check
+# make install-strip       # Do a make install if this doesn’t work
+# make install-configure   # Install configuration files.
+You can now access sqwebmail http://www.yourdomain.com/cgi-bin/sqwebmail
+BACKING UP QMAIL SERVER
+Backing up a qmail server is relatively easy. While different people may give you slightly different recommendations, you can ensure a safe backup of your qmail server if you backup the following 2 directories on a routine basis.
+/home/vpopmail – backs up all your domain information, including mailboxes, passwords and the messages themselves.
+/var/qmail – backs up all of your qmail settings. The /var/qmail/control directory is the most important directory in there to back up, but it won’t hurt to just back up the whole damn qmail directory.
+For complete documentations, pls refer to:
+Reference: http://www.lifewithqmail.org
+http://www.qmailrocks.org
+http://www.inter7.com/
+
