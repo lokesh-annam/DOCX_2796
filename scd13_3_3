@@ -1,0 +1,27 @@
+
+echo 7.14. Disable root login for SSH    >> `hostname`_SCD13.txt
+echo "======================before==============================="         >> `hostname`_SCD13.txt
+grep "^PermitRootLogin" /etc/ssh/sshd_config    >> `hostname`_SCD13.txt
+awk '/^PermitRootLogin/ { $2 = "no" } { print }' /etc/ssh/sshd_config > /etc/ssh/sshd_config.CIS
+mv /etc/ssh/sshd_config.CIS  /etc/ssh/sshd_config
+svcadm restart svc:/network/ssh
+echo "======================after==============================="         >> `hostname`_SCD13.txt
+grep "^PermitRootLogin" /etc/ssh/sshd_config    >> `hostname`_SCD13.txt
+svcs svc:/network/ssh    >> `hostname`_SCD13.txt
+echo "==============================================================================================================================="         >> `hostname`_SCD13.txt
+
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo 7.15. Restrict root Login to System Console    >> `hostname`_SCD13.txt
+cat /etc/default/login  |grep -i CONSOLE     >> `hostname`_SCD13.txt
+echo "==============================================================================================================================="         >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo 7.17 Set EEPROM Security Mode and Log Failed Access    >> `hostname`_SCD13.txt
+eeprom security-mode=command
+eeprom security-#badlogins=0
+eeprom | grep security-mode     >> `hostname`_SCD13.txt
+eeprom | grep security-#badlogins     >> `hostname`_SCD13.txt
+echo "==============================================================================================================================="         >> `hostname`_SCD13.txt
+
