@@ -1,0 +1,220 @@
+ifconfig -->it'll display the ip address
+ip r l
+ip add
+
+
+cat /etc/redhat-release -->
+ 
+touch abcd[0..9]-xyz -->create nine users in single command
+
+top -->
+
+
+rpm -qa --last |grep "24 May 2023" |wc -l
+rpm -qa --last |grep ds_agent
+
+
+rpm -ivh Agent-Core-RedHat_EL7-11.0.0-1617.x86_64.rpm
+yum install net-tools 
+nc -v <IP_ADDRESS> <PORT_NO>
+
+
+
+chage -l USER_NAME
+
+
+
+cat /proc/cpuinfo | grep “processor”|wc –l -->To check number of CPU’s in the server
+
+
+Get Process ID:-
+# netstat -nlp | grep ":5500" | grep LISTEN
+Get Process Name:- 
+# ps -ef | grep 1535 | grep -v grep
+
+systemctl start ds_agent
+systemctl stop ds_agent
+yum remove ds_agent
+netstat -ntlup |grep 4118
+sosreport
+
+
+
+find . -name "*" -->. means current directory
+locate <Name> 
+
+
+
+Wild cards:- 
+* - represents zero or more characters
+? - represents a single character
+[] - represents a range of characters
+^ - We may also reverse a range using the caret ( ^ ) which means look for any character which is not one of the following.
+
+
+
+
+zcat and gunzip:-
+
+zcat & gunzip-->It will print the compress file content
+	-->The zcat command is compatible with the gunzip –c command.
+
+-f -->To print the file contented forcefully, we need to use the “-f” option with the zcat command
+-l -->To print the compression information, we need to use the “-l” option with the zcat command.
+-q -->Some times while printing any compress data, the lots of warning come. To avoid this condition, we need to use the “-q” option with the zcat command.
+
+gzip [File_Name] -->compress the file in .gz extention
+
+
+
+
+
+$(cat /etc/passwd |cut -d: -f1); do echo $user; chage -l $user | grep "Password expires"; done | paste -d " " - - | sed 's/Password expires//g' -->Password expiry status shell script
+
+$ sudo vi /opt/scripts/user-password-expiration-date.sh
+
+#!/bin/sh
+for user in $(cat /etc/passwd |cut -d: -f1)
+do echo $user
+chage -l $user | grep "Password expires"
+done | paste -d " "  - - | sed 's/Password expires//g'
+
+
+The below shell script will display the list of users (excluding system users) along with their password expiration date:
+
+$ sudo vi /opt/scripts/user-password-expiration-date-1.sh
+
+#!/bin/sh
+for user in $(cat /etc/passwd |cut -d: -f1)
+do echo $user
+chage -l $user | grep "Password expires"
+done | paste -d " "  - - | sed 's/Password expires//g' | grep -v "never"
+
+
+
+104.16 
+
+
+
+
+
+
+
+user creation for linux
+for i in `cat ip.txt`;
+do
+echo "========$i=========";ssh -t -q  addmitam@$i "sudo useradd devopsadmin;sudo echo "Sbi@12345"|sudo passwd --stdin devopsadmin";
+done
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Types of file systems:-
+
+	ext3
+	ext4
+	xfs
+	NTFS
+	FAT
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+Chapter 2. The Apache HTTP Server
+
+rpm -q httpd -->to see if the httpd package is installed.
+~]# yum install httpd -->run the following command as the root user to install it.
+	Run the getenforce command to confirm SELinux is running in enforcing mode:
+	
+~]$ getenforce
+Enforcing
+
+	Run the service httpd start command as the root user to start httpd:
+~]# service httpd start
+	Starting httpd:                                            [  OK  ]
+
+	The getenforce command returns Enforcing when SELinux is running in enforcing mode.
+	
+~]$ ps -eZ | grep httpd -->to view the httpd processes
+
+/etc/httpd/conf/httpd.conf -->Configuration file.
+
+~]# service httpd status -->command to confirm httpd is not running
+	httpd is stopped
+	
+~]# service httpd stop -->command to stop the process
+Stopping httpd:                                            [  OK  ]
+
+~]# semanage port -l | grep -w http_port_t -->command to view the ports SELinux allows httpd to listen on:
+http_port_t                    tcp      80, 443, 488, 8008, 8009, 8443
+
+	Edit /etc/httpd/conf/httpd.conf as the root user. Configure the Listen option so it lists a port that is not configured in SELinux policy configuration for httpd. 
+	In this example, httpd is configured to listen on port 12345:
+	# Change this to Listen on specific IP addresses as shown below to 
+	# prevent Apache from glomming onto all bound IP addresses (0.0.0.0)
+	#
+	#Listen 12.34.56.78:80
+	Listen 127.0.0.1:12345
+	
+~]# service httpd start -->command to start httpd
+	Starting httpd: (13)Permission denied: make_sock: could not bind to address 127.0.0.1:12345
+	no listening sockets available, shutting down
+	Unable to open logs					   [FAILED]
+	
+	An SELinux denial similar to the following is logged:
+	setroubleshoot: SELinux is preventing the httpd (httpd_t) from binding to port 12345. For complete SELinux messages. 
+	run sealert -l f18bca99-db64-4c16-9719-1db89f0d8c77
+	
+	For SELinux to allow httpd to listen on port 12345, as used in this example, the following command is required:
+~]# semanage port -a -t http_port_t -p tcp 12345
+
+	Run service httpd start again to start httpd and have it listen on the new port:
+~]# service httpd start
+	Starting httpd:						   [  OK  ]
+
+
+yum install git-core-2.39.3-1.el8.aarch64.rpm
+  961  cd /etc/yum.repos.d/
+  967  yum install git-core-2.39.3-1.el8.aarch64.rpm
+  972  yum install git-core-2.39.3-1.el8.aarch64.rpm
+  974  cat /etc/yum.repos.d/local.repo
+  975  vi /etc/yum.repos.d/local.repo
+  976  yum clean all
+  977  yum repolist all
+  978  yum install git-core-2.39.3-1.el8.aarch64.rpm
+  979  vi /etc/yum.repos.d/local.repo
+  985  yum install git-core-2.39.3-1.el8.aarch64.rpm
+  986  yum install glibc*
+
+	
+
