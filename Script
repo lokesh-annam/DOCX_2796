@@ -7184,7 +7184,39 @@ cd /data/BRANCHES/98888/data/BRANCHES/98888/AccountStatement/MT940/;         ls 
 
 =========================================================================================================================================================================>
 
+SSL_Certificate_Expiry
 
+# Set the input and output files
+INPUT_FILE="ssl.txt"
+OUTPUT_FILE="output.txt"
+
+# Set the date format
+DATE_FORMAT="%b %d, %Y"
+
+# Read the input file line by line
+while IFS= read -r line; do
+    # Split the line into certificate name and expiration date
+    cert_name=$(echo "$line" | cut -d '|' -f1 | xargs)
+    exp_date=$(echo "$line" | cut -d '|' -f2 | cut -d ' ' -f2-)
+
+    # Convert the expiration date to a timestamp
+    exp_timestamp=$(date -d "exp_date" "+%s")
+
+    # Get the current timestamp
+    cur_timestamp=$(date "+%s")
+
+    # Calculate the remaining days
+    remaining_days=$(( (exp_timestamp - cur_timestamp) / 86400 ))
+
+    # Check if the certificate has already expired
+    if (( remaining_days <= 0 )); then
+        echo "$cert_name | -$(((-1) * remaining_days)) days ago."
+        echo "SSL_Certificate,cert_name=$cert_name,expiry_date=$remaining_days $remaining_days" | /opt/dynatrace/oneagent/agent/tools/dynatrace_ingest
+    else
+        echo "$cert_name | +$remaining_days days remaining."
+        echo "SSL_Certificate,cert_name=$cert_name,expiry_date=$remaining_days $remaining_days" | /opt/dynatrace/oneagent/agent/tools/dynatrace_ingest
+    fi >> "$OUTPUT_FILE"
+done < "$INPUT_FILE"
 
 =========================================================================================================================================================================>
 
