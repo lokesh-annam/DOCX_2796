@@ -1,0 +1,64 @@
+
+echo 7.12. Restrict at/cron to Authorized Users    >> `hostname`_SCD13.txt
+echo "==========This point is already implemented================"         >> `hostname`_SCD13.txt
+ls -lrt /etc/cron.d*    >> `hostname`_SCD13.txt
+cd /etc/cron.d
+chown root:root cron.allow at.allow
+chmod 400 cron.allow at.allow
+ls -ld cron.allow at.allow   >> `hostname`_SCD13.txt
+cat cron.allow >> `hostname`_SCD13.txt
+echo "==============================================================================================================================="         >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo "7.13. Set Retry Limit for Account Lockout"     >> `hostname`_SCD13.txt
+echo "==================================="     >> `hostname`_SCD13.txt
+echo "Perform the following to verify that the result is as recommended:"     >> `hostname`_SCD13.txt
+echo "==================================="     >> `hostname`_SCD13.txt
+echo "======================before==============================="         >> `hostname`_SCD13.txt
+cat /etc/default/login |grep -i RETRIES=     >> `hostname`_SCD13.txt
+awk '/^#RETRIES=5/ { $1 = "RETRIES=3" } { print }' /etc/default/login > /etc/default/login.CIS
+mv /etc/default/login.CIS /etc/default/login
+echo "======================after==============================="         >> `hostname`_SCD13.txt
+echo " Must Return :RETRIES=3"     >> `hostname`_SCD13.txt
+grep "^RETRIES=" /etc/default/login     >> `hostname`_SCD13.txt
+
+echo "======================before==============================="         >> `hostname`_SCD13.txt
+grep "LOCK_AFTER_RETRIES=" /etc/security/policy.conf     >> `hostname`_SCD13.txt
+awk '/^#LOCK_AFTER_RETRIES=/ { $1 = "LOCK_AFTER_RETRIES=YES" } { print }' /etc/security/policy.conf > /etc/security/policy.conf.CIS
+mv /etc/security/policy.conf.CIS /etc/security/policy.conf
+echo "======================after==============================="         >> `hostname`_SCD13.txt
+echo " Must Return :LOCK_AFTER_RETRIES=YES"         >> `hostname`_SCD13.txt
+echo " (Output should be "no" for any accounts that are exempt from this policy including'root'.)"     >> `hostname`_SCD13.txt
+grep "LOCK_AFTER_RETRIES=" /etc/security/policy.conf     >> `hostname`_SCD13.txt
+echo "==================================="     >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+
+echo 7.14. Disable root login for SSH    >> `hostname`_SCD13.txt
+echo "======================before==============================="         >> `hostname`_SCD13.txt
+grep "^PermitRootLogin" /etc/ssh/sshd_config    >> `hostname`_SCD13.txt
+awk '/^PermitRootLogin/ { $2 = "no" } { print }' /etc/ssh/sshd_config > /etc/ssh/sshd_config.CIS
+mv /etc/ssh/sshd_config.CIS  /etc/ssh/sshd_config
+svcadm restart svc:/network/ssh
+echo "======================after==============================="         >> `hostname`_SCD13.txt
+grep "^PermitRootLogin" /etc/ssh/sshd_config    >> `hostname`_SCD13.txt
+svcs svc:/network/ssh    >> `hostname`_SCD13.txt
+echo "==============================================================================================================================="         >> `hostname`_SCD13.txt
+
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo 7.15. Restrict root Login to System Console    >> `hostname`_SCD13.txt
+cat /etc/default/login  |grep -i CONSOLE     >> `hostname`_SCD13.txt
+echo "==============================================================================================================================="         >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo 7.17 Set EEPROM Security Mode and Log Failed Access    >> `hostname`_SCD13.txt
+eeprom security-mode=command
+eeprom security-#badlogins=0
+eeprom | grep security-mode     >> `hostname`_SCD13.txt
+eeprom | grep security-#badlogins     >> `hostname`_SCD13.txt
+echo "==============================================================================================================================="         >> `hostname`_SCD13.txt
+
