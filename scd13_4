@@ -1,0 +1,50 @@
+echo 8.1. Set Password Expiration Parameters on Active Accounts    >> `hostname`_SCD13.txt
+
+
+cp -p /etc/default/passwd  /etc/default/passwd_`date +%d%h%y_%H%M`
+
+cd /etc/default
+
+awk '/^PASSLENGTH=/ { $1 = "PASSLENGTH=8" }; /^NAMECHECK=/ { $1 = "NAMECHECK=YES" }; /^HISTORY=/ { $1 = "HISTORY=10" }; /^MINDIFF=/ { $1 = "MINDIFF=3" }; /^MINALPHA=/ { $1 = "MINALPHA=2" }; { print }' passwd > passwd.CIS
+
+mv passwd.CIS passwd
+
+awk '/^MINUPPER=/ { $1 = "MINUPPER=1" }; /^MINLOWER=/ { $1 = "MINLOWER=1" }; /^MINNONALPHA=/ { $1 = "MINNONALPHA=1" }; /^MAXREPEATS=/ { $1 = "MAXREPEATS=0" }; /^WHITESPACE=/ { $1 = "WHITESPACE=YES" };  { print }' passwd > passwd.CIS
+
+mv passwd.CIS passwd
+
+awk '/^DICTIONDBDIR=/ { $1 = "DICTIONDBDIR=/var/passwd" }; /^DICTIONLIST=/  { $1 = "DICTIONLIST=/usr/share/lib/dict/words" }; { print }' passwd > passwd.CIS
+
+
+mv passwd.CIS passwd
+
+awk '/^#PASSLENGTH=/ { $1 = "PASSLENGTH=8" }; /^#NAMECHECK=/ { $1 = "NAMECHECK=YES" }; /^#HISTORY=/ { $1 = "HISTORY=10" }; /^#MINDIFF=/ { $1 = "MINDIFF=3" }; /^#MINALPHA=/ { $1 = "MINALPHA=2" }; { print }' passwd > passwd.CIS
+
+
+mv passwd.CIS passwd
+
+awk ' /^#WHITESPACE=/ { $1 = "WHITESPACE=YES" }; /^#DICTIONDBDIR=/ { $1 = "DICTIONDBDIR=/var/passwd" }; /^#DICTIONLIST=/  { $1 = "DICTIONLIST=/usr/share/lib/dict/words" }; { print }' passwd > passwd.CIS
+
+mv passwd.CIS passwd
+
+awk '/^#MINUPPER=/ { $1 = "MINUPPER=1" }; /^#MINLOWER=/ { $1 = "MINLOWER=1" }; /^#MINNONALPHA=/ { $1 = "MINNONALPHA=1" }; /^#MAXREPEATS=/ { $1 = "MAXREPEATS=0" };  { print }' passwd > passwd.CIS
+
+
+mv passwd.CIS passwd
+
+
+cd /etc/default
+
+awk '/^MAXWEEKS=/ { $1 = "MAXWEEKS=13" }; /^MINWEEKS=/ { $1 = "MINWEEKS=1" }; /^WARNWEEKS=/ { $1 = "WARNWEEKS=2" };  { print }' passwd > passwd.CIS
+
+mv passwd.CIS passwd
+
+awk '/^#MAXWEEKS=/ { $1 = "MAXWEEKS=13" }; /^#MINWEEKS=/ { $1 = "MINWEEKS=1" }; /^#WARNWEEKS=/ { $1 = "WARNWEEKS=2" };  { print }' passwd > passwd.CIS
+
+mv passwd.CIS passwd
+
+cat /etc/default/passwd |grep -v ^#         >> `hostname`_SCD13.txt
+
+echo "==============================================================================================================================="         >> `hostname`_SCD13.txt
+
+
