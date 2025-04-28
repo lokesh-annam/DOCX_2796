@@ -1,0 +1,45 @@
+1.create volumegroup 
+2.Create Physical volume if exits 
+    ---pvcreate
+3 add PV to volumegroup 
+   ---vgextend <groupname> <pvs>
+4 create lv by 
+
+    lvcreate -L <Size> -n <lv_name> <volume gp name>
+
+5.create file system 
+
+mkfs.ext4 /dev/mapper/<newly created lv>
+
+6.create mount point 
+
+7.mount -a 
+
+ 
+ ------------------------------------
+
+
+List of LVM Commands
+
+To recap, following are the LVM commands we have used to create logical volumes in Linux.
+
+pvcreate - Initializes physical volume for later use by logical volume manager (LVM).
+
+lvmdiskscan - Scan for all devices visible to LVM.
+
+vgcreate - Create a volume group.
+
+lvcreate - Create a logical volume in an existing volume group.
+
+vgscan - Scan all disks for volume groups and rebuild caches.
+
+lvscan - Scan all disks for logical volumes.
+
+lvdisplay - Display attributes (information) of all logical volumes.
+
+
+
+
+
+
+
