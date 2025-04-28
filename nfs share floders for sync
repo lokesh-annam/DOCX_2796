@@ -1,0 +1,180 @@
+Share floders
+
+/sdk
+/sbi-data
+/bv1t01_98
+/bv1t01_1131
+/wac
+/data
+/housekeeping
+/mailarcchive
+/
+-----------------------------
+
+vnbconsole
+
+
+root@sbicbk70 # export DISPLAY=172.18.193.110:0.0
+root@sbicbk70 # /usr/openv/netbackup/bin/jnbSA &
+[1] 5557
+root@sbicbk70 #
+        Starting administration console version 7.5.
+        The log file for this execution instance is
+        /usr/openv/netbackup/logs/user_ops/nbjlogs/jbp.root.jnbSA.5557.log
+
+
+ /usr/openv/netbackup/bin
+
+
+----------------------------------
+
+EMC Login
+
+Webconsole 
+
+https://192.168.27.76:8443/ prvmaxmon pr1234567. 
+
+https://10.192.25.75:8443/ drvmaxmon dr1234567.
+
+---------------------------
+which java
+
+java -version
+
+ln -s /opt/SDK/jdk/jre/bin/java java
+
+ln -s /opt/IBM/WebSphere/AppServer/java/bin/java java
+
+ln -s /opt/IHS7/Plugins/java/jre/bin/java java
+
+ln -s ../java/bin/java java
+------------------------------
+
+MT940 file process
+
+1.login 192.168.25.66
+
+check pending floder it should have two files only
+-->ls -lrth pending check output
+
+run the script by providing the number 
+
+2.logino 192.168.25.21
+run crontab -l
+find out pendingconversation 
+
+
+/usr/bin/sh -x /opt/sbi/wac/scripts/MT940Pendingtxtconversion.sh >> /opt/sbi/wac/scripts/MT940Pendingtxtconversion.log
+
+run the script 
+
+after compelete 
+run the script Mt940--->Zipconv.log
+ 
+/usr/bin/sh -x /opt/sbi/wac/scripts/MT940logtxttozip.sh >> /opt/sbi/wac/scripts/zipconv.log
+
+
+For indivival 
+
+same need to creat new floder of smae date
+move all the file and follow the steps 
+
+
+
+
+
+
+------------------------------------
+
+rsynclog files
+
+---->/export/home/chinna/rsynclogs ______in66
+
+
+
+
+----------
+
+Cisco Switch details 
+
+10.192.25.95 --> monitor --> c1sc0@SBI
+10.192.25.96 --> monitor --> c1sc0@SBI
+10.192.25.97 --> monitor --> c1sc0@SBI
+10.192.25.98 --> monitor --> c1sc0@SBI
+10.192.25.99 --> monitor --> c1sc0@SBI
+10.192.25.100 --> monitor -->c1sc0@SBI
+
+------------------
+
+wac---------- Tech@r9!$
+wasadmin----- w@sadm!n
+ibm---------- root root
+ibm pr------- root root@123
+bvadmin------Bv!admin123
+27.36-------- Sbi@1234
+27.38-------- root
+27.39-------- root989
+27.40-------- root
+27.49-------- w@c@99@sbi
+27.60-------- root
+25.20-------- Dbora989!
+27.164,27.166--------Root@r9!
+31.32---------root@123
+27.167--------Root@r9!$
+25.80--root-root
+27.46--------sbi123
+-------
+
+useradd
+
+useradd -u 6066 -g 1 -c "OS ADMIN" -d /export/home/varaprasadgc -m -s /bin/sh  varaprasadgc;
+----------------------------------------
+10.192.24.xxx -DR servers
+10.192.25.xxx-- console and sbi coin
+172.18.193.66,67,75-- three servers sbi development in techM
+192.168.25.xxx -- DC
+192.168.27.xxx-- staging,sbi coin,console
+192.168.29.xxx -- vm setup
+192.168.155.xxx -- sms server
+10.193.26.xxx -- DR VM setup
+----------------------------
+
+w@sadm!n
+
+hmc conole
+
+10.192.248.250--hscroot Drchennai123
+192.168.25.73	----sysadmin----3FZ0738004
+10.192.24.73	----sysadmin----3FZ0738005
+
+https://192.168.156.250/--hscroot abc1234
+10.193.26.22  root calvin
+
+
+--------------
+
+brocade
+HP Storage SAN switches at PR site
+
+
+ 192.168.27.111/ 112---admin---sbihp123
+
+HP Storage SAN switches at DR site
+
+IP 10.192.25.111/ 112----admin--Admin@r9
+
+
+10.0.249.12:root--root@123
+
+10.193.26.11--Administrator/Sbi@1234
+
+
+
+w@sadm!n
+
+
+
+
+
+
+
