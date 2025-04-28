@@ -1,0 +1,357 @@
+http://www.lifewithqmail.org/lwq.html
+
+
+qmail Installation Steps on Linux
+
+**************************qmail Installation *************************
+
+1. Download the source
+
+•	qmail, http://www.qmail.org/netqmail-1.06.tar.gz
+•	ucspi-tcp, http://cr.yp.to/ucspi-tcp/ucspi-tcp-0.88.tar.gz
+•	daemontools, http://cr.yp.to/daemontools/daemontools-0.76.tar.gz
+
+2. System requirements
+
+[sankar@CSSW2013NOC3 ~]$ rpm -qa | grep gcc
+gcc-4.4.6-4.el6.i686
+libgcc-4.4.6-4.el6.i686
+
+3. Unpack the distribution
+Copy or move the tarballs to the directory you want to do the work in./usr/local/src is a good choice for qmail and ucspi-tcp. daemontools should be built under /package.
+
+[sankar@CSSW2013NOC3 ~]$ su -
+Password:
+
+[root@CSSW2013NOC3 ~]# mkdir -p /usr/local/src
+
+[root@CSSW2013NOC3 ~]#mkdir -p /package
+
+[root@CSSW2013NOC3 ~]#mv netqmail-1.06.tar.gz ucspi-tcp-0.88.tar.gz /usr/local/src
+
+[root@CSSW2013NOC3 ~]#mv daemontools-0.76.tar.gz /package
+
+[root@CSSW2013NOC3 ~]#chmod 1755 /package
+
+Now you can unpack the packages:
+
+[root@CSSW2013NOC3 ~]#cd /usr/local/src
+
+[root@CSSW2013NOC3 src]#tar -xvzf netqmail-1.06.tar.gz
+
+[root@CSSW2013NOC3 src]#tar -xvzf ucspi-tcp-0.88.tar.gz
+
+[root@CSSW2013NOC3 ~]#cd /package
+
+[root@CSSW2013NOC3 ~]#tar -xvzf daemontools-0.76.tar.gz
+
+There should now be directories called
+
+/usr/local/src/netqmail-1.06,
+/usr/local/src/ucspi-tcp-0.88, and
+/package/admin/daemontools-0.76.
+4. Create directories :
+
+To create the qmail "home" directory:
+
+[root@CSSW2013NOC3 ~]#mkdir /var/qmail
+
+The qmail configuration files can be stored in /etc/qmail by doing:
+
+[root@CSSW2013NOC3 ~]#mkdir /etc/qmail
+[root@CSSW2013NOC3 ~]#ln -s /etc/qmail /var/qmail/control
+
+5. Create users and groups :
+
+[root@CSSW2013NOC3 ~]#cd /usr/local/src/netqmail-1.06
+
+[root@CSSW2013NOC3 ~]#cp INSTALL.ids IDS
+
+[root@CSSW2013NOC3 netqmail-1.06]# cat IDS
+groupadd nofiles
+useradd -g nofiles -d /var/qmail/alias alias
+useradd -g nofiles -d /var/qmail qmaild
+useradd -g nofiles -d /var/qmail qmaill
+useradd -g nofiles -d /var/qmail qmailp
+groupadd qmail
+useradd -g qmail -d /var/qmail qmailq
+useradd -g qmail -d /var/qmail qmailr
+useradd -g qmail -d /var/qmail qmails
+
+:wq
+
+[root@CSSW2013NOC3 ~]#chmod 700 IDS
+
+[root@CSSW2013NOC3 ~]#/bin/sh IDS (or) ./IDS
+
+Start by using your favorite editor and editing /etc/group. You need to add the
+following two lines to the end of the file:
+
+#nano /etc/group
+
+qmail:*:2107:
+nofiles:*:2108:
+
+Note: vipw equal to vi /etc/passwd
+
+[root@CSSW2013NOC3 ~]#vipw
+
+add these lines to the end of the file(/etc/passed):
+
+
+alias:*:7790:2108::/var/qmail/alias:/bin/true
+qmaild:*:7791:2108::/var/qmail:/bin/true
+qmaill:*:7792:2108::/var/qmail:/bin/true
+qmailp:*:7793:2108::/var/qmail:/bin/true
+qmailq:*:7794:2107::/var/qmail:/bin/true
+qmailr:*:7795:2107::/var/qmail:/bin/true
+qmails:*:7796:2107::/var/qmail:/bin/true
+
+6. Do the build :
+
+Now you can start building qmail.
+
+[root@CSSW2013NOC3 ~]#cd /usr/local/src/netqmail-1.06
+
+[root@CSSW2013NOC3 netqmail-1.06]# make setup check
+
+If your DNS is configured properly, this script should be all you need at this point:
+
+[root@CSSW2013NOC3 netqmail-1.06]# ./config
+
+[root@CSSW2013NOC3 netqmail-1.06]# ./config-fast the.full.hostname
+
+7. Install ucspi-tcp :
+
+[root@CSSW2013NOC3 ~]#cd /usr/local/src/ucspi-tcp-0.88
+
+[root@CSSW2013NOC3 ucspi-tcp-0.88]#patch < /usr/local/src/netqmail-1.06/other-patches/ucspi-tcp-0.88.errno.pat
+
+[root@CSSW2013NOC3 ucspi-tcp-0.88]#make
+
+[root@CSSW2013NOC3 ucspi-tcp-0.88]#make setup check
+
+8.Install daemontools
+
+[root@CSSW2013NOC3 ~]#cd /package/admin/daemontools-0.76
+
+[root@CSSW2013NOC3 daemontools-0.76 ]#cd src
+
+[root@CSSW2013NOC3 src]#patch < /usr/local/src/netqmail-1.06/other-patches/daemontools-0.76.errno.patch
+
+[root@CSSW2013NOC3 ~]#./package/install
+
+[root@CSSW2013NOC3 package]# ps -ef | grep svscan
+root 7978 5121 0 16:34 pts/2 00:00:00 grep svscan
+9.Start qmail :
+
+copy this script into /var/qmail/rc
+
+[root@CSSW2013NOC3 ~]#nano /var/qmail/rc
+
+#!/bin/sh
+# Using stdout for logging
+# Using control/defaultdelivery from qmail-local to deliver messages by default
+
+exec env - PATH="/var/qmail/bin:$PATH" \
+qmail-start "`cat /var/qmail/control/defaultdelivery`"
+
+
+[root@CSSW2013NOC3 ~]#chmod 755 /var/qmail/rc
+
+[root@CSSW2013NOC3 ~]#mkdir /var/log/qmail
+
+At this point you need to decide the default delivery mode for messages that aren't delivered by a
+.qmail file.
+
+
+10. System start-up files :
+
+This is accomplished by creating a startup/shutdown script like the following in
+/var/qmail/bin/qmailctl:
+
+Note:This script is available via http://lifewithqmail.org/qmailctl-script-dt70.
+
+Copy this script into /var/qmail/bin/qmailctl.
+Make the qmailctl script executable and link it to a directory in your path:
+
+[root@CSSW2013NOC3 ~]#chmod 755 /var/qmail/bin/qmailctl
+
+[root@CSSW2013NOC3 ~]#ln -s /var/qmail/bin/qmailctl /usr/bin
+
+
+11. The supervise scripts :
+
+Now create the supervise directories for the qmail services:
+
+[root@CSSW2013NOC3 ~]#mkdir -p /var/qmail/supervise/qmail-send/log
+
+[root@CSSW2013NOC3 ~]#mkdir -p /var/qmail/supervise/qmail-smtpd/log
+
+Create the /var/qmail/supervise/qmail-send/run file:
+
+Copy this script into /var/qmail/supervise/qmail-send/run
+
+[root@CSSW2013NOC3 ~]#nano /var/qmail/supervise/qmail-send/run
+#!/bin/sh
+exec /var/qmail/rc
+Create the /var/qmail/supervise/qmail-send/log/run file:
+#!/bin/sh
+exec /usr/local/bin/setuidgid qmaill /usr/local/bin/multilog t /var/log/qmail
+Create the /var/qmail/supervise/qmail-smtpd/run file:
+#!/bin/sh
+QMAILDUID=`id -u qmaild`
+NOFILESGID=`id -g qmaild`
+MAXSMTPD=`cat /var/qmail/control/concurrencyincoming`
+LOCAL=`head -1 /var/qmail/control/me`
+if [ -z "$QMAILDUID" -o -z "$NOFILESGID" -o -z "$MAXSMTPD" -o -z "$LOCAL" ]; th
+echo QMAILDUID, NOFILESGID, MAXSMTPD, or LOCAL is unset in
+echo /var/qmail/supervise/qmail-smtpd/run
+exit 1
+fi
+if [ ! -f /var/qmail/control/rcpthosts ]; then
+echo "No /var/qmail/control/rcpthosts!"
+echo "Refusing to start SMTP listener because it'll create an open relay"
+exit 1
+fi
+exec /usr/local/bin/softlimit -m 2000000 \
+/usr/local/bin/tcpserver -v -R -l "$LOCAL" -x /etc/tcp.smtp.cdb -c "$MAXSMT
+-u "$QMAILDUID" -g "$NOFILESGID" 0 smtp /var/qmail/bin/qmail-smtpd 2>&1
+
+Create the concurrencyincoming control file:
+
+[root@CSSW2013NOC3 ~]#echo 20 > /var/qmail/control/concurrencyincoming
+[root@CSSW2013NOC3 ~]#chmod 644 /var/qmail/control/concurrencyincoming
+
+Create the /var/qmail/supervise/qmail-smtpd/log/run file:
+
+[sankar@CSSW2013NOC3 ~]$ nano /var/qmail/supervise/qmail-smtpd/run
+#!/bin/sh
+exec /usr/local/bin/setuidgid qmaill /usr/local/bin/multilog t /var/log/qmail/smtpd
+
+
+[root@CSSW2013NOC3 ~]#chmod 755 /var/qmail/supervise/qmail-send/run
+
+[root@CSSW2013NOC3 ~]#chmod 755 /var/qmail/supervise/qmail-send/log/run
+
+[root@CSSW2013NOC3 ~]#chmod 755 /var/qmail/supervise/qmail-smtpd/run
+
+[root@CSSW2013NOC3 ~]#chmod 755 /var/qmail/supervise/qmail-smtpd/log/run
+
+12. Then set up the log directories:
+
+[root@CSSW2013NOC3 ~]#mkdir -p /var/log/qmail/smtpd
+
+[root@CSSW2013NOC3 ~]#chown qmaill /var/log/qmail /var/log/qmail/smtpd
+
+Finally, link the supervise directories into /service:
+[root@CSSW2013NOC3 ~]#ln -s /var/qmail/supervise/qmail-send /var/qmail/supervise/qmail-smtpd /ser vice
+
+The /service directory is created when daemontools is installed.
+
+[root@CSSW2013NOC3 ~]#qmailctl stop
+
+13. SMTP Access Control :
+
+Allow the local host to inject mail via SMTP:
+
+[root@CSSW2013NOC3 ~]#echo '127.:allow,RELAYCLIENT=""' >>/etc/tcp.smtp
+
+[root@CSSW2013NOC3 ~]#qmailctl cdb
+
+14.Stop and disable the installed MTA
+
+If your existing MTA is Sendmail, you should be able to stop it by running the init.d script with
+the "stop" argument. E.g., one of these should work:
+
+/etc/init.d/sendmail stop
+/sbin/init.d/sendmail stop
+/etc/rc.d/init.d/sendmail stop
+
+[root@CSSW2013NOC3 ~]#ps -ef|grep sendmail
+
+[root@CSSW2013NOC3 ~]#kill PID-of-sendmail
+
+[root@CSSW2013NOC3 sankar]# netstat -a | grep smtp
+tcp 0 0 localhost:smtp *:* LISTEN
+unix 2 [ ACC ] STREAM LISTENING 12541 private/smtp
+If something is running, make sure it's not qmail by doing:
+
+[root@CSSW2013NOC3 sankar]#qmailctl stop
+
+The repeat the netstat check:
+
+[root@CSSW2013NOC3 sankar]#netstat -a | grep smtp
+
+The last step is to create a couple of system aliases.
+
+15. Create System Aliases
+
+There are three system aliases that should be created on all qmail installations:
+
+To create these aliases, decide where you want each of them to go (a local user or a remote address)
+and create and populate the appropriate .qmail files.
+
+For example, say local user Sankar is both the system and mail administrator:
+
+echo sankar > /var/qmail/alias/.qmail-root
+echo sankar > /var/qmail/alias/.qmail-postmaster
+ln -s .qmail-postmaster /var/qmail/alias/.qmail-mailer-daemon
+ln -s .qmail-postmaster /var/qmail/alias/.qmail-abuse
+chmod 644 /var/qmail/alias/.qmail-root /var/qmail/alias/.qmail-postmaster
+
+
+16.Start qmail
+If you stopped qmail above after creating the links in /service, you should restart it now:
+
+[root@CSSW2013NOC3 ~]#qmailctl start
+
+17.Test the Installation
+[root@CSSW2013NOC3 ~]#qmailctl stat
+
+/service/qmail-send: up (pid 30303) 187 seconds
+/service/qmail-send/log: up (pid 30304) 187 seconds
+/service/qmail-smtpd: up (pid 30305) 187 seconds
+/service/qmail-smtpd/log: up (pid 30308) 187 seconds
+messages in queue: 0
+messages in queue but not yet preprocessed: 0
+
+Note:All four services should be "up" for more than a second . If they're not, the installation step-by-step and double check your work. You can also download and run the inst_check script, available from http://lifewithqmail.org/inst_check. For
+example:
+# sh inst_check
+! /var/log/qmail has wrong owner, should be qmaill
+...try: chown qmaill /var/log/qmail
+
+
+If inst_check finds problems, fix them and re-run it. When everything looks right, inst_check
+will report:
+Congratulations, your LWQ installation looks good!
+
+Troubleshooting:
+
+# ps -efl | grep "service errors" | grep -v grep
+000 S root 1006 1001 0 76 0 - 334 pipe_w Mar31 ? 00:0
+readproctitle service errors: ...unable to start qmail-smtpd/run: exec form
+#
+
+In this case, the problem is that there is an error in the first line of the
+/service/qmail-smtpd/run script--most likely caused ,
+
+It sometimes helps to run a service manually in order to find configuration problems. For example, if
+your qmail-smtpd/log service isn't running, do:
+
+
+[root@CSSW2013NOC3 ~]#cd /service/qmail-smtpd/log
+
+[root@CSSW2013NOC3 ~]#svc -d .
+
+[root@CSSW2013NOC3 ~]#./run
+
+if no errors, enter a line of text and press ENTER
+if still no errors, enter CTRL-D (end of file)
+
+At this point, you should be able to identify the problem and fix it. Once that's done, return to the
+service's directory, if necessary, and do:
+
+[root@CSSW2013NOC3 ~]#svc -u .
+
