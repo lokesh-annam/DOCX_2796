@@ -1,0 +1,54 @@
+
+echo 7.17 Set EEPROM Security Mode and Log Failed Access    >> `hostname`_SCD13.txt
+eeprom security-mode=command
+eeprom security-#badlogins=0
+eeprom | grep security-mode     >> `hostname`_SCD13.txt
+eeprom | grep security-#badlogins     >> `hostname`_SCD13.txt
+echo "==============================================================================================================================="         >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo 8.2. Set Strong Password Creation Policies     >> `hostname`_SCD13.txt
+cp -p /etc/default/login  /etc/default/login_`date +%d%h%y_%H%M`
+cd /etc/default
+awk '/^UMASK=/ { $1 = "UMASK=027" } { print }' login > login.CIS
+mv login.CIS login
+
+cat /etc/default/login |grep -i umask     >> `hostname`_SCD13.txt
+
+echo "==============================================================================================================================="         >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo 8.3. Set Default umask for users     >> `hostname`_SCD13.txt
+cat /etc/default/login |grep -i umask     >> `hostname`_SCD13.txt
+echo "==============================================================================================================================="         >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo 8.4. Set "mesg n" as Default for All Users    >> `hostname`_SCD13.txt
+echo "======================implementation steps==============================="         >> `hostname`_SCD13.txt
+for file in /etc/profile .login; do if [ "`grep mesg $file`" ]; then awk '$1 == "mesg" { $2 = "n" }{ print }' $file >$file.new; mv $file.new $file; else echo mesg n   >>$file; fi; chown root:sys $file; chmod 444 $file; done;
+cat /etc/profile |grep -i mesg     >> `hostname`_SCD13.txt
+echo "==============================================================================================================================="         >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo "8.5. Lock Inactive User Accounts"     >> `hostname`_SCD13.txt
+echo "==================================="     >> `hostname`_SCD13.txt
+echo "Perform the following to verify that the result is as recommended:"     >> `hostname`_SCD13.txt
+useradd -D | xargs -n 1 | grep inactive | awk -F= '{ print $2 }'     >> `hostname`_SCD13.txt
+echo " Must Return :35"     >> `hostname`_SCD13.txt
+echo "==================================="     >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo 8.6. Set Default File Creation Mask for FTP Users    >> `hostname`_SCD13.txt
+cat /etc/proftpd.conf |grep -i umask     >> `hostname`_SCD13.txt
+echo "==============================================================================================================================="         >> `hostname`_SCD13.txt
+
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
