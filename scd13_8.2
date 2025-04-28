@@ -1,0 +1,14 @@
+
+cat /etc/default/passwd  | grep -v ^#         >> `hostname`_SCD13.txt
+
+echo "==============================================================================================================================="         >> `hostname`_SCD13.txt
+
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo  "                    "       >> `hostname`_SCD13.txt
+echo "==============================================================================================================================="         >> `hostname`_SCD13.txt
+echo 8.2. Set Strong Password Creation Policies     >> `hostname`_SCD13.txt
+cp -p /etc/default/login  /etc/default/login_`date +%d%h%y_%H%M`
+cd /etc/default
+awk '/^UMASK=/ { $1 = "UMASK=027" } { print }' login > login.CIS
+mv login.CIS login
