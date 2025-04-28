@@ -1,0 +1,121 @@
+1)Before going to start the activity we will take the snapshot of that server.
+
+2)Then we check the current version of server by using /etc/redhat-release
+
+3)/,/var,/usr partition size space is  min 5GB required to start the process.
+   #df -Th
+   
+4)Then we can set permitRoot login value as yes in /etc/ssh/sshd_config and we set allow drifting 'no' in /etc/firewalld/firewalld.conf file .
+
+  sed -i s/^AllowZoneDrifting=.*/AllowZoneDrifting=no/ /etc/firewalld/firewalld.conf 
+
+5)Then we attach RHEL current version 8.10 and migrated version 9.4 as we are migrating servers from 8.10 to 9.4.
+
+6)We can verify the attched iso images in #lsblk -f
+
+7)Now Mount the RHEL 8.8 iso on /mnt 
+  # mount /dev/sr0 /mnt 
+  #vim /etc/yum.repos.d/local.repo 
+ 
+   [AppStream] 
+   name=AppStream 
+   baseurl=file:///mnt/AppStream 
+   enabled=1 
+   gpgcheck=0 
+    
+   [BaseOS] 
+   name=BaseOS 
+   baseurl=file:///mnt/BaseOS 
+   enabled=1 
+   gpgcheck=0  
+ 
+8)Install http package and start, enable the httpd service. 
+ 
+   # yum install -y httpd 
+   #systemctl start httpd 
+   #systemctl enable httpd 
+   #systemctl status httpd 
+
+9)Remove old leapp package and Install new Leapp packages from RHEL 8.8 ISO. 
+   rpm -qa | grep -i leapp 
+   yum remove leapp 
+   yum install leapp-* -y 
+   
+10)Now Unmount the RHEL 8.8 iso and create the “RHEL9” directory in /var/www/html/ 
+   #umount /mnt 
+   #mkdir /var/www/html/RHEL9 
+   
+11)Mount the RHEL 9.2 iso on /var/www/html/RHEL9/ 
+   #mount /dev/sr1 /var/www/html/RHEL9/
+   
+12)Then we can keep our local repo file through url in below format 
+ 
+   # vim /etc/yum.repos.d/local.repo  
+ 
+    [BaseOS] 
+    name=BaseOS 
+    baseurl=http://10.177.141.105/RHEL9/BaseOS/ 
+    gpgcheck=0 
+    enabled=1 
+     
+    [AppStream] 
+    name=AppStream 
+    baseurl=http://10.177.141.105/RHEL9/AppStream/ 
+    gpgcheck=0 
+    enabled=1 
+
+13)After this we can check repos are properly configured or not by using 
+   yum clean all
+   yum repolist
+   
+14)For migration one leapp tar zip file we copied from ansible server to local server.
+   leapp-data-22.tar.gz
+   
+15)After extracting tar file, we have 5 files for migration activity.
+   
+   #tar -xzf leapp-data15.tar.gz -C /etc/leapp/files && rm leapp-data15.tar.gz 
+   
+   leapp-deps-el9-5.0.9-100.202301271308Z.f7c82a24.master.el9.noarch
+   leapp-repository-deps-el9-5.0.9-100.202301271308Z.f7c82a24.master
+   cockpit-leapp-0.1.6-5.el8_6.noarch            
+   leapp-upgrade-el8toel9-0.19.0-4.el8_9.noarch 
+   python3-leapp-0.16.0-2.el8.noarch            
+   leapp-0.16.0-2.el8.noarch     
+
+16)We need to install all packages manually.then we run the preupgrade command. The pre upgrade process assess the system is ready to update successfully or not.
+   # leapp preupgrade --no-rhsm --enablerepo BaseOS --enablerepo AppStream 
+   
+17)If we get any any risk factors before upgrade it will show as inhibitors/risk factors. Which is stored in one txt file. According to that we troubleshoot and will go further.
+   
+   The leapp-report.txt. provides a summary of the issues and offers solutions to resolve them. 
+   #more /var/log/leapp/leapp-report.txt 
+
+18)After resolving all issues we run again the preupgrade command to verify any risk factors are occured or not.
+
+   #leapp preupgrade --no-rhsm --enablerepo BaseOS --enablerepo AppStream 
+ 
+19)Upgrade the server by below command 
+ 
+   # leapp upgrade --no-rhsm --enablerepo BaseOS --enablerepo AppStream 
+
+20)	Stop ds_agent service if running and remove following package.
+
+   #rpm -qa | grep -i ds_agent 
+   ds_agent-20.0.0-8137.el8.x86_64 
+   # systemctl stop ds_agent 
+   #yum remove ds_agent-20.0.0-8137.el8.x86_64 
+   
+21)	Reboot the server 
+ 
+#init 6 
+ 
+22)	After reboot, the server will upgrade from RHEL 8.10 to 9.4 
+23) Check the current version of OS 
+ 
+  # cat /etc/redhat-release 
+  
+24)Install ds_agent. 
+ 
+  #rpm –ivh Agent-PGPCore-RedHat_EL9-20.0.0-8137.x86_64.rpm 
+  
+25)Set no permit_root_login entry in /etc/ssh/sshd_config and check the status of sshd sevice. 
