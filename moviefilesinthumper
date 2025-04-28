@@ -1,0 +1,90 @@
+67----81
+
+
+mv `ls -lrth |grep -w "2007" |awk '{print $9}'`  /storagepool/doc-root_24.67/06FEB2014/3P_2007/  & 
+
+mv `ls -lrth |grep -w "2010" |awk '{print $9}'`  /storagepool/doc-root_24.67/06FEB2014/3P_2010/  &
+mv `ls -lrth |grep -w "2011" |awk '{print $9}'`  /storagepool/doc-root_24.67/06FEB2014/3P_2011/  &
+
+mv `ls -lrth |grep -w "2012" |grep -w "Jan"|awk '{print $9}'` /storagepool/doc-root_24.67/06FEB2014/3P_2012/Jan  &
+mv `ls -lrth |grep -w "2012" |grep -w "Feb"|awk '{print $9}'` /storagepool/doc-root_24.67/06FEB2014/3P_2012/Feb  &
+mv `ls -lrth |grep -w "2012" |grep -w "Mar"|awk '{print $9}'` /storagepool/doc-root_24.67/06FEB2014/3P_2012/Mar  &
+mv `ls -lrth |grep -w "2012" |grep -w "Apr"|awk '{print $9}'` /storagepool/doc-root_24.67/06FEB2014/3P_2012/Apr  &
+mv `ls -lrth |grep -w "2012" |grep -w "May"|awk '{print $9}'` /storagepool/doc-root_24.67/06FEB2014/3P_2012/May  &
+mv `ls -lrth |grep -w "2012" |grep -w "Jun"|awk '{print $9}'` /storagepool/doc-root_24.67/06FEB2014/3P_2012/Jun  &
+mv `ls -lrth |grep -w "2012" |grep -w "Jul"|awk '{print $9}'` /storagepool/doc-root_24.67/06FEB2014/3P_2012/Jul  &
+mv `ls -lrth |grep -w "2012" |grep -w "Aug"|awk '{print $9}'` /storagepool/doc-root_24.67/06FEB2014/3P_2012/Aug  &
+mv `ls -lrth |grep -w "2012" |grep -w "Sep"|awk '{print $9}'` /storagepool/doc-root_24.67/06FEB2014/3P_2012/Sep  &
+mv `ls -lrth |grep -w "2012" |grep -w "Oct"|awk '{print $9}'` /storagepool/doc-root_24.67/06FEB2014/3P_2012/Oct  &
+mv `ls -lrth |grep -w "2012" |grep -w "Nov"|awk '{print $9}'` /storagepool/doc-root_24.67/06FEB2014/3P_2012/Nov  &
+mv `ls -lrth |grep -w "2012" |grep -w "Dec"|awk '{print $9}'` /storagepool/doc-root_24.67/06FEB2014/3P_2012/Dec  &
+
+2013
+
+mv `ls -lrth |grep -w "2013" |grep -w "Jan"|awk '{print $9}'` /storagepool/doc-root_24.67/06FEB2014/3P_2013/Jan  &
+mv `ls -lrth |grep -w "2013" |grep -w "Feb"|awk '{print $9}'` /storagepool/doc-root_24.67/06FEB2014/3P_2013/Feb  &
+mv `ls -lrth |grep -w "2013" |grep -w "Mar"|awk '{print $9}'` /storagepool/doc-root_24.67/06FEB2014/3P_2013/Mar  &
+mv `ls -lrth |grep -w "2013" |grep -w "Apr"|awk '{print $9}'` /storagepool/doc-root_24.67/06FEB2014/3P_2013/Apr  &
+mv `ls -lrth |grep -w "2013" |grep -w "May"|awk '{print $9}'` /storagepool/doc-root_24.67/06FEB2014/3P_2013/May  &
+mv `ls -lrth |grep -w "2013" |grep -w "Jun"|awk '{print $9}'` /storagepool/doc-root_24.67/06FEB2014/3P_2013/Jun  &
+mv `ls -lrth |grep -w "2013" |grep -w "Jul 31"|awk '{print $9}'`/storagepool/doc-root_24.67/06FEB2014/3P_2013/Jul  &
+mv `ls -lrth |grep -w "2013" |grep -w "Jul 30"|awk '{print $9}'`/storagepool/doc-root_24.67/06FEB2014/3P_2013/Jul  &
+
+mv `ls -lrth |grep -w "2013" |grep -w "May 31"|awk '{print $9}'`/storagepool/doc-root_24.67/06FEB2014/3P_2013/May  &
+
+
+	
+
+
+mv `ls -lrth |grep -w "2013" |grep -w "Aug"|awk '{print $9}'` /storagepool/doc-root_24.67/06FEB2014/3P_2013/Aug  &
+mv `ls -lrth |grep -w "2013" |grep -w "Sep"|awk '{print $9}'` /storagepool/doc-root_24.67/06FEB2014/3P_2013/Sep  &
+mv `ls -lrth |grep -w "2013" |grep -w "Oct"|awk '{print $9}'` /storagepool/doc-root_24.67/06FEB2014/3P_2013/Oct  &
+mv `ls -lrth |grep -w "2013" |grep -w "Nov"|awk '{print $9}'` /storagepool/doc-root_24.67/06FEB2014/3P_2013/Nov  &
+mv `ls -lrth |grep -w "2013" |grep -w "Dec"|awk '{print $9}'` /storagepool/doc-root_24.67/06FEB2014/3P_2013/Dec  &
+
+
+
+
+
+rm -f `ls -lrth |grep -w "2013" |grep -w "Jan"|awk '{print $9}'`
+
+ 
+
+
+
+
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+mv ` ls -lrth |grep -w "2013"|awk '{print $9}'` /storagepool/doc-root_24.67/06FEB2014/NAB_2013  &
+
+
+
+
+
+
+mv `ls -lrth |grep -w "2013" |awk '{print $9}'`  /storagepool/doc-root_24.67/06FEB2014/3P_2013/  &
+
+
