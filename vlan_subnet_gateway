@@ -1,0 +1,11 @@
+to know vlan id:-
+
+first need to check on which interface ip was configured.
+#ifconfig -a
+#entstat -d en0 | grep -i vlan
+
+To know sub netmask and Gateway
+
+#prtconf | grep Sub Netmask
+
+#prtconf | grep -i gateway
